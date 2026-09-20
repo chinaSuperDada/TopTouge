@@ -41,6 +41,10 @@ Page({
     wx.navigateTo({ url: '/pages/route-upload/route-upload' })
   },
 
+  onRecord() {
+    wx.navigateTo({ url: '/pages/route-record/route-record' })
+  },
+
   onRetry() {
     this.loadRoutes()
   }

@@ -1,0 +1,202 @@
+.page {
+  min-height: 100vh;
+  padding: var(--space-3);
+  padding-bottom: var(--space-6);
+  box-sizing: border-box;
+  background: var(--bg-base);
+}
+
+/* ---------- 实时统计 ---------- */
+
+.stats {
+  position: relative;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.stat-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: var(--space-3);
+  border-bottom: 2rpx solid var(--divider);
+  margin-bottom: var(--space-3);
+}
+
+/* 时长是录制时的主角，用最大字号 */
+.stat-time {
+  font-size: 92rpx;
+  font-weight: 700;
+  color: var(--text-emphasis);
+  line-height: 1;
+  letter-spacing: 2rpx;
+  margin-bottom: 10rpx;
+}
+
+.stat-row {
+  display: flex;
+}
+
+.stat-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: var(--fs-heading);
+  font-weight: 700;
+  color: var(--text-emphasis);
+  line-height: 1.1;
+  margin-bottom: 6rpx;
+}
+
+.stat-label {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}
+
+/* 录制状态角标 */
+.rec-badge {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+  padding: 8rpx var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--danger-dim);
+  border: 2rpx solid var(--danger-border);
+  font-size: var(--fs-caption);
+  color: var(--danger);
+}
+
+.rec-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: var(--danger);
+  margin-right: 8rpx;
+  animation: blink 1.2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.rec-paused {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+}
+
+/* ---------- 提示 ---------- */
+
+.hint-box {
+  margin-bottom: var(--space-3);
+}
+
+.hint-title {
+  display: block;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 6rpx;
+}
+
+.hint-body {
+  font-size: var(--fs-label);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.hint-done .hint-title {
+  color: var(--success);
+}
+
+.error-box {
+  margin-bottom: var(--space-3);
+}
+
+/* ---------- 地图 ---------- */
+
+.map-wrap {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+}
+
+.map {
+  width: 100%;
+  height: 620rpx;
+  opacity: 0.92;
+}
+
+/* ---------- 控制按钮 ---------- */
+
+.controls {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.controls .btn {
+  flex: 1;
+}
+
+/* ---------- 表单 ---------- */
+
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.field {
+  margin-bottom: var(--space-3);
+}
+
+.field:last-of-type {
+  margin-bottom: var(--space-2);
+}
+
+.field-label {
+  display: block;
+  font-size: var(--fs-label);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  padding: 20rpx var(--space-3);
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+}
+
+.picker-arrow {
+  font-size: 32rpx;
+  color: var(--text-tertiary);
+  line-height: 1;
+}
+
+.note {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  line-height: 1.6;
+  padding-top: var(--space-2);
+  border-top: 2rpx solid var(--divider);
+}
+
+.submit-btn {
+  margin-bottom: var(--space-3);
+}

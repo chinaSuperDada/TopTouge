@@ -2,7 +2,8 @@
   "pages": [
     "pages/route-list/route-list",
     "pages/route-detail/route-detail",
-    "pages/route-upload/route-upload"
+    "pages/route-upload/route-upload",
+    "pages/route-record/route-record"
   ],
   "window": {
     "backgroundTextStyle": "dark",

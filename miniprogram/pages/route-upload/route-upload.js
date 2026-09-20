@@ -1,11 +1,6 @@
 const api = require('../../utils/request')
 const amap = require('../../utils/amap')
-
-const ROAD_WIDTH_OPTIONS = [
-  { value: 'narrow', label: '窄' },
-  { value: 'medium', label: '中' },
-  { value: 'wide', label: '宽' }
-]
+const { ROAD_WIDTH_OPTIONS, ROAD_WIDTH_LABELS } = require('../../utils/roadWidth')
 
 // 搜索联想用的防抖间隔，避免每敲一个字都发请求
 const SEARCH_DEBOUNCE_MS = 350
@@ -25,7 +20,7 @@ Page({
     // 表单
     name: '',
     roadWidthIndex: 1,
-    roadWidthLabels: ROAD_WIDTH_OPTIONS.map((o) => o.label),
+    roadWidthLabels: ROAD_WIDTH_LABELS,
 
     // 采集结果
     points: [],

@@ -28,5 +28,8 @@
     </view>
   </block>
 
-  <view class="fab btn btn-primary" bindtap="onUpload">＋ 上传路线</view>
+  <view class="fab-bar">
+    <view class="fab-btn fab-ghost" bindtap="onUpload">搜索/选点</view>
+    <view class="fab-btn fab-primary" bindtap="onRecord">● 录制路线</view>
+  </view>
 </view>

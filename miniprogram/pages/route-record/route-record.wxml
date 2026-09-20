@@ -1,0 +1,115 @@
+<view class="page">
+  <!-- 录制中/暂停：实时统计 -->
+  <view class="stats" wx:if="{{status === 'recording' || status === 'paused'}}">
+    <view class="stat-main">
+      <text class="stat-time t-num">{{elapsedText}}</text>
+      <text class="stat-label">已用时长</text>
+    </view>
+    <view class="stat-row">
+      <view class="stat-cell">
+        <text class="stat-value t-num">{{distanceText}}</text>
+        <text class="stat-label">已跑距离</text>
+      </view>
+      <view class="stat-cell">
+        <text class="stat-value t-num">{{pointCount}}</text>
+        <text class="stat-label">已采点</text>
+      </view>
+    </view>
+    <view class="rec-badge" wx:if="{{status === 'recording'}}">
+      <view class="rec-dot"></view>
+      <text>录制中</text>
+    </view>
+    <view class="rec-badge rec-paused" wx:else>
+      <text>已暂停</text>
+    </view>
+  </view>
+
+  <!-- 空闲：说明 -->
+  <view class="hint-box" wx:if="{{status === 'idle'}}">
+    <text class="hint-title">跑一段路，把它变成路线</text>
+    <text class="hint-body">开始后会持续记录你的位置。跑完点结束，这段轨迹就成为一条新路线，别人也能跑。</text>
+  </view>
+
+  <!-- 完成：表单 -->
+  <view class="hint-box hint-done" wx:if="{{status === 'finished'}}">
+    <text class="hint-title">录制完成</text>
+    <text class="hint-body">用时 {{elapsedText}}，共 {{pointCount}} 个点。填个名字就能保存。</text>
+  </view>
+
+  <view class="error-box" wx:if="{{error}}">{{error}}</view>
+
+  <!-- 地图 -->
+  <view class="map-wrap">
+    <map
+      id="recordMap"
+      class="map"
+      latitude="{{latitude}}"
+      longitude="{{longitude}}"
+      scale="{{scale}}"
+      polyline="{{polyline}}"
+      markers="{{markers}}"
+      show-location
+    ></map>
+  </view>
+
+  <!-- 控制按钮 -->
+  <view class="controls">
+    <block wx:if="{{status === 'idle'}}">
+      <view class="btn btn-primary" bindtap="onStart">开始录制</view>
+    </block>
+
+    <block wx:elif="{{status === 'recording'}}">
+      <view class="btn btn-ghost" bindtap="onPause">暂停</view>
+      <view class="btn btn-primary" bindtap="onFinish">结束</view>
+    </block>
+
+    <block wx:elif="{{status === 'paused'}}">
+      <view class="btn btn-ghost" bindtap="onReset">放弃</view>
+      <view class="btn btn-primary" bindtap="onPause">继续</view>
+    </block>
+
+    <block wx:elif="{{status === 'finished'}}">
+      <view class="btn btn-ghost" bindtap="onReset">重新录制</view>
+    </block>
+  </view>
+
+  <!-- 完成后填表单 -->
+  <view class="card" wx:if="{{status === 'finished'}}">
+    <view class="field">
+      <text class="field-label">路线名称</text>
+      <input
+        class="input"
+        value="{{name}}"
+        placeholder="例如：西山晨跑线"
+        placeholder-class="input-placeholder"
+        maxlength="40"
+        bindinput="onNameInput"
+      />
+    </view>
+
+    <view class="field">
+      <text class="field-label">路宽</text>
+      <picker
+        mode="selector"
+        range="{{roadWidthLabels}}"
+        value="{{roadWidthIndex}}"
+        bindchange="onRoadWidthChange"
+      >
+        <view class="picker">
+          <text>{{roadWidthLabels[roadWidthIndex]}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="note">
+      距离、弯道数、急弯占比、爬升、难度星级由后端根据轨迹自动计算
+    </view>
+  </view>
+
+  <view
+    class="btn btn-primary submit-btn {{submitting ? 'btn-disabled' : ''}}"
+    wx:if="{{status === 'finished'}}"
+    bindtap="onSubmit"
+  >保存为路线</view>
+</view>

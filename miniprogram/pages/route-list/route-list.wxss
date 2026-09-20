@@ -82,12 +82,40 @@
   display: block;
 }
 
-/* ---------- 悬浮按钮 ---------- */
+/* ---------- 底部操作条 ---------- */
 
-.fab {
+.fab-bar {
   position: fixed;
   left: var(--space-4);
   right: var(--space-4);
   /* 让出 iPhone 底部安全区 */
   bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  display: flex;
+  gap: var(--space-2);
+}
+
+.fab-btn {
+  flex: 1;
+  height: 92rpx;
+  line-height: 92rpx;
+  text-align: center;
+  border-radius: 46rpx;
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+
+.fab-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-accent);
+}
+
+.fab-ghost {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 2rpx solid var(--border-strong);
+}
+
+.fab-btn:active {
+  opacity: 0.8;
 }
