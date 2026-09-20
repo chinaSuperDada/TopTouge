@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="800" viewBox="0 0 1080 800" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="aD" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 z" fill="#5a6b7d"/>
+    </marker>
+    <marker id="aDr" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 z" fill="#b09040"/>
+    </marker>
+    <style>
+      .h    { font-size:15px; font-weight:700; fill:#33475b; }
+      .bt   { font-size:12px; font-weight:700; fill:#1f2d3d; }
+      .bs   { font-size:10px; fill:#7a8a9a; }
+      .mono { font-family:Menlo,Consolas,monospace; font-size:10px; fill:#4a5a6a; }
+      .note { font-size:10px; fill:#6b7a8a; }
+    </style>
+  </defs>
+
+  <rect width="1080" height="800" fill="#fbfcfd"/>
+  <text x="40" y="42" font-size="22" font-weight="700" fill="#1f2d3d">TopTouge 部署架构图</text>
+  <text x="40" y="64" font-size="12" fill="#7a8a9a">阶段一：开发期（本机）— 当前实际形态 ｜ 阶段二/三：生产期（云）— 规划，虚线框</text>
+
+  <!-- ================= 开发期 ================= -->
+  <rect x="30" y="88" width="1020" height="368" rx="12" fill="#f7fbff" stroke="#b9d9f2" stroke-width="1.5"/>
+  <text x="50" y="114" class="h">开发者本机（macOS）</text>
+  <text x="230" y="114" class="bs">阶段一唯一部署形态 · 三个进程各自独立，靠端口相互访问</text>
+
+  <!-- 微信开发者工具 -->
+  <rect x="60" y="134" width="290" height="200" rx="9" fill="#fff" stroke="#a9cdea"/>
+  <text x="76" y="158" class="bt">微信开发者工具</text>
+  <text x="76" y="176" class="bs">IDE · 模拟器 · 真机预览</text>
+  <line x1="76" y1="186" x2="334" y2="186" stroke="#e3eef8"/>
+
+  <rect x="76" y="196" width="258" height="34" rx="5" fill="#eef7ff" stroke="#cfe4f7"/>
+  <text x="88" y="210" class="mono">miniprogram/</text>
+  <text x="88" y="223" class="bs">原生小程序源码，工具内编译运行</text>
+
+  <rect x="76" y="236" width="258" height="34" rx="5" fill="#eef7ff" stroke="#cfe4f7"/>
+  <text x="88" y="250" class="mono">project.config.json</text>
+  <text x="88" y="263" class="bs">AppID · 编译设置</text>
+
+  <rect x="76" y="276" width="258" height="46" rx="5" fill="#fff7ed" stroke="#fcd9a8"/>
+  <text x="88" y="292" class="bs" font-weight="700" fill="#a67c30">需勾选「不校验合法域名」</text>
+  <text x="88" y="306" class="bs">否则 localhost 请求被工具拦截</text>
+  <text x="88" y="318" class="bs">详情 → 本地设置 → 勾选项</text>
+
+  <!-- Docker -->
+  <rect x="380" y="134" width="300" height="200" rx="9" fill="#fff" stroke="#dcbe95"/>
+  <text x="396" y="158" class="bt">Docker Desktop</text>
+  <text x="396" y="176" class="bs">docker compose up -d</text>
+  <line x1="396" y1="186" x2="664" y2="186" stroke="#f0e4cf"/>
+
+  <rect x="396" y="196" width="268" height="58" rx="6" fill="#fdf7f0" stroke="#dcbe95"/>
+  <text x="408" y="214" class="bt">容器 postgis/postgis:16-3.4</text>
+  <text x="408" y="232" class="mono">localhost:5432 → 5432</text>
+  <text x="408" y="248" class="bs">卷 pgdata 持久化，重启不丢数据</text>
+
+  <rect x="396" y="260" width="268" height="52" rx="6" fill="#fdf7f0" stroke="#dcbe95"/>
+  <text x="408" y="278" class="bt">容器 adminer</text>
+  <text x="408" y="296" class="mono">localhost:8080 → Adminer</text>
+  <text x="408" y="309" class="bs">Web 界面，替代 psql 客户端</text>
+
+  <!-- Node 进程 -->
+  <rect x="710" y="134" width="310" height="200" rx="9" fill="#fff" stroke="#a4d7b9"/>
+  <text x="726" y="158" class="bt">Node.js 进程（宿主机运行）</text>
+  <text x="726" y="176" class="bs">npm run dev · nodemon 热重载</text>
+  <line x1="726" y1="186" x2="1004" y2="186" stroke="#e6f4ec"/>
+
+  <rect x="726" y="196" width="278" height="34" rx="5" fill="#f1fbf5" stroke="#c7e9d5"/>
+  <text x="738" y="210" class="mono">localhost:3000</text>
+  <text x="738" y="223" class="bs">Express 监听端口</text>
+
+  <rect x="726" y="236" width="278" height="34" rx="5" fill="#f1fbf5" stroke="#c7e9d5"/>
+  <text x="738" y="250" class="mono">.env → DATABASE_URL</text>
+  <text x="738" y="263" class="bs">指向本机 5432 的容器</text>
+
+  <rect x="726" y="276" width="278" height="46" rx="5" fill="#f1fbf5" stroke="#c7e9d5"/>
+  <text x="738" y="292" class="mono">npm run migrate &amp;&amp; npm run seed</text>
+  <text x="738" y="306" class="bs">建表 + 写入 3 条 mock 路线</text>
+  <text x="738" y="318" class="bs">幂等，可反复执行</text>
+
+  <!-- 开发期连线 -->
+  <line x1="350" y1="220" x2="380" y2="220" stroke="#c9a24a" stroke-width="1.4" stroke-dasharray="5,3" marker-end="url(#aDr)"/>
+  <text x="330" y="212" class="note">否</text>
+  <line x1="680" y1="240" x2="712" y2="240" stroke="#5a6b7d" stroke-width="1.4" marker-end="url(#aD)"/>
+  <text x="676" y="234" class="note">HTTP</text>
+  <line x1="864" y1="334" x2="664" y2="334" stroke="#5a6b7d" stroke-width="1.4" marker-end="url(#aD)"/>
+  <text x="700" y="350" class="note">pg 协议 5432</text>
+
+  <!-- 开发期网络说明 -->
+  <rect x="60" y="352" width="960" height="88" rx="8" fill="#ffffff" stroke="#dce8f2"/>
+  <text x="76" y="374" class="bt">开发期网络说明</text>
+  <text x="76" y="394" class="bs">· 模拟器：小程序请求 http://localhost:3000 即可，模拟器与宿主机共享网络栈</text>
+  <text x="76" y="412" class="bs">· 真机预览：localhost 不通，需把 app.js 的 baseUrl 改为宿主机局域网 IP（如 http://192.168.x.x:3000），手机与电脑同一 Wi-Fi</text>
+  <text x="76" y="430" class="bs">· 高德 SDK：小程序端直连高德服务器，不经过我们后端；key 的域名白名单需放行高德域名</text>
+
+  <!-- ================= 生产期 ================= -->
+  <rect x="30" y="478" width="1020" height="292" rx="12" fill="#fafafa" stroke="#c9d2da" stroke-width="1.5" stroke-dasharray="7,4"/>
+  <text x="50" y="504" class="h" fill="#6b7a8a">生产期（阶段二 / 三 — 尚未实施，仅规划）</text>
+  <text x="330" y="504" class="bs">触发条件：算分上线，需要 72 小时定时清理与真实手机定位采集</text>
+
+  <rect x="60" y="522" width="220" height="118" rx="9" fill="#fff" stroke="#c9d2da"/>
+  <text x="76" y="544" class="bt">微信小程序</text>
+  <text x="76" y="562" class="bs">体验版 / 正式版</text>
+  <text x="76" y="580" class="bs">需 ICP 备案域名</text>
+  <text x="76" y="598" class="bs">HTTPS 强制</text>
+  <text x="76" y="620" class="bs" fill="#a0a8b0">发布走微信审核</text>
+
+  <rect x="300" y="522" width="230" height="118" rx="9" fill="#fff" stroke="#c9d2da"/>
+  <text x="316" y="544" class="bt">应用服务器</text>
+  <text x="316" y="562" class="bs">云主机 / 容器服务</text>
+  <text x="316" y="580" class="bs">Node 进程 + node-cron</text>
+  <text x="316" y="598" class="bs">Nginx 反代 + TLS 证书</text>
+  <text x="316" y="620" class="bs" fill="#a0a8b0">单实例起步即可</text>
+
+  <rect x="550" y="522" width="230" height="118" rx="9" fill="#fff" stroke="#c9d2da"/>
+  <text x="566" y="544" class="bt">托管 PostgreSQL</text>
+  <text x="566" y="562" class="bs">云 RDS（需 PostGIS 支持）</text>
+  <text x="566" y="580" class="bs">自动备份 / 快照</text>
+  <text x="566" y="598" class="bs">置于 private subnet</text>
+  <text x="566" y="620" class="bs" fill="#a0a8b0">不给公网入口</text>
+
+  <rect x="800" y="522" width="220" height="118" rx="9" fill="#fff" stroke="#c9d2da"/>
+  <text x="816" y="544" class="bt">外部服务</text>
+  <text x="816" y="562" class="bs">高德开放平台</text>
+  <text x="816" y="580" class="bs">微信服务器</text>
+  <text x="816" y="598" class="bs">日志 / 监控（选配）</text>
+
+  <line x1="280" y1="581" x2="300" y2="581" stroke="#8b98a5" stroke-width="1.3" stroke-dasharray="4,3" marker-end="url(#aD)"/>
+  <line x1="530" y1="581" x2="550" y2="581" stroke="#8b98a5" stroke-width="1.3" stroke-dasharray="4,3" marker-end="url(#aD)"/>
+  <line x1="780" y1="581" x2="800" y2="581" stroke="#8b98a5" stroke-width="1.3" stroke-dasharray="4,3" marker-end="url(#aD)"/>
+
+  <text x="60" y="672" class="bt" fill="#8b98a5">阶段一 → 生产 的演进差异</text>
+  <text x="60" y="694" class="bs">1. PostGIS 从「已装未用」变为「启用 geometry 列 + GiST 索引」，支撑附近路线查询</text>
+  <text x="60" y="712" class="bs">2. 固定测试 userId 替换为 wx.login 换取的 openid，接口加鉴权中间件</text>
+  <text x="60" y="730" class="bs">3. node-cron 清理任务的部署形态：与应用同进程（简单）或拆独立 worker（稳定）。阶段一不涉及</text>
+  <text x="60" y="752" class="bs">4. 坐标系：阶段二接入 GPS 原始轨迹时为 WGS-84，与库内 GCJ-02 不同源，必须转换 —— 已知风险</text>
+</svg>

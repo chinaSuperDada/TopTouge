@@ -1,0 +1,200 @@
+/**
+ * TopTouge 基础样式 —— 排版、容器、通用工具类
+ * 依赖 tokens.wxss 里定义的设计变量。
+ */
+
+page {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-size: var(--fs-body);
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 页面容器 ---------- */
+
+.page {
+  min-height: 100vh;
+  padding: var(--space-3);
+  box-sizing: border-box;
+  background: var(--bg-base);
+}
+
+.page-scroll {
+  padding-bottom: var(--space-6);
+  box-sizing: border-box;
+}
+
+/* ---------- 卡片 ---------- */
+
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.card-inset {
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* ---------- 区块标题 ---------- */
+
+.section-title {
+  display: flex;
+  align-items: center;
+  font-size: var(--fs-title);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+/* 标题前的强调色竖条 */
+.section-title::before {
+  content: '';
+  width: 6rpx;
+  height: 30rpx;
+  background: var(--accent);
+  border-radius: 3rpx;
+  margin-right: var(--space-2);
+}
+
+/* ---------- 文字工具类 ---------- */
+
+.t-caption {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+}
+
+.t-label {
+  font-size: var(--fs-label);
+  color: var(--text-secondary);
+}
+
+.t-body {
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+}
+
+.t-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+.t-accent {
+  color: var(--accent);
+}
+
+.t-muted {
+  color: var(--text-secondary);
+}
+
+/* ---------- 布局工具类 ---------- */
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-1 {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- 按钮 ---------- */
+
+.btn {
+  height: 96rpx;
+  line-height: 96rpx;
+  text-align: center;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-title);
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-accent);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border: 2rpx solid var(--border-strong);
+}
+
+.btn-disabled {
+  opacity: 0.45;
+}
+
+.btn:active {
+  opacity: 0.8;
+}
+
+/* ---------- 输入 ---------- */
+
+.input {
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  padding: 20rpx var(--space-3);
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* placeholder 在深色底下默认是黑的，必须显式改 */
+.input-placeholder {
+  color: var(--text-tertiary);
+}
+
+/* ---------- 空状态与提示 ---------- */
+
+.empty {
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--fs-label);
+  padding: var(--space-6) 0;
+}
+
+.hint-box {
+  background: var(--accent-dim);
+  border: 2rpx solid var(--accent-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-label);
+  color: var(--accent);
+  line-height: 1.6;
+}
+
+.error-box {
+  background: rgba(255, 92, 92, 0.12);
+  border: 2rpx solid rgba(255, 92, 92, 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-label);
+  color: var(--danger);
+}
+
+/* ---------- 分隔线 ---------- */
+
+.divider {
+  height: 2rpx;
+  background: var(--divider);
+  margin: var(--space-3) 0;
+}

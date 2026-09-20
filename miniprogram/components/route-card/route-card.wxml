@@ -1,0 +1,41 @@
+<view class="route-card" bindtap="onTap">
+  <view class="card-main">
+    <view class="info">
+      <text class="name">{{route.name}}</text>
+
+      <view class="stats">
+        <view class="stat">
+          <text class="stat-value t-num">{{distanceText}}</text>
+          <text class="stat-label">距离</text>
+        </view>
+        <view class="stat-sep"></view>
+        <view class="stat">
+          <text class="stat-value t-num">{{route.curveCount}}</text>
+          <text class="stat-label">弯道</text>
+        </view>
+        <view class="stat-sep"></view>
+        <view class="stat">
+          <text class="stat-value t-num">{{elevationText}}</text>
+          <text class="stat-label">爬升</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="difficulty">
+      <text class="difficulty-label">难度</text>
+      <text class="difficulty-num t-num">{{route.difficultyStars}}</text>
+      <view class="stars">
+        <view
+          class="star {{index < route.difficultyStars ? 'star-on' : ''}}"
+          wx:for="{{[0,1,2,3,4]}}"
+          wx:key="*this"
+        ></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card-foot">
+    <text class="road-width">{{roadWidthText}}路</text>
+    <text class="chevron">›</text>
+  </view>
+</view>

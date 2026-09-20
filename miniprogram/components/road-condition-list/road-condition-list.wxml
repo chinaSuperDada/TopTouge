@@ -1,0 +1,32 @@
+<view class="section">
+  <view class="section-head">
+    <text class="section-title">路况提示</text>
+    <text class="count" wx:if="{{rows.length > 0}}">{{rows.length}}</text>
+  </view>
+
+  <block wx:if="{{rows.length > 0}}">
+    <view class="item" wx:for="{{rows}}" wx:key="id">
+      <view class="item-head">
+        <text class="user">{{item.userId}}</text>
+        <text class="time">{{item.timeText}}</text>
+      </view>
+      <text class="content">{{item.content}}</text>
+    </view>
+  </block>
+
+  <view class="empty" wx:else>暂无路况提示</view>
+
+  <view class="composer">
+    <input
+      class="input composer-input"
+      value="{{input}}"
+      placeholder="路况如何？落石 / 施工 / 湿滑…"
+      placeholder-class="input-placeholder"
+      maxlength="500"
+      confirm-type="send"
+      bindinput="onInput"
+      bindconfirm="onSubmit"
+    />
+    <view class="send {{submitting ? 'send-disabled' : ''}}" bindtap="onSubmit">发布</view>
+  </view>
+</view>

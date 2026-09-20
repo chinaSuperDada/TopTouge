@@ -1,0 +1,25 @@
+<view class="panel">
+  <view class="panel-head">
+    <text class="section-title">难度信息</text>
+    <view class="star-badge">
+      <text class="star-num t-num">{{route.difficultyStars}}</text>
+      <text class="star-unit">星</text>
+    </view>
+  </view>
+
+  <view class="grid">
+    <view class="cell" wx:for="{{metrics}}" wx:key="label">
+      <text class="cell-value t-num">{{item.value}}</text>
+      <text class="cell-label">{{item.label}}</text>
+    </view>
+  </view>
+
+  <view class="divider"></view>
+
+  <view class="meta-row">
+    <view class="meta-item" wx:for="{{meta}}" wx:key="label">
+      <text class="meta-label">{{item.label}}</text>
+      <text class="meta-value">{{item.value}}</text>
+    </view>
+  </view>
+</view>

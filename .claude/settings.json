@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "H=\"${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/permission-gate.sh\"; [ -x \"$H\" ] && \"$H\" || true",
+            "timeout": 10,
+            "statusMessage": "权限门禁：确定性规则"
+          },
+          {
+            "type": "agent",
+            "model": "claude-haiku-4-5",
+            "timeout": 60,
+            "statusMessage": "权限门禁：影响面评估",
+            "prompt": "你在为 TopTouge 项目充当权限门禁。下面是要执行的工具调用 JSON：\n\n$ARGUMENTS\n\n判断这次调用的影响面。\n\n必须转人工（permissionDecision 用 ask）的情况：\n1. 大体积下载：会拉取大量文件或大文件。例如依赖安装（npm/pnpm/yarn/pip/brew install）、git clone、docker pull、下载压缩包或数据集。\n2. 批量删改：一次影响的文件数量多。\n3. 目标路径在项目工作目录之外，或命中敏感位置（~/.ssh、~/.aws、~/.claude、/etc、/usr、$HOME 根目录）。\n4. 有明显规避或混淆迹象：base64 解码后执行、curl 管道直接进 shell、eval 拼接字符串、写入 shell 启动文件。\n\n其余情况返回 allow。包括：读写单个项目内文件、查看与检索文件、跑测试、启动本地服务、git status/diff/log/add/commit、单文件格式化。\n\n拿不准时返回 ask。可以用 Bash 工具实际探测（ls 目标目录、du -sh 估体积、find 数文件数），但探测要克制，最多一两条命令。\n\n最后只输出一行 JSON，前后不要有任何其他文字：\n{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"不超过30字的中文理由\"}}\n\n把 permissionDecision 替换成 allow 或 ask。"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+<view class="page">
+  <view class="state-box" wx:if="{{loading}}">
+    <view class="spinner"></view>
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view class="error-box" wx:elif="{{error}}">
+    <text>{{error}}</text>
+    <view class="btn btn-ghost retry" bindtap="onRetry">重试</view>
+  </view>
+
+  <block wx:else>
+    <view class="hero">
+      <text class="hero-title">{{route.name}}</text>
+      <view class="hero-tags">
+        <text class="tag">{{route.curveCount}} 个弯道</text>
+        <text class="tag">{{route.distanceMeters}} 米</text>
+      </view>
+    </view>
+
+    <view class="map-wrap">
+      <map
+        id="routeMap"
+        class="map"
+        latitude="{{latitude}}"
+        longitude="{{longitude}}"
+        scale="{{scale}}"
+        polyline="{{polyline}}"
+        markers="{{markers}}"
+        show-location
+      ></map>
+    </view>
+
+    <difficulty-panel route="{{route}}" />
+
+    <comment-list
+      id="commentList"
+      comments="{{route.comments}}"
+      bind:submit="onCommentSubmit"
+    />
+
+    <road-condition-list
+      id="roadConditionList"
+      roadConditions="{{route.roadConditions}}"
+      bind:submit="onRoadConditionSubmit"
+    />
+
+    <view class="start-area">
+      <view class="btn btn-primary" bindtap="onStartRun">开始跑山</view>
+      <text class="start-hint">阶段二开放</text>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,130 @@
+.route-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+  overflow: hidden;
+}
+
+.route-card:active {
+  background: var(--bg-elevated);
+}
+
+.card-main {
+  display: flex;
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-3) var(--space-2);
+}
+
+/* ---------- 左侧信息区 ---------- */
+
+.info {
+  flex: 1;
+  min-width: 0;
+  padding-right: var(--space-2);
+}
+
+.name {
+  display: block;
+  font-size: 42rpx;
+  font-weight: 700;
+  color: var(--text-emphasis);
+  line-height: 1.3;
+  letter-spacing: 1rpx;
+  margin-bottom: var(--space-3);
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 核心数值：纯白粗体，深色底上最抓眼 */
+.stat-value {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  color: var(--text-emphasis);
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+  margin-top: 8rpx;
+}
+
+.stat-sep {
+  width: 2rpx;
+  height: 40rpx;
+  background: var(--border);
+  margin: 0 var(--space-3);
+}
+
+/* ---------- 右侧难度区 ---------- */
+
+.difficulty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 148rpx;
+  padding: var(--space-2) var(--space-2);
+  background: var(--accent-dim);
+  border: 2rpx solid var(--accent-border);
+  border-radius: var(--radius-md);
+}
+
+.difficulty-label {
+  font-size: var(--fs-caption);
+  color: var(--accent);
+  margin-bottom: 4rpx;
+}
+
+.difficulty-num {
+  font-size: var(--fs-heading);
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 10rpx;
+}
+
+/* 五个小方块代表星级，比字符更整齐 */
+.stars {
+  display: flex;
+}
+
+.star {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 3rpx;
+  background: var(--star-empty);
+  margin: 0 3rpx;
+}
+
+.star-on {
+  background: var(--accent);
+}
+
+/* ---------- 底部条 ---------- */
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-top: 2rpx solid var(--divider);
+}
+
+.road-width {
+  font-size: var(--fs-label);
+  color: var(--text-secondary);
+}
+
+.chevron {
+  font-size: 32rpx;
+  color: var(--text-tertiary);
+  line-height: 1;
+}

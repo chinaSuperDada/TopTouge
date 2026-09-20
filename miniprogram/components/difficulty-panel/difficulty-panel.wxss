@@ -1,0 +1,91 @@
+.panel {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+/* section-title 自带强调色竖条与下边距，这里只需要水平居中 */
+.panel-head .section-title {
+  margin-bottom: 0;
+}
+
+.star-badge {
+  display: flex;
+  align-items: baseline;
+  padding: 6rpx var(--space-2);
+  background: var(--accent-dim);
+  border: 2rpx solid var(--accent-border);
+  border-radius: var(--radius-sm);
+}
+
+.star-num {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.star-unit {
+  font-size: var(--fs-label);
+  color: var(--accent);
+  margin-left: 4rpx;
+}
+
+/* ---------- 指标网格 ---------- */
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cell {
+  width: 33.33%;
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-1) var(--space-2) 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cell-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--text-emphasis);
+  line-height: 1.15;
+  margin-bottom: 8rpx;
+}
+
+.cell-label {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}
+
+/* ---------- 辅助信息 ---------- */
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  margin-right: var(--space-4);
+  margin-bottom: var(--space-1);
+}
+
+.meta-label {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  margin-right: 8rpx;
+}
+
+.meta-value {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}

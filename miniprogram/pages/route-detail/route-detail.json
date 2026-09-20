@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "路线详情",
+  "usingComponents": {
+    "difficulty-panel": "/components/difficulty-panel/difficulty-panel",
+    "comment-list": "/components/comment-list/comment-list",
+    "road-condition-list": "/components/road-condition-list/road-condition-list"
+  }
+}

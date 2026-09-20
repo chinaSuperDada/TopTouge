@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="860" viewBox="0 0 1080 860" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="aT" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 z" fill="#5a6b7d"/>
+    </marker>
+    <style>
+      .sec  { font-size:15px; font-weight:700; fill:#33475b; }
+      .bt   { font-size:12px; font-weight:700; fill:#1f2d3d; }
+      .bs   { font-size:10px; fill:#7a8a9a; }
+      .mono { font-family:Menlo,Consolas,monospace; font-size:10px; fill:#4a5a6a; }
+      .why  { font-size:10px; fill:#6b7a8a; }
+    </style>
+  </defs>
+
+  <rect width="1080" height="860" fill="#fbfcfd"/>
+  <text x="40" y="42" font-size="22" font-weight="700" fill="#1f2d3d">TopTouge 技术架构图</text>
+  <text x="40" y="64" font-size="12" fill="#7a8a9a">选型 · 版本 · 依赖关系 ｜ 浅色底为「已定」，虚线为「阶段二启用」</text>
+
+  <!-- ===== ① 运行环境 ===== -->
+  <text x="40" y="104" class="sec">① 运行环境</text>
+  <rect x="200" y="84" width="250" height="52" rx="8" fill="#eef7ff" stroke="#a9cdea"/>
+  <text x="214" y="106" class="bt">微信客户端 / 开发者工具</text>
+  <text x="214" y="124" class="bs">基础库 · map 组件 · 定位能力</text>
+
+  <rect x="470" y="84" width="260" height="52" rx="8" fill="#eef7ff" stroke="#a9cdea"/>
+  <text x="484" y="106" class="bt">Node.js 20 LTS（本机 v25 可跑）</text>
+  <text x="484" y="124" class="bs">CommonJS · Express 4.x · pg 8.x</text>
+
+  <rect x="750" y="84" width="270" height="52" rx="8" fill="#eef7ff" stroke="#a9cdea"/>
+  <text x="764" y="106" class="bt">Docker 27 + Compose v2</text>
+  <text x="764" y="124" class="bs">宿主机 macOS (darwin 25.6)</text>
+
+  <!-- ===== ② 小程序技术栈 ===== -->
+  <text x="40" y="186" class="sec">② 小程序技术栈</text>
+  <rect x="200" y="164" width="820" height="172" rx="8" fill="#f0f7ff" stroke="#c3ddf5"/>
+  <rect x="214" y="178" width="186" height="72" rx="6" fill="#fff" stroke="#bcdcfa"/>
+  <text x="226" y="200" class="bt">原生 JS + WXML</text>
+  <text x="226" y="218" class="bs">App / Page 生命周期</text>
+  <text x="226" y="236" class="bs">wx.request · wx.* API</text>
+
+  <rect x="412" y="178" width="186" height="72" rx="6" fill="#fff" stroke="#bcdcfa"/>
+  <text x="424" y="200" class="bt">WXSS + rpx</text>
+  <text x="424" y="218" class="bs">Flex 布局</text>
+  <text x="424" y="236" class="bs">设计稿 750px 基准</text>
+
+  <rect x="610" y="178" width="186" height="72" rx="6" fill="#fff" stroke="#bcdcfa"/>
+  <text x="622" y="200" class="bt">amap-wx.130.js</text>
+  <text x="622" y="218" class="bs">本地 SDK 文件引入</text>
+  <text x="622" y="236" class="bs">不走 npm</text>
+
+  <rect x="808" y="178" width="198" height="72" rx="6" fill="#fff" stroke="#bcdcfa"/>
+  <text x="820" y="200" class="bt">map 原生组件</text>
+  <text x="820" y="218" class="bs">polyline 画轨迹</text>
+  <text x="820" y="236" class="bs">markers 标起终点</text>
+
+  <line x1="214" y1="262" x2="1006" y2="262" stroke="#dbeaf7"/>
+  <text x="214" y="278" class="why">形态：原生小程序，非 TypeScript、非 uni-app / Taro</text>
+  <text x="214" y="296" class="why">理由：任务书明确要求，且地图组件与定位能力用原生最顺，第三方框架反而要绕</text>
+  <text x="214" y="316" class="bs" fill="#8b98a5">状态管理：阶段一页面少，用页面 data + 全局 app.globalData 即可，不引 MobX / Redux</text>
+
+  <!-- ===== ③ 后端技术栈 ===== -->
+  <text x="40" y="372" class="sec">③ 后端技术栈</text>
+  <rect x="200" y="350" width="820" height="196" rx="8" fill="#f1fbf5" stroke="#bfe6ce"/>
+  <rect x="214" y="364" width="192" height="62" rx="6" fill="#fff" stroke="#a4d7b9"/>
+  <text x="226" y="386" class="bt">Express 4.x</text>
+  <text x="226" y="404" class="bs">路由 + 中间件链</text>
+  <text x="226" y="420" class="bs">express.json()</text>
+
+  <rect x="418" y="364" width="192" height="62" rx="6" fill="#fff" stroke="#a4d7b9"/>
+  <text x="430" y="386" class="bt">pg 8.x</text>
+  <text x="430" y="404" class="bs">连接池</text>
+  <text x="430" y="420" class="bs">参数化查询，不用 ORM</text>
+
+  <rect x="622" y="364" width="192" height="62" rx="6" fill="#fff" stroke="#a4d7b9"/>
+  <text x="634" y="386" class="bt">自研 geo 数学库</text>
+  <text x="634" y="404" class="bs">haversine · bearing</text>
+  <text x="634" y="420" class="bs">turnAngle · radius</text>
+
+  <rect x="826" y="364" width="180" height="62" rx="6" fill="#fafbfc" stroke="#c8d2da" stroke-dasharray="4,3"/>
+  <text x="838" y="386" class="bt" fill="#8b98a5">node-cron</text>
+  <text x="838" y="404" class="bs">每小时清理过期轨迹</text>
+  <text x="838" y="420" class="bs" fill="#a0a8b0">阶段二启用</text>
+
+  <line x1="214" y1="446" x2="1006" y2="446" stroke="#d8f0e2"/>
+  <text x="214" y="462" class="why">随包依赖：dotenv（环境变量）· morgan（请求日志）· 测试用 node:test + supertest</text>
+  <text x="214" y="480" class="why">分层约束：routes → services → repositories。services 不出现 req / res，纯函数可单测 —— 这是阶段二复用算分逻辑的前提</text>
+  <text x="214" y="498" class="why">错误处理：统一 errorHandler，响应体固定 { error: { code, message } }，小程序 request.js 收到后统一 toast</text>
+  <text x="214" y="520" class="bs" fill="#8b98a5">迁移：手写 SQL，migrations/001_init.sql 等按序号执行，结果记入 schema_migrations 表</text>
+
+  <!-- ===== ④ 数据技术栈 ===== -->
+  <text x="40" y="576" class="sec">④ 数据技术栈</text>
+  <rect x="200" y="554" width="820" height="152" rx="8" fill="#fdf7f0" stroke="#e8cfb0"/>
+  <rect x="214" y="568" width="256" height="94" rx="6" fill="#fff" stroke="#dcbe95"/>
+  <text x="226" y="590" class="bt">PostgreSQL 16</text>
+  <text x="226" y="608" class="bs">关系型主存储</text>
+  <text x="226" y="626" class="bs">JSONB 存坐标序列</text>
+  <text x="226" y="644" class="bs">时间戳统一 timestamptz</text>
+  <text x="226" y="658" class="bs">主键：uuid 或 bigserial</text>
+
+  <rect x="482" y="568" width="256" height="94" rx="6" fill="#fff" stroke="#dcbe95"/>
+  <text x="494" y="590" class="bt">PostGIS 3.4（已装未用）</text>
+  <text x="494" y="608" class="bs">CREATE EXTENSION 已执行</text>
+  <text x="494" y="626" class="bs">阶段一：不建 geometry 列</text>
+  <text x="494" y="644" class="bs">阶段三：加 GiST 索引</text>
+  <text x="494" y="658" class="bs">支撑「附近路线」查询</text>
+
+  <rect x="750" y="568" width="256" height="94" rx="6" fill="#fff" stroke="#dcbe95"/>
+  <text x="762" y="590" class="bt">Adminer（容器）</text>
+  <text x="762" y="608" class="bs">轻量 Web 数据库界面</text>
+  <text x="762" y="626" class="mono">localhost:8080</text>
+  <text x="762" y="644" class="bs">用于验收标准 5 的人工检查</text>
+  <text x="762" y="658" class="bs">改 expiresAt 后观察清理结果</text>
+
+  <text x="214" y="686" class="why">坐标系约定：高德 SDK 返回 GCJ-02，数据库统一存 GCJ-02，阶段一不做转换</text>
+  <text x="214" y="704" class="bs" fill="#b07030">已知风险：阶段二接入手机 GPS 原始轨迹为 WGS-84，与库内数据不同源，必须转换后再做起终点区域匹配</text>
+
+  <!-- ===== ⑤ 外部服务 ===== -->
+  <text x="40" y="748" class="sec">⑤ 外部服务</text>
+  <rect x="200" y="726" width="386" height="54" rx="8" fill="#f6f4fb" stroke="#d5cdec"/>
+  <text x="214" y="748" class="bt">高德开放平台</text>
+  <text x="214" y="766" class="bs">微信小程序类型 Key · 地图渲染 / 逆地理编码</text>
+
+  <rect x="606" y="726" width="400" height="54" rx="8" fill="#f6f4fb" stroke="#d5cdec"/>
+  <text x="620" y="748" class="bt">微信开发者工具</text>
+  <text x="620" y="766" class="bs">编译预览 · 真机调试 · 「不校验合法域名」开关</text>
+
+  <!-- ===== 层间依赖箭头 ===== -->
+  <line x1="600" y1="336" x2="600" y2="350" stroke="#5a6b7d" stroke-width="1.4" marker-end="url(#aT)"/>
+  <line x1="600" y1="546" x2="600" y2="554" stroke="#5a6b7d" stroke-width="1.4" marker-end="url(#aT)"/>
+  <line x1="600" y1="706" x2="600" y2="726" stroke="#5a6b7d" stroke-width="1.4" marker-end="url(#aT)"/>
+</svg>

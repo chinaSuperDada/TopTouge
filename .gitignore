@@ -1,0 +1,32 @@
+# ---- 依赖与构建产物 ----
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ---- 环境变量（可能含密码/密钥，绝不提交） ----
+.env
+.env.local
+.env.*.local
+
+# ---- Claude Code ----
+# settings.local.json 记录「本机批准过的命令」，属个人环境状态
+# settings.json（项目配置）和 hooks/ 是团队共用的，要提交
+**/.claude/settings.local.json
+
+# ---- 微信开发者工具 ----
+# 含本机编译设置，每个开发者不同
+**/project.private.config.json
+
+# ---- macOS ----
+.DS_Store
+**/.DS_Store
+
+# ---- IDE ----
+.idea/
+.vscode/
+*.iml
+
+# ---- 数据源（阶段一为内存 mock，接入数据库后可能产生本地数据） ----
+pgdata/
+*.sqlite

@@ -1,0 +1,89 @@
+/**
+ * TopTouge 设计变量
+ *
+ * 配色取自用户提供的参考设计：
+ *   - 背景：接近纯黑的深色底
+ *   - 强调色：亮青蓝 #0c9cfc（主） + 草绿 #6c9c3c（次）
+ *   - 强调色在参考图里只占 6.5% 像素，是点缀用法，不要大面积铺
+ *
+ * 改这一个文件就能换整体配色，不要在页面里写死色值。
+ */
+
+page {
+  /* ---------- 背景层次 ---------- */
+  /* 底层页面背景 → 卡片 → 卡片内嵌块，三级递进 */
+  --bg-base: #080808;
+  --bg-surface: #141414;
+  --bg-elevated: #1c1c1c;
+  --bg-inset: #000000;
+
+  /* ---------- 文字 ---------- */
+  --text-primary: #f8f8f8;
+  --text-secondary: #b8b8b8;
+  --text-tertiary: #6e6e6e;
+  --text-inverse: #080808;
+
+  /* ---------- 强调色 ---------- */
+  /* 亮青蓝：主行动点、数据高亮、链接 */
+  --accent: #0c9cfc;
+  --accent-dim: rgba(12, 156, 252, 0.14);
+  --accent-border: rgba(12, 156, 252, 0.36);
+
+  /* 草绿：次要强调，用于区分信息类型（如路况 vs 评论） */
+  --accent-alt: #6c9c3c;
+  --accent-alt-dim: rgba(108, 156, 60, 0.14);
+  --accent-alt-border: rgba(108, 156, 60, 0.34);
+
+  /* 功能色 */
+  --info: #0c9cfc;
+  --success: #6c9c3c;
+  --danger: #e5484d;
+  --danger-dim: rgba(229, 72, 77, 0.12);
+  --danger-border: rgba(229, 72, 77, 0.3);
+  --warn: #d4a72c;
+
+  /* 星级 —— 用主强调色，与其他数据高亮统一 */
+  --star: #0c9cfc;
+  --star-empty: #2a2a2a;
+
+  /* ---------- 描边与分隔 ---------- */
+  --border: #2a2a2a;
+  --border-strong: #3a3a3a;
+  --divider: rgba(248, 248, 248, 0.07);
+
+  /* ---------- 圆角 ---------- */
+  --radius-sm: 10rpx;
+  --radius-md: 18rpx;
+  --radius-lg: 26rpx;
+  --radius-pill: 999rpx;
+
+  /* ---------- 间距（8 的倍数体系） ---------- */
+  --space-1: 8rpx;
+  --space-2: 16rpx;
+  --space-3: 24rpx;
+  --space-4: 32rpx;
+  --space-5: 40rpx;
+  --space-6: 56rpx;
+
+  /* ---------- 字号 ---------- */
+  /* 整体比常规移动端偏大：深色底上小字更难读，且核心信息是数字 */
+  --fs-caption: 24rpx;
+  --fs-label: 27rpx;
+  --fs-body: 31rpx;
+  --fs-title: 38rpx;
+  --fs-heading: 52rpx;
+  --fs-display: 72rpx;
+  --fs-hero: 104rpx;
+
+  /* ---------- 数据高亮 ---------- */
+  /* 关键数字用纯白，与正文 #f8f8f8 拉开一丝差别 */
+  --text-emphasis: #ffffff;
+
+  /* ---------- 阴影 ---------- */
+  --shadow-card: 0 4rpx 20rpx rgba(0, 0, 0, 0.5);
+  --shadow-accent: 0 8rpx 28rpx rgba(12, 156, 252, 0.3);
+
+  /* ---------- 实心按钮上的文字 ---------- */
+  --on-accent: #ffffff;
+  --on-alt: #080808;
+}

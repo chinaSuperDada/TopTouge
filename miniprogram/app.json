@@ -1,0 +1,28 @@
+{
+  "pages": [
+    "pages/route-list/route-list",
+    "pages/route-detail/route-detail",
+    "pages/route-upload/route-upload"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#080808",
+    "navigationBarTitleText": "跑山路线",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#080808",
+    "backgroundColorTop": "#080808",
+    "backgroundColorBottom": "#080808"
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于跑山时记录轨迹和判断是否到达终点"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation",
+    "startLocationUpdate",
+    "onLocationChange"
+  ],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
