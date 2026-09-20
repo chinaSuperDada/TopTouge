@@ -1,6 +1,11 @@
 const { computeStats } = require('../services/statsService')
 const { computeStars } = require('../services/difficultyService')
-const { DEFAULT_RADIUS_METERS, DEFAULT_VEHICLE_TYPE } = require('../constants')
+const { simplifyToMaxPoints } = require('../geo/simplify')
+const {
+  DEFAULT_RADIUS_METERS,
+  DEFAULT_VEHICLE_TYPE,
+  DISPLAY_TRACK_MAX_POINTS
+} = require('../constants')
 
 const METERS_PER_DEG_LAT = 111320
 
@@ -190,7 +195,10 @@ function generateMockRoutes() {
       startPoint: { lat: first.lat, lng: first.lng, radiusMeters: DEFAULT_RADIUS_METERS },
       endPoint: { lat: last.lat, lng: last.lng, radiusMeters: DEFAULT_RADIUS_METERS },
       waypoints: pickWaypoints(referenceTrack),
+      // 全量轨迹：难度计算的数据源
       referenceTrack,
+      // 展示用轨迹：DP 抽稀保形状，供地图绘制
+      displayTrack: simplifyToMaxPoints(referenceTrack, DISPLAY_TRACK_MAX_POINTS),
       uploadedBy: 'system',
       curveCount: stats.curveCount,
       sharpCurveRatio: stats.sharpCurveRatio,

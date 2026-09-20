@@ -32,6 +32,11 @@ const DEFAULT_COMMENT_LIMIT = 20
 const DEFAULT_ROAD_CONDITION_LIMIT = 10
 const DETAIL_EMBED_LIMIT = 10
 
+// 展示用轨迹的最大点数。
+// referenceTrack 存全量（难度计算要用），displayTrack 抽稀到这么多点供地图绘制，
+// 减少详情接口的传输量。100 点足以保持视觉形状。
+const DISPLAY_TRACK_MAX_POINTS = 100
+
 module.exports = {
   TURN_THRESHOLD_DEG,
   SHARP_TURN_DEG,
@@ -43,5 +48,6 @@ module.exports = {
   ROAD_WIDTHS,
   DEFAULT_COMMENT_LIMIT,
   DEFAULT_ROAD_CONDITION_LIMIT,
-  DETAIL_EMBED_LIMIT
+  DETAIL_EMBED_LIMIT,
+  DISPLAY_TRACK_MAX_POINTS
 }

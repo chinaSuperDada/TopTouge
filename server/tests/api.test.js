@@ -58,14 +58,33 @@ test('GET /api/routes 列表', async (t) => {
 test('GET /api/routes/:id 详情', async (t) => {
   t.beforeEach(resetWithSeed)
 
-  await t.test('返回完整路线，含轨迹与起终点', async () => {
+  await t.test('返回完整路线，含抽稀轨迹与起终点', async () => {
     const res = await request(app).get('/api/routes/1').expect(200)
 
     assert.strictEqual(res.body.id, 1)
-    assert.ok(Array.isArray(res.body.referenceTrack))
-    assert.ok(res.body.referenceTrack.length > 100)
+    assert.ok(Array.isArray(res.body.track), 'track 应为数组')
+    assert.ok(res.body.track.length > 10, '抽稀轨迹仍应足够画线')
     assert.strictEqual(res.body.startPoint.radiusMeters, 30)
     assert.ok(Array.isArray(res.body.waypoints))
+  })
+
+  await t.test('默认不返回全量 referenceTrack（体量大）', async () => {
+    const res = await request(app).get('/api/routes/1').expect(200)
+    assert.strictEqual(res.body.referenceTrack, undefined)
+
+    // 抽稀轨迹应明显短于全量
+    const full = await request(app).get('/api/routes/1?fullTrack=1').expect(200)
+    assert.ok(Array.isArray(full.body.referenceTrack))
+    assert.ok(
+      res.body.track.length < full.body.referenceTrack.length,
+      `抽稀 ${res.body.track.length} 应少于全量 ${full.body.referenceTrack.length}`
+    )
+  })
+
+  await t.test('?fullTrack=1 返回全量轨迹', async () => {
+    const res = await request(app).get('/api/routes/1?fullTrack=1').expect(200)
+    assert.ok(res.body.referenceTrack.length > 100, '全量轨迹应有几百个点')
+    assert.ok(Array.isArray(res.body.track))
   })
 
   await t.test('内嵌最近的评论与路况提示（初始为空数组）', async () => {
