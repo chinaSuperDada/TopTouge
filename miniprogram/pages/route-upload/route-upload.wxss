@@ -6,6 +6,32 @@
   background: var(--bg-base);
 }
 
+/* ---------- 模式切换 ---------- */
+
+.tabs {
+  display: flex;
+  background: var(--bg-surface);
+  border-radius: var(--radius-pill);
+  padding: 6rpx;
+  margin-bottom: var(--space-3);
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-body);
+  color: var(--text-secondary);
+}
+
+.tab-on {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
 /* ---------- 顶部提示 ---------- */
 
 .hint-box {
@@ -26,6 +52,99 @@
   line-height: 1.5;
 }
 
+/* ---------- 搜索表单 ---------- */
+
+.search-card {
+  padding-bottom: var(--space-2);
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+}
+
+/* 起点/终点/途经点的圆点标识 */
+.dot {
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  margin-right: var(--space-2);
+  flex-shrink: 0;
+}
+
+.dot-start {
+  background: var(--accent);
+}
+
+.dot-end {
+  background: var(--danger);
+}
+
+.dot-via {
+  background: var(--text-tertiary);
+}
+
+.via-text {
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+  padding: 20rpx var(--space-3);
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+}
+
+.remove {
+  font-size: var(--fs-label);
+  color: var(--danger);
+  margin-left: var(--space-2);
+  flex-shrink: 0;
+}
+
+.search-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) 0 var(--space-2);
+}
+
+.swap {
+  font-size: var(--fs-label);
+  color: var(--accent);
+}
+
+.status {
+  font-size: var(--fs-label);
+  color: var(--text-secondary);
+}
+
+/* ---------- 候选地点 ---------- */
+
+.candidates {
+  border-top: 2rpx solid var(--divider);
+  max-height: 480rpx;
+  overflow-y: auto;
+}
+
+.candidate {
+  padding: var(--space-2) 0;
+  border-bottom: 2rpx solid var(--divider);
+}
+
+.candidate:last-child {
+  border-bottom: none;
+}
+
+.candidate-name {
+  display: block;
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+  margin-bottom: 4rpx;
+}
+
+.candidate-district {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+}
+
 /* ---------- 地图 ---------- */
 
 .map-wrap {
@@ -41,14 +160,13 @@
   opacity: 0.92;
 }
 
-/* 采集点计数：浮在地图右下角 */
 .counter {
   position: absolute;
   right: var(--space-2);
   bottom: var(--space-2);
   display: flex;
   align-items: baseline;
-  background: rgba(15, 18, 22, 0.85);
+  background: rgba(8, 8, 8, 0.85);
   border-radius: var(--radius-sm);
   padding: 10rpx var(--space-2);
 }
@@ -97,11 +215,11 @@
 }
 
 .field {
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
 .field:last-of-type {
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .field-label {

@@ -47,7 +47,8 @@
 
     <view class="start-area">
       <view class="btn btn-primary" bindtap="onStartRun">开始跑山</view>
-      <text class="start-hint">阶段二开放</text>
+      <view class="btn btn-ghost navigate-btn" bindtap="onNavigate">用高德导航走这条路线</view>
+      <text class="start-hint">跑山功能阶段二开放</text>
     </view>
   </block>
 </view>

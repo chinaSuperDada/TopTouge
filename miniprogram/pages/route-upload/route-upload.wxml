@@ -1,9 +1,116 @@
 <view class="page">
-  <view class="hint-box">
-    <text class="hint-title">在地图上依次点击，连成路线</text>
-    <text class="hint-body">第一个点自动成为起点，最后一个点成为终点。至少 2 个点。</text>
+  <!-- 采集方式切换 -->
+  <view class="tabs">
+    <view
+      class="tab {{mode === 'search' ? 'tab-on' : ''}}"
+      data-mode="search"
+      bindtap="onSwitchMode"
+    >搜索地点</view>
+    <view
+      class="tab {{mode === 'manual' ? 'tab-on' : ''}}"
+      data-mode="manual"
+      bindtap="onSwitchMode"
+    >地图点选</view>
   </view>
 
+  <!-- ============ 搜索模式 ============ -->
+  <block wx:if="{{mode === 'search'}}">
+    <view class="hint-box">
+      <text class="hint-title">搜索起点和终点，自动规划路线</text>
+      <text class="hint-body">规划出的是贴真实道路的路线，比手点连线更准确。可加途经点。</text>
+    </view>
+
+    <view class="card search-card">
+      <!-- 起点 -->
+      <view class="field">
+        <view class="field-row">
+          <text class="dot dot-start"></text>
+          <input
+            class="input flex-1"
+            value="{{sourceKeyword}}"
+            placeholder="起点，例如：西山公园"
+            placeholder-class="input-placeholder"
+            data-field="source"
+            bindfocus="onFocusField"
+            bindinput="onKeywordInput"
+          />
+        </view>
+      </view>
+
+      <!-- 途经点 -->
+      <view class="field" wx:for="{{waypoints}}" wx:key="name">
+        <view class="field-row">
+          <text class="dot dot-via"></text>
+          <text class="via-text flex-1">{{item.name}}</text>
+          <text class="remove" data-index="{{index}}" catchtap="onRemoveWaypoint">移除</text>
+        </view>
+      </view>
+
+      <!-- 终点 -->
+      <view class="field">
+        <view class="field-row">
+          <text class="dot dot-end"></text>
+          <input
+            class="input flex-1"
+            value="{{destinationKeyword}}"
+            placeholder="终点，例如：龙泉寺"
+            placeholder-class="input-placeholder"
+            data-field="destination"
+            bindfocus="onFocusField"
+            bindinput="onKeywordInput"
+          />
+        </view>
+      </view>
+
+      <!-- 加途经点 -->
+      <view class="field">
+        <view class="field-row">
+          <text class="dot dot-via"></text>
+          <input
+            class="input flex-1"
+            value="{{waypointKeyword}}"
+            placeholder="途经点（可选）"
+            placeholder-class="input-placeholder"
+            data-field="waypoint"
+            bindfocus="onFocusField"
+            bindinput="onKeywordInput"
+          />
+        </view>
+      </view>
+
+      <view class="search-actions">
+        <text class="swap" bindtap="onSwapEnds">交换起终点</text>
+        <text class="status" wx:if="{{searching}}">搜索中…</text>
+        <text class="status" wx:elif="{{planning}}">规划路线中…</text>
+      </view>
+
+      <!-- 候选地点列表 -->
+      <view class="candidates" wx:if="{{candidates.length > 0}}">
+        <view
+          class="candidate"
+          wx:for="{{candidates}}"
+          wx:key="name"
+          data-index="{{index}}"
+          bindtap="onPickCandidate"
+        >
+          <text class="candidate-name">{{item.name}}</text>
+          <text class="candidate-district">{{item.district}}{{item.address}}</text>
+        </view>
+      </view>
+
+      <view class="error-box" wx:if="{{planError}}">{{planError}}</view>
+    </view>
+  </block>
+
+  <!-- ============ 手动点选模式 ============ -->
+  <block wx:else>
+    <view class="hint-box">
+      <text class="hint-title">在地图上依次点击，连成路线</text>
+      <text class="hint-body">第一个点自动成为起点，最后一个点成为终点。至少 2 个点。</text>
+    </view>
+  </block>
+
+  <!-- 地图（两种模式共用） -->
   <view class="map-wrap">
     <map
       id="pickMap"
@@ -23,11 +130,13 @@
     </view>
   </view>
 
-  <view class="toolbar">
+  <!-- 手动模式的工具条 -->
+  <view class="toolbar" wx:if="{{mode === 'manual'}}">
     <view class="tool-btn" bindtap="onUndo">撤销一点</view>
-    <view class="tool-btn" bindtap="onClear">全部清空</view>
+    <view class="tool-btn" bindtap="onClearPoints">全部清空</view>
   </view>
 
+  <!-- 表单 -->
   <view class="card">
     <view class="field">
       <text class="field-label">路线名称</text>

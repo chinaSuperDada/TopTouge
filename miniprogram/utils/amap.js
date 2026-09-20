@@ -261,6 +261,149 @@ function scaleForSpan(spanMeters) {
   return 8
 }
 
+/**
+ * 高德 SDK 实例缓存。
+ *
+ * SDK 每次 new 都要重建 requestConfig，没必要重复创建。
+ */
+let sdkInstance = null
+
+function getInstance() {
+  if (!sdkInstance) sdkInstance = createAMapInstance()
+  return sdkInstance
+}
+
+/**
+ * 地点联想搜索。
+ *
+ * @param {string} keywords 用户输入的关键词
+ * @param {object} options { city: 限定城市, location: 'lng,lat' 以当前位置优先排序 }
+ * @returns {Promise<Array<{name, district, adcode, location, address}>>}
+ */
+function searchPlaces(keywords, options = {}) {
+  const sdk = getInstance()
+  if (!sdk) return Promise.reject(new Error('地图服务未就绪'))
+
+  const query = (keywords || '').trim()
+  if (!query) return Promise.resolve([])
+
+  return new Promise((resolve, reject) => {
+    sdk.getInputtips({
+      keywords: query,
+      city: options.city || '',
+      citylimit: Boolean(options.city),
+      location: options.location || '',
+      success(res) {
+        const tips = (res && res.tips) || []
+
+        // 高德返回的候选项里混有「区域」类结果，它们没有坐标，无法用于路线规划
+        resolve(
+          tips
+            .filter((t) => typeof t.location === 'string' && t.location.includes(','))
+            .map((t) => {
+              const [lng, lat] = t.location.split(',').map(Number)
+              return {
+                name: t.name,
+                district: t.district || '',
+                adcode: t.adcode || '',
+                address: t.address || '',
+                lat,
+                lng,
+                location: t.location
+              }
+            })
+            .filter((t) => Number.isFinite(t.lat) && Number.isFinite(t.lng))
+        )
+      },
+      fail(err) {
+        reject(new Error((err && err.errMsg) || '地点搜索失败'))
+      }
+    })
+  })
+}
+
+/**
+ * 驾车路线规划。
+ *
+ * @param {{lat,lng}} origin 起点
+ * @param {{lat,lng}} destination 终点
+ * @param {Array<{lat,lng}>} waypoints 途经点（可选，最多 16 个）
+ * @returns {Promise<{track: Array<{lat,lng,altitude}>, distanceMeters: number, durationSeconds: number}>}
+ */
+function planDrivingRoute(origin, destination, waypoints = []) {
+  const sdk = getInstance()
+  if (!sdk) return Promise.reject(new Error('地图服务未就绪'))
+
+  const fmt = (p) => `${p.lng},${p.lat}`
+
+  return new Promise((resolve, reject) => {
+    sdk.getDrivingRoute({
+      origin: fmt(origin),
+      destination: fmt(destination),
+      waypoints: waypoints.length ? waypoints.map(fmt).join(';') : '',
+      // strategy 10 = 不走高速，跑山场景更贴近实际
+      strategy: 10,
+      success(res) {
+        const paths = (res && res.paths) || []
+        if (!paths.length) {
+          reject(new Error('未能规划出路线，请换个起终点试试'))
+          return
+        }
+
+        const path = paths[0]
+        const track = parsePolyline(path.steps)
+
+        if (track.length < 2) {
+          reject(new Error('规划结果为空'))
+          return
+        }
+
+        resolve({
+          track,
+          distanceMeters: Number(path.distance) || 0,
+          durationSeconds: Number(path.duration) || 0
+        })
+      },
+      fail(err) {
+        reject(new Error((err && err.errMsg) || '路线规划失败'))
+      }
+    })
+  })
+}
+
+/**
+ * 把高德路线规划结果里各步骤的 polyline 拼成完整轨迹。
+ *
+ * 响应格式：steps[].polyline = "lng,lat;lng,lat;lng,lat"
+ * 相邻步骤的首尾点会重复，需要去重。
+ *
+ * 规划结果没有海拔信息，altitude 统一给 0 —— 这与上传页地图点选的行为一致。
+ */
+function parsePolyline(steps) {
+  if (!Array.isArray(steps)) return []
+
+  const points = []
+
+  for (const step of steps) {
+    const raw = step && step.polyline
+    if (typeof raw !== 'string' || !raw) continue
+
+    for (const pair of raw.split(';')) {
+      const [lngStr, latStr] = pair.split(',')
+      const lng = Number(lngStr)
+      const lat = Number(latStr)
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue
+
+      const prev = points[points.length - 1]
+      if (prev && prev.lat === lat && prev.lng === lng) continue
+
+      points.push({ lat, lng, altitude: 0 })
+    }
+  }
+
+  return points
+}
+
 module.exports = {
   AMAP_KEY,
   ACCENT_COLOR,
@@ -271,6 +414,9 @@ module.exports = {
   isConfigured,
   isSdkAvailable,
   createAMapInstance,
+  searchPlaces,
+  planDrivingRoute,
+  parsePolyline,
   buildPolyline,
   buildMarkers,
   fitView
