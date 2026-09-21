@@ -77,52 +77,76 @@ Page({
    * 由用户在高德地图或浏览器里粘贴打开。
    */
   /**
-   * 导航：选平台 → 跳对应小程序 → 由它再跳自家 App。
+   * 导航：选方式 → 跳对应小程序，或复制高德链接。
    *
-   * 用小程序跳小程序而不是复制链接，少一步粘贴。
+   * 两条路并存是因为能力不同：
+   *   - 跳小程序：体验好（少一步粘贴），但只能传起终点
+   *   - 复制链接：要用户自己粘贴，但能把途经点一起带上
    *
-   * 注意 wx.navigateToMiniProgram 必须在用户点击的手势链路里调用，
-   * 所以选择弹层和跳转都放在同一个点击回调里，中间不插异步请求。
+   * wx.navigateToMiniProgram 必须在用户点击的手势链路里调用，
+   * 所以整个选择 + 跳转都放在同一个点击回调里，中间不插异步。
    */
   onNavigate() {
     const platforms = navigation.availablePlatforms()
 
-    if (platforms.length === 0) {
-      wx.showToast({ title: '暂无可用的导航应用', icon: 'none' })
-      return
-    }
-
-    // 只有一个就不弹选择了
-    if (platforms.length === 1) {
-      this.openNavigation(platforms[0].key)
-      return
-    }
+    const items = platforms.map((p) => `用${p.label}打开`)
+    items.push('复制高德路线链接（含途经点）')
 
     wx.showActionSheet({
-      itemList: platforms.map((p) => p.label),
+      itemList: items,
       success: (res) => {
-        const picked = platforms[res.tapIndex]
-        if (picked) this.openNavigation(picked.key)
+        if (res.tapIndex < platforms.length) {
+          this.openNavigation(platforms[res.tapIndex].key)
+        } else {
+          this.copyAmapLink()
+        }
       },
       fail: () => {}
     })
   },
 
   openNavigation(key) {
-    const route = {
-      name: this.data.route ? this.data.route.name : '终点',
-      startPoint: this.data.route ? this.data.route.startPoint : null,
-      endPoint: this.data.route ? this.data.route.endPoint : null
-    }
-
-    if (!route.startPoint || !route.endPoint) {
-      wx.showToast({ title: '路线缺少起终点，无法导航', icon: 'none' })
-      return
-    }
+    const route = this.routeForNavigation()
+    if (!route) return
 
     navigation.navigateWith(key, route).catch((err) => {
       wx.showToast({ title: err.message || '打开导航失败', icon: 'none', duration: 3000 })
     })
+  },
+
+  copyAmapLink() {
+    const route = this.routeForNavigation()
+    if (!route) return
+
+    navigation
+      .copyAmapShareLink(route)
+      .then(() => {
+        wx.showModal({
+          title: '链接已复制',
+          content: '粘贴到微信群或聊天窗口，好友点击后会打开高德并带上途经点。',
+          showCancel: false,
+          confirmText: '知道了'
+        })
+      })
+      .catch((err) => {
+        wx.showToast({ title: err.message || '复制失败', icon: 'none' })
+      })
+  },
+
+  /** 组装导航需要的数据，缺失时提示并返回 null */
+  routeForNavigation() {
+    const r = this.data.route
+    if (!r || !r.startPoint || !r.endPoint) {
+      wx.showToast({ title: '路线缺少起终点，无法导航', icon: 'none' })
+      return null
+    }
+
+    return {
+      name: r.name,
+      startPoint: r.startPoint,
+      endPoint: r.endPoint,
+      waypoints: r.waypoints || []
+    }
   },
 
   /** 评论提交：组件把内容抛上来，这里负责发请求和刷新 */

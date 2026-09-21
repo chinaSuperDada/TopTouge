@@ -17,6 +17,8 @@
  *   - 2020-04-24 起跳转其他小程序不再需要声明 navigateToMiniProgramAppIdList。
  */
 
+const { buildAmapUrl } = require('./amapShare')
+
 const PLATFORMS = [
   {
     key: 'amap',
@@ -80,6 +82,31 @@ function availablePlatforms() {
 }
 
 /**
+ * 复制高德分享链接到剪贴板。
+ *
+ * 为什么留着这条路：
+ *   跳小程序（navigateWith）体验好，但高德小程序的 path 与参数格式是推测的，
+ *   而且要真机才能验证。链接这条路格式是**实测确认**的，且能带多个途经点。
+ *
+ * 用法：把链接发到微信群，群友点击时微信会渲染成高德卡片，直接跳高德。
+ *
+ * @param {{name, startPoint, endPoint, waypoints}} route
+ * @returns {Promise<void>}
+ */
+function copyAmapShareLink(route) {
+  const url = buildAmapUrl(route)
+  if (!url) return Promise.reject(new Error('路线缺少起终点，无法生成链接'))
+
+  return new Promise((resolve, reject) => {
+    wx.setClipboardData({
+      data: url,
+      success: () => resolve(),
+      fail: (err) => reject(new Error((err && err.errMsg) || '复制失败'))
+    })
+  })
+}
+
+/**
  * 跳到指定平台的导航页。
  *
  * 必须在用户点击的回调里直接调用 —— API 会校验手势，异步之后再调会失败。
@@ -114,4 +141,4 @@ function navigateWith(key, route) {
   })
 }
 
-module.exports = { PLATFORMS, availablePlatforms, navigateWith }
+module.exports = { PLATFORMS, availablePlatforms, navigateWith, copyAmapShareLink }
