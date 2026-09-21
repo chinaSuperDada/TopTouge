@@ -224,7 +224,6 @@ async function main() {
       const t = await textOf(await detailPage.$('.navigate-btn'))
       record('导航按钮存在', t.includes('导航'), `"${t}"`)
     })
-
     await check('开始跑山按钮存在', async () => {
       const t = await textOf(await detailPage.$('.btn-primary'))
       record('开始跑山按钮存在', t.includes('开始跑山'), `"${t}"`)

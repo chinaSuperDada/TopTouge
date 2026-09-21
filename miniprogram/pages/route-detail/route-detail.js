@@ -1,6 +1,7 @@
 const api = require('../../utils/request')
 const amap = require('../../utils/amap')
-const { buildNavigationUrl, isLoopTrack } = require('../../utils/trackSimplify')
+const navigation = require('../../utils/navigation')
+const { isLoopTrack } = require('../../utils/trackSimplify')
 
 Page({
   data: {
@@ -75,46 +76,53 @@ Page({
    * 小程序无法直接唤起外部 App，只能把链接复制给用户，
    * 由用户在高德地图或浏览器里粘贴打开。
    */
+  /**
+   * 导航：选平台 → 跳对应小程序 → 由它再跳自家 App。
+   *
+   * 用小程序跳小程序而不是复制链接，少一步粘贴。
+   *
+   * 注意 wx.navigateToMiniProgram 必须在用户点击的手势链路里调用，
+   * 所以选择弹层和跳转都放在同一个点击回调里，中间不插异步请求。
+   */
   onNavigate() {
-    if (this.data.navigating) return
-    this.setData({ navigating: true })
+    const platforms = navigation.availablePlatforms()
 
-    wx.showLoading({ title: '生成导航链接…', mask: true })
+    if (platforms.length === 0) {
+      wx.showToast({ title: '暂无可用的导航应用', icon: 'none' })
+      return
+    }
 
-    api
-      .get(`/api/routes/${this.data.routeId}?fullTrack=1`, { showError: false })
-      .then((full) => {
-        const track = full.referenceTrack || full.track
-        const url = buildNavigationUrl(track, { destination: full.name })
+    // 只有一个就不弹选择了
+    if (platforms.length === 1) {
+      this.openNavigation(platforms[0].key)
+      return
+    }
 
-        wx.hideLoading()
-        this.setData({ navigating: false })
+    wx.showActionSheet({
+      itemList: platforms.map((p) => p.label),
+      success: (res) => {
+        const picked = platforms[res.tapIndex]
+        if (picked) this.openNavigation(picked.key)
+      },
+      fail: () => {}
+    })
+  },
 
-        if (!url) {
-          wx.showToast({ title: '这条路线太短，无法导航', icon: 'none' })
-          return
-        }
+  openNavigation(key) {
+    const route = {
+      name: this.data.route ? this.data.route.name : '终点',
+      startPoint: this.data.route ? this.data.route.startPoint : null,
+      endPoint: this.data.route ? this.data.route.endPoint : null
+    }
 
-        wx.showModal({
-          title: this.data.isLoop ? '环线导航' : '用高德导航',
-          content: this.data.isLoop
-            ? '这是条环线，起终点重合。导航会带你到路线最远处，请沿路线自行绕行。链接将复制到剪贴板。'
-            : '导航链接将复制到剪贴板，粘贴到高德地图或浏览器即可打开。',
-          confirmText: '复制链接',
-          success: (res) => {
-            if (!res.confirm) return
-            wx.setClipboardData({
-              data: url,
-              success: () => wx.showToast({ title: '链接已复制', icon: 'success' })
-            })
-          }
-        })
-      })
-      .catch((err) => {
-        wx.hideLoading()
-        this.setData({ navigating: false })
-        wx.showToast({ title: err.message || '获取路线失败', icon: 'none' })
-      })
+    if (!route.startPoint || !route.endPoint) {
+      wx.showToast({ title: '路线缺少起终点，无法导航', icon: 'none' })
+      return
+    }
+
+    navigation.navigateWith(key, route).catch((err) => {
+      wx.showToast({ title: err.message || '打开导航失败', icon: 'none', duration: 3000 })
+    })
   },
 
   /** 评论提交：组件把内容抛上来，这里负责发请求和刷新 */
