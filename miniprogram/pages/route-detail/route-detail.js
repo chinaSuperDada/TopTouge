@@ -77,26 +77,24 @@ Page({
    * 由用户在高德地图或浏览器里粘贴打开。
    */
   /**
-   * 导航：选方式 → 跳对应小程序，或复制高德链接。
+   * 导航：选地图 App → 唤起它导航到终点。
    *
-   * 两条路并存是因为能力不同：
-   *   - 跳小程序：体验好（少一步粘贴），但只能传起终点
-   *   - 复制链接：要用户自己粘贴，但能把途经点一起带上
+   * 两个选项能力不同：
+   *   - 唤起地图 App：直接跳，不经过小程序，少一层确认；
+   *     但只能传终点，带不了途经点
+   *   - 复制链接：要用户自己粘贴，但能把全部途经点带上
    *
-   * wx.navigateToMiniProgram 必须在用户点击的手势链路里调用，
-   * 所以整个选择 + 跳转都放在同一个点击回调里，中间不插异步。
+   * 注意 openMapApp 只在真机可用，开发者工具会报「不支持调试」。
    */
   onNavigate() {
-    const platforms = navigation.availablePlatforms()
-
-    const items = platforms.map((p) => `用${p.label}打开`)
+    const items = navigation.APPS.map((a) => `用${a.label}导航到终点`)
     items.push('复制高德路线链接（含途经点）')
 
     wx.showActionSheet({
       itemList: items,
       success: (res) => {
-        if (res.tapIndex < platforms.length) {
-          this.openNavigation(platforms[res.tapIndex].key)
+        if (res.tapIndex < navigation.APPS.length) {
+          this.openNavigation(navigation.APPS[res.tapIndex].key)
         } else {
           this.copyAmapLink()
         }
@@ -109,8 +107,8 @@ Page({
     const route = this.routeForNavigation()
     if (!route) return
 
-    navigation.navigateWith(key, route).catch((err) => {
-      wx.showToast({ title: err.message || '打开导航失败', icon: 'none', duration: 3000 })
+    navigation.openInMapApp(key, route).catch((err) => {
+      wx.showToast({ title: err.message || '唤起导航失败', icon: 'none', duration: 3000 })
     })
   },
 
@@ -121,9 +119,13 @@ Page({
     navigation
       .copyAmapShareLink(route)
       .then(() => {
+        const n = (route.waypoints || []).length
         wx.showModal({
           title: '链接已复制',
-          content: '粘贴到微信群或聊天窗口，好友点击后会打开高德并带上途经点。',
+          content:
+            n > 0
+              ? `已包含 ${n} 个途经点。粘贴到微信发送，对方点击即可在高德中打开完整路线。`
+              : '粘贴到微信发送，对方点击即可唤起高德地图。',
           showCancel: false,
           confirmText: '知道了'
         })
