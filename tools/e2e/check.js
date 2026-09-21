@@ -234,25 +234,27 @@ async function main() {
     console.log('\n【评论提交（打通写链路）】')
 
     await check('能提交评论并刷新列表', async () => {
-      const before = (await detailPage.data()).route.comments.length
+      // 不能用「评论数增加」当判据 —— 详情接口的评论上限是 10 条
+      // （DETAIL_EMBED_LIMIT），列表满了之后数量不会再涨，
+      // 反复跑这个脚本就会误报。改成用唯一标记判断有没有出现。
+      const marker = `e2e-${Date.now()}`
 
       const input = await detailPage.$('comment-list input')
       if (!input) throw new Error('找不到评论输入框')
 
-      await input.input('e2e 自动测试评论')
+      await input.input(marker)
 
       const send = await findByClassSuffix(detailPage, 'view', 'send')
       if (!send) throw new Error('找不到发送按钮')
 
       await send.tap()
 
-      const ok = await waitFor(async () => {
+      const appeared = await waitFor(async () => {
         const d = await detailPage.data()
-        return d.route.comments.length > before
+        return (d.route.comments || []).some((c) => c.content === marker)
       })
 
-      const after = (await detailPage.data()).route.comments.length
-      record('能提交评论并刷新列表', ok, `${before} → ${after}`)
+      record('能提交评论并刷新列表', appeared, appeared ? `新评论已出现 (${marker})` : '提交后未在列表中找到')
     })
 
     /* ==================== 上传页 ==================== */
