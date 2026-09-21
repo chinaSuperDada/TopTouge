@@ -1,9 +1,5 @@
-const store = require('../store/memoryStore')
+const memory = require('../store/memoryStore')
+const { createRepo } = require('./createChildRepo')
 
-/** 路况提示数据访问。当前走内存 store。 */
-
-const listByRoute = (routeId, limit) => store.roadConditions.listByRoute(routeId, limit)
-
-const create = (roadCondition) => store.roadConditions.insert(roadCondition)
-
-module.exports = { listByRoute, create }
+/** 路况提示数据访问。表结构见 sql/001_init.sql */
+module.exports = createRepo('road_conditions', memory.roadConditions, 'roadConditionRepo')

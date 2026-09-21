@@ -18,8 +18,9 @@ const {
  * 列表页只需要展示用的字段，不带 referenceTrack —— 一条轨迹几百个点，
  * 全量返回会让列表接口的响应体膨胀到几百 KB。详情页才需要轨迹。
  */
-function listRoutes() {
-  return routeRepo.list().map(toSummary)
+async function listRoutes() {
+  const routes = await routeRepo.list()
+  return routes.map(toSummary)
 }
 
 /**
@@ -30,9 +31,15 @@ function listRoutes() {
  *
  * 需要全量数据的调用方（如导航抽稀）传 includeFullTrack。
  */
-function getRouteDetail(id, options = {}) {
-  const route = routeRepo.getById(id)
+async function getRouteDetail(id, options = {}) {
+  const route = await routeRepo.getById(id)
   if (!route) throw notFound(`路线 ${id} 不存在`)
+
+  // 评论和路况互不依赖，并发查，省一个来回
+  const [comments, roadConditions] = await Promise.all([
+    commentRepo.listByRoute(id, DETAIL_EMBED_LIMIT),
+    roadConditionRepo.listByRoute(id, DETAIL_EMBED_LIMIT)
+  ])
 
   const { includeFullTrack = false } = options
   const result = { ...route }
@@ -43,11 +50,7 @@ function getRouteDetail(id, options = {}) {
 
   if (!includeFullTrack) delete result.referenceTrack
 
-  return {
-    ...result,
-    comments: commentRepo.listByRoute(id, DETAIL_EMBED_LIMIT),
-    roadConditions: roadConditionRepo.listByRoute(id, DETAIL_EMBED_LIMIT)
-  }
+  return { ...result, comments, roadConditions }
 }
 
 /**
@@ -63,7 +66,7 @@ function getRouteDetail(id, options = {}) {
  * @param {{name, roadWidth, vehicleType, trackPoints}} input 已通过校验
  * @param {string} uploadedBy
  */
-function createRoute(input, uploadedBy) {
+async function createRoute(input, uploadedBy) {
   const { name, roadWidth, vehicleType, trackPoints } = input
 
   const stats = computeStats(trackPoints)

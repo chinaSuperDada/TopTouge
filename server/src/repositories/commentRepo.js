@@ -1,9 +1,5 @@
-const store = require('../store/memoryStore')
+const memory = require('../store/memoryStore')
+const { createRepo } = require('./createChildRepo')
 
-/** 评论数据访问。当前走内存 store。 */
-
-const listByRoute = (routeId, limit) => store.comments.listByRoute(routeId, limit)
-
-const create = (comment) => store.comments.insert(comment)
-
-module.exports = { listByRoute, create }
+/** 评论数据访问。表结构见 sql/001_init.sql */
+module.exports = createRepo('comments', memory.comments, 'commentRepo')

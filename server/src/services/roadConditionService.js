@@ -4,13 +4,13 @@ const { notFound } = require('../errors')
 
 /** 路线路况提示。 */
 
-function listRoadConditions(routeId, limit) {
-  ensureRouteExists(routeId)
+async function listRoadConditions(routeId, limit) {
+  await ensureRouteExists(routeId)
   return roadConditionRepo.listByRoute(routeId, limit)
 }
 
-function createRoadCondition(routeId, userId, content) {
-  ensureRouteExists(routeId)
+async function createRoadCondition(routeId, userId, content) {
+  await ensureRouteExists(routeId)
   return roadConditionRepo.create({
     routeId,
     userId,
@@ -19,8 +19,13 @@ function createRoadCondition(routeId, userId, content) {
   })
 }
 
-function ensureRouteExists(routeId) {
-  if (!routeRepo.getById(routeId)) throw notFound(`路线 ${routeId} 不存在`)
+/**
+ * 路况挂在路线下，路线不存在就返回 404 而不是 500。
+ * 外键约束也会挡，但那样抛的是数据库错误，提示不友好。
+ */
+async function ensureRouteExists(routeId) {
+  const route = await routeRepo.getById(routeId)
+  if (!route) throw notFound(`路线 ${routeId} 不存在`)
 }
 
 module.exports = { listRoadConditions, createRoadCondition }
