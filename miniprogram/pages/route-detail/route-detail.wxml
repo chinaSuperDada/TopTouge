@@ -47,8 +47,10 @@
 
     <view class="start-area">
       <view class="btn btn-primary" bindtap="onStartRun">开始跑山</view>
-      <view class="btn btn-ghost navigate-btn" bindtap="onNavigate">导航到这条路线</view>
-      <text class="start-hint">跑山功能阶段二开放</text>
+      <text class="btn-hint">阶段二开放</text>
+
+      <view class="btn btn-ghost navigate-btn" bindtap="onNavigate">分享路线到微信</view>
+      <text class="btn-hint">复制后粘贴到聊天窗口，好友点击即可用高德打开完整路线</text>
     </view>
   </block>
 </view>

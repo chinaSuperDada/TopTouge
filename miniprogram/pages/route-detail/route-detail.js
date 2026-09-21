@@ -77,42 +77,22 @@ Page({
    * 由用户在高德地图或浏览器里粘贴打开。
    */
   /**
-   * 导航：选地图 App → 唤起它导航到终点。
+   * 分享路线：把高德导航链接复制到剪贴板。
    *
-   * 两个选项能力不同：
-   *   - 唤起地图 App：直接跳，不经过小程序，少一层确认；
-   *     但只能传终点，带不了途经点
-   *   - 复制链接：要用户自己粘贴，但能把全部途经点带上
+   * 为什么是复制而不是直接跳转：
+   *   直达高德 App 的官方接口只有 MapContext.openMapApp，但它只能传一个终点，
+   *   带不了途经点。而「跑这条路线」的关键恰恰是途经点 —— 少了它，
+   *   高德会按自己的算法规划，走的不一定是你要跑的那条路。
    *
-   * 注意 openMapApp 只在真机可用，开发者工具会报「不支持调试」。
+   *   生成链接这条路能把起终点和全部途经点都带上。用户在聊天窗口发送后，
+   *   微信会把它渲染成高德卡片，点击即用高德打开完整路线。
+   *
+   * 放弃的方案（都验证过，不可行）：
+   *   - wx.navigateToMiniProgram 跳高德小程序：高德没有单独的地图小程序
+   *   - openMapApp：无途经点参数
+   *   - web-view 打开 amap.com：微信不允许把高德域名配成业务域名
    */
   onNavigate() {
-    const items = navigation.APPS.map((a) => `用${a.label}导航到终点`)
-    items.push('复制高德路线链接（含途经点）')
-
-    wx.showActionSheet({
-      itemList: items,
-      success: (res) => {
-        if (res.tapIndex < navigation.APPS.length) {
-          this.openNavigation(navigation.APPS[res.tapIndex].key)
-        } else {
-          this.copyAmapLink()
-        }
-      },
-      fail: () => {}
-    })
-  },
-
-  openNavigation(key) {
-    const route = this.routeForNavigation()
-    if (!route) return
-
-    navigation.openInMapApp(key, route).catch((err) => {
-      wx.showToast({ title: err.message || '唤起导航失败', icon: 'none', duration: 3000 })
-    })
-  },
-
-  copyAmapLink() {
     const route = this.routeForNavigation()
     if (!route) return
 
@@ -121,11 +101,11 @@ Page({
       .then(() => {
         const n = (route.waypoints || []).length
         wx.showModal({
-          title: '链接已复制',
+          title: '路线链接已复制',
           content:
             n > 0
-              ? `已包含 ${n} 个途经点。粘贴到微信发送，对方点击即可在高德中打开完整路线。`
-              : '粘贴到微信发送，对方点击即可唤起高德地图。',
+              ? `已包含起点、终点和 ${n} 个途经点。粘贴到微信发送，对方点击后即可用高德打开完整路线。`
+              : '粘贴到微信发送，对方点击后即可用高德打开这条路线。',
           showCancel: false,
           confirmText: '知道了'
         })
@@ -139,7 +119,7 @@ Page({
   routeForNavigation() {
     const r = this.data.route
     if (!r || !r.startPoint || !r.endPoint) {
-      wx.showToast({ title: '路线缺少起终点，无法导航', icon: 'none' })
+      wx.showToast({ title: '路线缺少起终点，无法生成链接', icon: 'none' })
       return null
     }
 
