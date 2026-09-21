@@ -37,12 +37,27 @@ Page({
     wx.navigateTo({ url: `/pages/route-detail/route-detail?id=${e.detail.id}` })
   },
 
-  onUpload() {
-    wx.navigateTo({ url: '/pages/route-upload/route-upload' })
-  },
+  /**
+   * 制作路线：先选方式，再进对应页面。
+   *
+   * 用系统 ActionSheet 而不是自定义弹层 —— 少写样式，交互也是微信原生。
+   * 代价是 itemList 只支持单行文字，说明只能并进选项里。
+   */
+  onCreate() {
+    const items = ['搜索 / 选点 · 搜起终点自动规划，或在地图上点', '录制路线 · 跑一段路，把它变成路线']
 
-  onRecord() {
-    wx.navigateTo({ url: '/pages/route-record/route-record' })
+    wx.showActionSheet({
+      itemList: items,
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          wx.navigateTo({ url: '/pages/route-upload/route-upload' })
+        } else if (res.tapIndex === 1) {
+          wx.navigateTo({ url: '/pages/route-record/route-record' })
+        }
+      },
+      // 用户点取消也会走 fail，这里不需要提示
+      fail: () => {}
+    })
   },
 
   onRetry() {

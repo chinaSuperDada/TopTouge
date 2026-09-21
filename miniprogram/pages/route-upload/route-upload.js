@@ -5,6 +5,10 @@ const { ROAD_WIDTH_OPTIONS, ROAD_WIDTH_LABELS } = require('../../utils/roadWidth
 // 搜索联想用的防抖间隔，避免每敲一个字都发请求
 const SEARCH_DEBOUNCE_MS = 350
 
+// 途经点数量上限。高德路线规划接口本身支持 16 个，
+// 但再多用户也理不清顺序，UI 限到 5 个。
+const MAX_WAYPOINTS = 5
+
 Page({
   data: {
     // 采集方式：search（搜索起终点自动规划）| manual（地图点选）
@@ -33,7 +37,14 @@ Page({
     waypointKeyword: '',
     sourcePlace: null,
     destinationPlace: null,
+    // 每项形如 { key, place }。key 用于列表渲染 —— 排序时不能靠 name，
+    // 两个途经点重名的话 wx:key 会错乱
     waypoints: [],
+    waypointSeq: 0,
+    canAddWaypoint: true,
+    maxWaypoints: MAX_WAYPOINTS,
+    // 新加的途经点输入框是否展开
+    pickingWaypoint: false,
     candidates: [],
     searching: false,
     planning: false,
@@ -56,7 +67,7 @@ Page({
     const mode = e.currentTarget.dataset.mode
     if (mode === this.data.mode) return
     // 切换时清空已采集的点，避免两种方式的点混在一起
-    this.setData({ mode, candidates: [], picking: '' })
+    this.setData({ mode, candidates: [], picking: '', pickingWaypoint: false, waypointKeyword: '' })
     this.refreshMap([])
   },
 
@@ -115,20 +126,63 @@ Page({
       patch.destinationKeyword = place.name
       patch.destinationPlace = place
     } else if (field === 'waypoint') {
+      // 用自增序号当 key，而不是 name —— 两个途经点可能重名
+      const seq = this.data.waypointSeq + 1
+      const waypoints = this.data.waypoints.concat([{ key: `w${seq}`, place }])
+      patch.waypoints = waypoints
+      patch.waypointSeq = seq
       patch.waypointKeyword = ''
-      patch.waypoints = this.data.waypoints.concat([place])
+      patch.pickingWaypoint = false
+      patch.canAddWaypoint = waypoints.length < MAX_WAYPOINTS
     }
 
     this.setData(patch)
     this.afterPlaceChange()
   },
 
+  /** 展开一个新途经点的输入框 */
+  onAddWaypoint() {
+    if (!this.data.canAddWaypoint) return
+    this.setData({ pickingWaypoint: true, picking: 'waypoint', candidates: [] })
+  },
+
   onRemoveWaypoint(e) {
     const index = e.currentTarget.dataset.index
     const waypoints = this.data.waypoints.slice()
     waypoints.splice(index, 1)
-    this.setData({ waypoints })
+    this.setData({
+      waypoints,
+      canAddWaypoint: waypoints.length < MAX_WAYPOINTS
+    })
     this.afterPlaceChange()
+  },
+
+  /** 途经点上移。第一个的 ↑ 是禁用的，所以 index 不会是 0 */
+  onMoveWaypointUp(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    if (index <= 0) return
+    this.swapWaypoints(index, index - 1)
+  },
+
+  onMoveWaypointDown(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    if (index >= this.data.waypoints.length - 1) return
+    this.swapWaypoints(index, index + 1)
+  },
+
+  swapWaypoints(a, b) {
+    const waypoints = this.data.waypoints.slice()
+    const tmp = waypoints[a]
+    waypoints[a] = waypoints[b]
+    waypoints[b] = tmp
+    this.setData({ waypoints })
+    // 途经点顺序直接影响路线走向，必须重新规划
+    this.afterPlaceChange()
+  },
+
+  /** 取途经点的坐标数组，供路线规划用 */
+  waypointPlaces() {
+    return this.data.waypoints.map((w) => w.place)
   },
 
   /** 起终点或途经点变化后，重新规划路线 */
@@ -144,7 +198,7 @@ Page({
     this.setData({ planning: true, planError: '' })
 
     amap
-      .planDrivingRoute(sourcePlace, destinationPlace, this.data.waypoints)
+      .planDrivingRoute(sourcePlace, destinationPlace, this.waypointPlaces())
       .then((result) => {
         this.refreshMap(result.track)
       })

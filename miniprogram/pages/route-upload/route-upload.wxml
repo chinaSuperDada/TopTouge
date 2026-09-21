@@ -37,12 +37,26 @@
         </view>
       </view>
 
-      <!-- 途经点 -->
-      <view class="field" wx:for="{{waypoints}}" wx:key="name">
+      <!-- 途经点：按「添加」按钮逐个出现，可用上下箭头调顺序 -->
+      <view class="field" wx:for="{{waypoints}}" wx:key="key">
         <view class="field-row">
           <text class="dot dot-via"></text>
-          <text class="via-text flex-1">{{item.name}}</text>
-          <text class="remove" data-index="{{index}}" catchtap="onRemoveWaypoint">移除</text>
+          <view class="via-box flex-1">
+            <text class="via-name">{{item.place.name}}</text>
+            <view class="via-tools">
+              <text
+                class="tool {{index === 0 ? 'tool-off' : ''}}"
+                data-index="{{index}}"
+                catchtap="onMoveWaypointUp"
+              >↑</text>
+              <text
+                class="tool {{index === waypoints.length - 1 ? 'tool-off' : ''}}"
+                data-index="{{index}}"
+                catchtap="onMoveWaypointDown"
+              >↓</text>
+              <text class="tool tool-del" data-index="{{index}}" catchtap="onRemoveWaypoint">✕</text>
+            </view>
+          </view>
         </view>
       </view>
 
@@ -62,17 +76,23 @@
         </view>
       </view>
 
-      <!-- 加途经点 -->
-      <view class="field">
+      <!-- 添加途经点：只在还没到上限时显示 -->
+      <view class="add-via" wx:if="{{canAddWaypoint}}" bindtap="onAddWaypoint">
+        ＋ 添加途经点
+      </view>
+      <view class="add-via add-via-maxed" wx:else>途经点最多 {{maxWaypoints}} 个</view>
+
+      <!-- 新加的空途经点输入框 -->
+      <view class="field" wx:if="{{pickingWaypoint}}">
         <view class="field-row">
           <text class="dot dot-via"></text>
           <input
             class="input flex-1"
             value="{{waypointKeyword}}"
-            placeholder="途经点（可选）"
+            placeholder="搜索途经点"
             placeholder-class="input-placeholder"
+            focus="{{pickingWaypoint}}"
             data-field="waypoint"
-            bindfocus="onFocusField"
             bindinput="onKeywordInput"
           />
         </view>

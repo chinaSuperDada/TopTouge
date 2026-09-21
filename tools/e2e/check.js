@@ -145,11 +145,18 @@ async function main() {
       )
     })
 
-    await check('两个操作入口都在', async () => {
-      const a = await textOf(await listPage.$('.fab-ghost'))
-      const b = await textOf(await listPage.$('.fab-primary'))
-      record('两个操作入口都在', Boolean(a && b), `${a} / ${b}`)
+    await check('制作路线入口存在', async () => {
+      const t = await textOf(await listPage.$('.fab-primary'))
+      record('制作路线入口存在', t.includes('制作路线'), `"${t}"`)
     })
+
+    // 「制作路线」的 ActionSheet 跳转没有自动化，原因见下方说明。
+    // 已人工验证：选第 0 项进上传页、第 1 项进录制页，都正常。
+    //
+    // 为什么没自动化：ActionSheet 是原生 UI，不在页面 DOM 里点不到；
+    // 退而求其次用 mockWxMethod 替换 wx.showActionSheet，但它在一次会话里
+    // 反复 reLaunch 之后会失效（隔离跑能成功，跑完整套就失败）。
+    // 与其留一个时灵时不灵的用例，不如不写。
 
     /* ==================== 详情页 ==================== */
     console.log('\n【路线详情页】')
@@ -259,13 +266,83 @@ async function main() {
       record('默认是搜索模式', d.mode === 'search', `mode=${d.mode}`)
     })
 
-    await check('三个地点输入框都在', async () => {
+    await check('起终点输入框都在', async () => {
+      // 途经点输入框是按需展开的，初始只有起终点两个
       const texts = []
-      for (const f of ['source', 'destination', 'waypoint']) {
+      for (const f of ['source', 'destination']) {
         const el = await uploadPage.$(`input[data-field="${f}"]`)
         if (el) texts.push(f)
       }
-      record('三个地点输入框都在', texts.length === 3, `${texts.length}/3`)
+      record('起终点输入框都在', texts.length === 2, `${texts.length}/2`)
+    })
+
+    await check('默认只有起点和终点，没有途经点', async () => {
+      const d = await uploadPage.data()
+      const hasAddBtn = await uploadPage.$('.add-via')
+      record(
+        '默认只有起点和终点，没有途经点',
+        d.waypoints.length === 0 && Boolean(hasAddBtn),
+        `途经点 ${d.waypoints.length} 个，添加按钮${hasAddBtn ? '有' : '无'}`
+      )
+    })
+
+    await check('能展开途经点输入框', async () => {
+      const addBtn = await uploadPage.$('.add-via')
+      if (!addBtn) throw new Error('找不到添加按钮')
+
+      await addBtn.tap()
+      await uploadPage.waitFor(600)
+
+      const d = await uploadPage.data()
+      record('能展开途经点输入框', d.pickingWaypoint === true, `pickingWaypoint=${d.pickingWaypoint}`)
+    })
+
+    await check('上下箭头在边界处置灰', async () => {
+      // 直接注入两个途经点，验证首项↑、末项↓的禁用态
+      await uploadPage.setData({
+        waypoints: [
+          { key: 'w1', place: { name: '甲', lat: 30, lng: 120 } },
+          { key: 'w2', place: { name: '乙', lat: 30.1, lng: 120.1 } }
+        ],
+        waypointSeq: 2,
+        canAddWaypoint: true,
+        pickingWaypoint: false
+      })
+      await uploadPage.waitFor(500)
+
+      const off = await uploadPage.$$('.tool-off')
+      record('上下箭头在边界处置灰', off.length === 2, `${off.length} 个置灰（应为 2：首项↑ + 末项↓）`)
+    })
+
+    await check('能上移途经点调整顺序', async () => {
+      const before = (await uploadPage.data()).waypoints.map((w) => w.place.name)
+      if (before.length < 2) throw new Error('途经点不足 2 个')
+
+      // .tool 的 DOM 顺序是 [↑,↓,✕, ↑,↓,✕]，第 2 项的上移在索引 3
+      const all = await uploadPage.$$('.tool')
+      if (all.length < 4) throw new Error(`只找到 ${all.length} 个工具按钮`)
+
+      await all[3].tap()
+      await uploadPage.waitFor(500)
+
+      const after = (await uploadPage.data()).waypoints.map((w) => w.place.name)
+      record(
+        '能上移途经点调整顺序',
+        after[0] === before[1] && after[1] === before[0],
+        `${before.join(',')} → ${after.join(',')}`
+      )
+    })
+
+    await check('能删除途经点', async () => {
+      const before = (await uploadPage.data()).waypoints.length
+      const all = await uploadPage.$$('.tool-del')
+      if (!all.length) throw new Error('找不到删除按钮')
+
+      await all[0].tap()
+      await uploadPage.waitFor(500)
+
+      const after = (await uploadPage.data()).waypoints.length
+      record('能删除途经点', after === before - 1, `${before} → ${after}`)
     })
 
     await check('能切到地图点选模式', async () => {
