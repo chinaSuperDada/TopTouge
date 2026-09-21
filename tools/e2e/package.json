@@ -1,0 +1,12 @@
+{
+  "name": "toptouge-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TopTouge 小程序端到端验证（微信开发者工具自动化）",
+  "scripts": {
+    "check": "node check.js"
+  },
+  "dependencies": {
+    "miniprogram-automator": "^0.12.1"
+  }
+}

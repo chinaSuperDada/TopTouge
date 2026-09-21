@@ -27,7 +27,9 @@ Component({
 
   methods: {
     onTap() {
-      this.triggerEvent('tap', { id: this.data.route.id })
+      // 事件名不能叫 tap —— 会和原生点击事件重名，
+      // 页面上的 bind:tap 收到的是原生事件（detail 里是坐标，不是 id）
+      this.triggerEvent('select', { id: this.data.route.id })
     }
   }
 })
