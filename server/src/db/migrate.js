@@ -13,6 +13,35 @@ const config = require('../config')
 
 const SQL_DIR = path.resolve(__dirname, '../../sql')
 
+/**
+ * 把 SQL 文件拆成可逐条执行的语句。
+ *
+ * 不能简单地 split(';') 然后丢掉「以 -- 开头的片段」——
+ * 那样会把「注释 + 建表语句」整段扔掉。001_init.sql 里 routes 表
+ * 前面有大段说明注释，用那种写法会导致 routes 表根本不建，
+ * 然后 comments 建外键时报「找不到被引用的表」，很难看出真正原因。
+ *
+ * 正确做法是逐行剥离注释，再按分号切分。
+ */
+function splitStatements(sql) {
+  const withoutComments = sql
+    .split('\n')
+    .map((line) => {
+      const trimmed = line.trim()
+      // 整行注释直接去掉
+      if (trimmed.startsWith('--')) return ''
+      // 行尾注释去掉（SQL 里的 -- 不会出现在字符串字面量中，本项目没有这种用法）
+      const idx = line.indexOf('--')
+      return idx >= 0 ? line.slice(0, idx) : line
+    })
+    .join('\n')
+
+  return withoutComments
+    .split(';')
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
 async function main() {
   if (config.dataSource !== 'mysql') {
     console.log(`[migrate] 当前数据源是 ${config.dataSource}，不需要建表。`)
@@ -48,15 +77,8 @@ async function main() {
     }
 
     const sql = fs.readFileSync(path.join(SQL_DIR, file), 'utf8')
-    console.log(`[migrate] 执行 ${file} …`)
-
-    // 一个文件里的多条语句逐条执行。
-    // 不依赖 multipleStatements（默认关闭，且开了有注入风险）。
-    const statements = sql
-      .split(';')
-      .map((s) => s.trim())
-      // 去掉纯注释片段
-      .filter((s) => s && !/^(--|\/\*)/.test(s))
+    const statements = splitStatements(sql)
+    console.log(`[migrate] 执行 ${file}（${statements.length} 条语句）…`)
 
     const conn = await pool.getConnection()
     try {
@@ -81,7 +103,13 @@ async function main() {
   await closePool()
 }
 
-main().catch((err) => {
-  console.error('[migrate] 出错:', err.message)
-  process.exit(1)
-})
+// 只有直接运行本文件时才执行迁移。
+// 被 require 引入时（比如单测）只导出 splitStatements，不碰数据库。
+if (require.main === module) {
+  main().catch((err) => {
+    console.error('[migrate] 出错:', err.message)
+    process.exit(1)
+  })
+}
+
+module.exports = { splitStatements }
