@@ -4,6 +4,16 @@ require('dotenv').config()
  * 集中读取环境变量，带默认值。
  * 其他模块只认这里的字段，不直接读 process.env。
  */
+
+/**
+ * 是不是在跑单元测试。
+ *
+ * node --test 会设 NODE_TEST_CONTEXT 环境变量。
+ * 测试必须走内存 —— 那些用例依赖 store.reset() 这类内存专有操作，
+ * 连真数据库既慢又会污染数据（api.test.js 会真的写评论进去）。
+ */
+const isTest = Boolean(process.env.NODE_TEST_CONTEXT) || process.env.NODE_ENV === 'test'
+
 const config = {
   port: Number(process.env.PORT) || 3000,
 
@@ -14,8 +24,11 @@ const config = {
    * 数据源：
    *   memory —— 内存 mock，本地开发默认。重启即重置，不用起数据库。
    *   mysql  —— 真实数据库，线上部署用。
+   *
+   * 测试环境无条件用内存，不受 .env 里的 DATA_SOURCE 影响 ——
+   * 否则本地开发把 .env 配成 mysql 后，跑测试会连真库并写入脏数据。
    */
-  dataSource: process.env.DATA_SOURCE || 'memory',
+  dataSource: isTest ? 'memory' : process.env.DATA_SOURCE || 'memory',
 
   /**
    * MySQL 连接配置。

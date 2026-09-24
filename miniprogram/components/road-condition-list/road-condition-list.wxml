@@ -7,7 +7,7 @@
   <block wx:if="{{rows.length > 0}}">
     <view class="item" wx:for="{{rows}}" wx:key="id">
       <view class="item-head">
-        <text class="user">{{item.userId}}</text>
+        <text class="user">{{item.userName}}</text>
         <text class="time">{{item.timeText}}</text>
       </view>
       <text class="content">{{item.content}}</text>

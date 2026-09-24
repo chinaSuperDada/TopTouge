@@ -1,4 +1,5 @@
 const { formatTime } = require('../../utils/format')
+const { displayName } = require('../../utils/user')
 
 Component({
   properties: {
@@ -20,7 +21,8 @@ Component({
       this.setData({
         rows: (comments || []).map((c) => ({
           ...c,
-          timeText: formatTime(c.createdAt)
+          timeText: formatTime(c.createdAt),
+          userName: displayName(c.userId)
         }))
       })
     }
