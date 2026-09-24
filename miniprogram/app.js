@@ -12,28 +12,19 @@
  *
  * 局域网 IP 会随网络环境变化（换 WiFi、重启路由器），用下面命令查：
  *   ifconfig | grep "inet " | grep -v 127.0.0.1
- * 如果换了地址，改 LAN_BASE_URL 即可。
+ * 如果换了地址，改 utils/env.js 里的 LAN_BASE_URL。
  */
 
-const LAN_BASE_URL = 'http://192.168.1.199:3000'
-const TUNNEL_BASE_URL = 'http://10.8.0.2:3000'
-const LOCALHOST = 'http://localhost:3000'
+const env = require('./utils/env')
 
-// 手动指定用哪个。设为 'lan' | 'tunnel' | 'auto'
-// 'auto' 会按运行环境猜：模拟器走 localhost，真机走局域网
+/** 手动指定本地地址用哪个。设为 'lan' | 'tunnel' | 'auto' */
 const MODE = 'auto'
 
-function resolveBaseUrl() {
-  if (MODE === 'lan') return LAN_BASE_URL
-  if (MODE === 'tunnel') return TUNNEL_BASE_URL
+const TUNNEL_BASE_URL = 'http://10.8.0.2:3000'
 
-  try {
-    const { platform } = wx.getSystemInfoSync()
-    if (platform === 'devtools') return LOCALHOST
-  } catch (err) {
-    // 取不到就按真机处理
-  }
-  return LAN_BASE_URL
+function resolveBaseUrl() {
+  if (MODE === 'tunnel') return TUNNEL_BASE_URL
+  return env.localBaseUrl()
 }
 
 App({
@@ -53,6 +44,12 @@ App({
   },
 
   onLaunch() {
-    console.log('[TopTouge] baseUrl =', this.globalData.baseUrl)
+    env.initCloud()
+
+    if (env.useCloud()) {
+      console.log('[TopTouge] 云端模式，服务:', env.CLOUD_SERVICE)
+    } else {
+      console.log('[TopTouge] 本地模式，baseUrl =', this.globalData.baseUrl)
+    }
   }
 })
