@@ -3,5 +3,7 @@
   "enablePullDownRefresh": true,
   "usingComponents": {
     "route-card": "/components/route-card/route-card"
-  }
+  },
+  "enableShareTimeline": true,
+  "enableShareAppMessage": true
 }

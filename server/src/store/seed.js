@@ -1,20 +1,26 @@
-const store = require('./memoryStore')
+const routeRepo = require('../repositories/routeRepo')
 const { generateMockRoutes } = require('./mockRoutes')
 
 /**
- * 把 3 条 mock 路线灌进内存 store。
+ * 灌入示例路线。
  *
- * 幂等：如果已经存在 system 路线就跳过，避免热重载时重复灌入。
+ * 两条路都走 repository，所以内存模式和 MySQL 模式都能用。
  *
- * @returns {number} 本次实际写入的条数
+ * 幂等：已经存在 system 路线就跳过。启动时调用（内存模式）和
+ * `npm run seed`（MySQL 模式）都会用到，不能重复灌。
+ *
+ * 示例路线的 uploaded_by 是 'system'，前端会显示成「官方路线」，
+ * 用户一眼能分辨这不是别人真跑的路线。
+ *
+ * @returns {Promise<number>} 本次实际写入的条数
  */
-function seedMockRoutes() {
-  const existing = store.routes.findByUploadedBy('system')
-  if (existing.length > 0) return 0
+async function seedMockRoutes() {
+  const existing = await routeRepo.countByUploadedBy('system')
+  if (existing > 0) return 0
 
   const routes = generateMockRoutes()
   for (const route of routes) {
-    store.routes.insert(route)
+    await routeRepo.create(route)
   }
   return routes.length
 }

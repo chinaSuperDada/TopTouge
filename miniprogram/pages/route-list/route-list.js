@@ -62,5 +62,17 @@ Page({
 
   onRetry() {
     this.loadRoutes()
+  },
+
+  onShareAppMessage() {
+    const n = this.data.routes.length
+    return {
+      title: n > 0 ? `TopTouge 跑山路线 · 已有 ${n} 条` : 'TopTouge 跑山路线',
+      path: '/pages/route-list/route-list'
+    }
+  },
+
+  onShareTimeline() {
+    return { title: 'TopTouge 跑山路线' }
   }
 })

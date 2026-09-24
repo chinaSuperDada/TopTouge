@@ -32,6 +32,43 @@ Page({
     this.loadDetail()
   },
 
+  /**
+   * 分享给好友。
+   *
+   * 带上路线 id，好友点开直接进这条路线的详情页。
+   * 标题用路线名 + 关键数据，比默认的「XX小程序」有信息量。
+   */
+  onShareAppMessage() {
+    const route = this.data.route
+
+    if (!route) {
+      return {
+        title: 'TopTouge 跑山路线',
+        path: '/pages/route-list/route-list'
+      }
+    }
+
+    const km = (route.distanceMeters / 1000).toFixed(1)
+    const stars = '★'.repeat(Math.max(1, Math.min(5, route.difficultyStars)))
+
+    return {
+      title: `${route.name} · ${km}km · ${route.curveCount}个弯 ${stars}`,
+      path: `/pages/route-detail/route-detail?id=${route.id}`
+    }
+  },
+
+  /** 分享到朋友圈。只有页面配置里允许了才会出现入口 */
+  onShareTimeline() {
+    const route = this.data.route
+    if (!route) return { title: 'TopTouge 跑山路线' }
+
+    const km = (route.distanceMeters / 1000).toFixed(1)
+    return {
+      title: `${route.name} · ${km}km · ${route.curveCount}个弯`,
+      query: `id=${route.id}`
+    }
+  },
+
   loadDetail() {
     this.setData({ loading: true, error: '' })
 
