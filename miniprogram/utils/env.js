@@ -23,7 +23,7 @@ const LAN_BASE_URL = 'http://192.168.1.199:3000'
  *
  * 部署到云托管后把这里填上，本地开发仍然可以留空。
  */
-const CLOUD_ENV_ID = ''
+const CLOUD_ENV_ID = 'prod-d7gomqprncbcfb42b'
 
 /** 云托管里的服务名，对应控制台创建服务时填的名字 */
 const CLOUD_SERVICE = 'toptouge-server'
