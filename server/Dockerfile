@@ -25,16 +25,20 @@ RUN if [ -f package-lock.json ]; then \
 COPY src ./src
 COPY sql ./sql
 
-# 云托管默认从环境变量读端口，不设就用 80
-ENV PORT=80
-EXPOSE 80
+# 监听端口。
+#
+# 用 3000 而不是 80 —— Linux 上 1024 以下端口需要 root 权限，
+# 而下面用 USER 切成了非 root，绑 80 会 EACCES 启动失败。
+# 云托管支持自定义端口，在服务配置里填 3000 即可。
+ENV PORT=3000
+EXPOSE 3000
 
 # 容器内以非 root 运行，降低被攻破后的影响面
 RUN addgroup -S app && adduser -S app -G app && chown -R app:app /app
 USER app
 
-# 存活探针指到 /api/health/ready，它在 MySQL 模式下会真的探一次数据库
+# 存活探针指到 /api/health，它在 MySQL 模式下会真的探一次数据库
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://127.0.0.1:'+(process.env.PORT||80)+'/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+  CMD node -e "require('http').get('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
 
 CMD ["node", "src/index.js"]

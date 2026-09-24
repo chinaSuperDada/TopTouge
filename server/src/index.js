@@ -28,11 +28,44 @@ async function main() {
   }
 
   const app = createApp()
-  app.listen(config.port, () => {
-    console.log(`[TopTouge] 服务已启动 http://localhost:${config.port}`)
+  const server = app.listen(config.port, () => {
+    console.log(`[TopTouge] 服务已启动，监听端口 ${config.port}`)
     console.log(`[TopTouge] 数据源: ${config.dataSource}`)
     console.log(`[TopTouge] 固定测试用户: ${config.testUserId}`)
   })
+
+  /**
+   * 监听失败必须显式处理。
+   *
+   * 不加这个的话，端口被占用或权限不足（比如以非 root 绑 80 端口）
+   * 只会抛出一个裸的 "Unhandled 'error' event"，容器日志里完全看不出
+   * 是 EACCES 还是 EADDRINUSE —— 排查时等于没有线索。
+   */
+  server.on('error', (err) => {
+    const hints = {
+      EACCES: `端口 ${config.port} 需要更高权限。1024 以下的端口要 root，容器里建议用 3000 以上`,
+      EADDRINUSE: `端口 ${config.port} 已被占用`,
+      EADDRNOTAVAIL: `端口 ${config.port} 不可用，检查监听地址配置`
+    }
+    console.error(`[TopTouge] 启动失败 (${err.code}): ${hints[err.code] || err.message}`)
+    process.exit(1)
+  })
+
+  /** 收到停止信号时优雅退出，让连接池有机会释放 */
+  const shutdown = async (signal) => {
+    console.log(`[TopTouge] 收到 ${signal}，正在关闭…`)
+    server.close(async () => {
+      if (config.dataSource === 'mysql') {
+        const { closePool } = require('./db/pool')
+        await closePool()
+      }
+      process.exit(0)
+    })
+    // 兜底：10 秒内没关干净就强退，避免被编排系统强杀
+    setTimeout(() => process.exit(0), 10000).unref()
+  }
+  process.on('SIGTERM', () => shutdown('SIGTERM'))
+  process.on('SIGINT', () => shutdown('SIGINT'))
 }
 
 main().catch((err) => {
