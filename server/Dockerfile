@@ -6,10 +6,20 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# 先只拷依赖清单，让 npm install 这层能被缓存住。
+# 先只拷依赖清单，让安装这层能被缓存住。
 # 改业务代码不会让这层失效，构建快很多。
 COPY package*.json ./
-RUN npm ci --omit=dev
+
+# 有 package-lock.json 就用 npm ci（严格按锁定版本装，可复现）；
+# 没有则退回 npm install。用 [ -f ] 判断而不是直接 ci，
+# 否则万一 lock 文件没提交进来，构建会以「npm ci 找不到 lock」失败，
+# 报错信息还看不出真正原因。
+RUN if [ -f package-lock.json ]; then \
+      npm ci --omit=dev; \
+    else \
+      echo "警告：没有 package-lock.json，退回 npm install（版本不可复现）"; \
+      npm install --omit=dev; \
+    fi
 
 # 再拷源码
 COPY src ./src
