@@ -137,19 +137,19 @@ test('buildLoop 边界', async (t) => {
 test('seedMockRoutes', async (t) => {
   t.beforeEach(() => store.reset())
 
-  await t.test('首次灌入 3 条', () => {
-    assert.strictEqual(seedMockRoutes(), 3)
+  await t.test('首次灌入 3 条', async () => {
+    assert.strictEqual(await seedMockRoutes(), 3)
     assert.strictEqual(store.routes.count(), 3)
   })
 
-  await t.test('幂等：重复调用不重复灌入', () => {
-    seedMockRoutes()
-    assert.strictEqual(seedMockRoutes(), 0)
+  await t.test('幂等：重复调用不重复灌入', async () => {
+    await seedMockRoutes()
+    assert.strictEqual(await seedMockRoutes(), 0)
     assert.strictEqual(store.routes.count(), 3)
   })
 
-  await t.test('灌入后可按 id 查回，且是拷贝', () => {
-    seedMockRoutes()
+  await t.test('灌入后可按 id 查回，且是拷贝', async () => {
+    await seedMockRoutes()
     const route = store.routes.findById(1)
     assert.ok(route)
     assert.strictEqual(route.uploadedBy, 'system')

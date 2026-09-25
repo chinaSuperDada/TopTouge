@@ -5,27 +5,54 @@ const { seedMockRoutes } = require('./store/seed')
 /**
  * 启动流程。
  *
- * 关于示例数据：
- *   内存模式 —— 启动时自动灌 3 条示例路线。内存本来就是空的，
- *              每次重启都要重新灌，不灌的话界面永远是空的。
- *   MySQL 模式 —— **不自动灌**。数据是持久的，自动灌会在真实环境
- *              混入示例数据。要示例数据请显式跑 `npm run seed`。
+ * 关于数据库初始化：
+ *   MySQL 模式启动时会自动跑一次「建库 + 建表 + 灌示例」，全部幂等，
+ *   已有数据不会被动。这样部署到新环境不需要先进 WebShell 手动执行 ——
+ *   而且也必须自动化：库不存在时容器起不来，进不了 WebShell，
+ *   就成了死循环（要跑迁移得先有容器，要有容器得先建库）。
+ *
+ *   初始化失败不退出进程。库连不上时服务照常监听，health 接口返回
+ *   not-ready，等数据库恢复后下次重启或再次调用即可完成初始化。
+ *   比直接崩溃重启好：崩溃重启会陷入 Back-off，日志刷屏且永远进不去。
  */
-async function main() {
-  if (config.dataSource === 'mysql') {
-    const { ping } = require('./db/pool')
-    const ok = await ping()
-    if (!ok) {
-      console.error('[TopTouge] 数据库连接失败，请检查 DB_* 环境变量')
-      process.exit(1)
-    }
-    console.log('[TopTouge] 已连接 MySQL')
-  } else {
+async function prepareDataSource() {
+  if (config.dataSource !== 'mysql') {
     const inserted = await seedMockRoutes()
     if (inserted > 0) {
       console.log(`[TopTouge] 已灌入 ${inserted} 条示例路线`)
     }
+    return
   }
+
+  try {
+    const { ensureDatabase } = require('./db/ensureDatabase')
+    const { runMigrations } = require('./db/migrate')
+    const { closePool } = require('./db/pool')
+
+    const { created, name } = await ensureDatabase()
+    console.log(created ? `[TopTouge] 已创建数据库 ${name}` : `[TopTouge] 数据库 ${name} 已就绪`)
+
+    await runMigrations()
+
+    const inserted = await seedMockRoutes()
+    if (inserted > 0) {
+      console.log(`[TopTouge] 已写入 ${inserted} 条示例路线`)
+    }
+
+    await closePool()
+    console.log('[TopTouge] 数据库准备完成')
+  } catch (err) {
+    // 不退出：让服务先起来，health 会报 not-ready，便于排查
+    console.error('[TopTouge] 数据库准备失败，服务将以降级状态启动')
+    console.error('[TopTouge] 失败原因:', err.message)
+    if (err.code) console.error('[TopTouge] 错误码:', err.code)
+    const { describeConnection } = require('./db/pool')
+    console.error('[TopTouge] 连接参数:', describeConnection())
+  }
+}
+
+async function main() {
+  await prepareDataSource()
 
   const app = createApp()
   const server = app.listen(config.port, () => {

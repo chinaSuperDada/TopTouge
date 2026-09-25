@@ -42,14 +42,16 @@ function splitStatements(sql) {
     .filter(Boolean)
 }
 
-async function main() {
-  if (config.dataSource !== 'mysql') {
-    console.log(`[migrate] 当前数据源是 ${config.dataSource}，不需要建表。`)
-    console.log('[migrate] 要建表请设置 DATA_SOURCE=mysql 并配好 DB_* 环境变量。')
-    return
-  }
-
-  const { getPool, closePool } = require('../db/pool')
+/**
+ * 执行建表迁移。
+ *
+ * 幂等：已执行过的文件记在 schema_migrations 表里，重复运行不会重放。
+ * 每个文件在事务里执行，失败整体回滚。
+ *
+ * @returns {Promise<{ran: number, skipped: number, total: number}>}
+ */
+async function runMigrations() {
+  const { getPool } = require('../db/pool')
   const pool = getPool()
 
   // 记录表本身也要建
@@ -100,11 +102,24 @@ async function main() {
   }
 
   console.log(`[migrate] 共执行 ${ran} 个文件，${files.length - ran} 个已是最新`)
+  return { ran, skipped: files.length - ran, total: files.length }
+}
+
+async function main() {
+  if (config.dataSource !== 'mysql') {
+    console.log(`[migrate] 当前数据源是 ${config.dataSource}，不需要建表。`)
+    console.log('[migrate] 要建表请设置 DATA_SOURCE=mysql 并配好 DB_* 环境变量。')
+    return
+  }
+
+  const { getPool, closePool } = require('../db/pool')
+  getPool() // 提前建池，让连接失败早暴露
+  await runMigrations()
   await closePool()
 }
 
-// 只有直接运行本文件时才执行迁移。
-// 被 require 引入时（比如单测）只导出 splitStatements，不碰数据库。
+// 只有直接运行本文件时才执行。
+// 被 require 引入时（init.js 会用 runMigrations）不碰数据库。
 if (require.main === module) {
   main().catch((err) => {
     console.error('[migrate] 出错:', err.message)
@@ -112,4 +127,4 @@ if (require.main === module) {
   })
 }
 
-module.exports = { splitStatements }
+module.exports = { splitStatements, runMigrations }

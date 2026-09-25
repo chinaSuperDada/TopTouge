@@ -33,9 +33,11 @@ const config = {
   /**
    * MySQL 连接配置。
    *
-   * 云托管的内网 MySQL 会注入带 MYSQL_ 前缀的环境变量，
-   * 但不同版本的注入名不完全一致，这里几种常见写法都兜一下，
-   * 最后回落到手动配置的 DB_* 。
+   * 云托管的 MySQL 连接信息**不是自动注入的** —— 需要在服务设置里
+   * 手动配置 MYSQL_ADDRESS / MYSQL_USERNAME / MYSQL_PASSWORD，
+   * 值从控制台的 MySQL 页面取（内网地址形如 10.0.0.3:3306）。
+   *
+   * 这里同时兼容 DB_* 前缀，方便本地开发和连公网数据库时用。
    */
   mysql: {
     host: process.env.DB_HOST || process.env.MYSQL_ADDRESS?.split(':')[0] || 'localhost',

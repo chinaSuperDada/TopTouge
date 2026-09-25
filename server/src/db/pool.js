@@ -49,6 +49,27 @@ async function closePool() {
 }
 
 /**
+ * 建一个不指定数据库的连接。
+ *
+ * 用途只有一个：建库。库还不存在时，带库名的连接会直接报
+ * "Unknown database"，所以 CREATE DATABASE 必须先在不指定库的连接上执行。
+ *
+ * 用完要 end()，不要放进连接池 —— 这是一次性的连接。
+ */
+function createConnectionWithoutDatabase() {
+  const c = config.mysql
+  return mysql.createConnection({
+    host: c.host,
+    port: c.port,
+    user: c.user,
+    password: c.password,
+    ssl: c.ssl ? { rejectUnauthorized: false } : undefined,
+    timezone: 'Z',
+    connectTimeout: 10000
+  })
+}
+
+/**
  * 健康检查用的连通性测试。
  *
  * 失败时把连接参数和完整错误都打出来 —— 排查数据库连不上的问题时，
@@ -108,4 +129,11 @@ function describeError(err) {
   }
 }
 
-module.exports = { getPool, closePool, ping, describeConnection, describeError }
+module.exports = {
+  getPool,
+  closePool,
+  ping,
+  createConnectionWithoutDatabase,
+  describeConnection,
+  describeError
+}
