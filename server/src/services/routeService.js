@@ -18,8 +18,8 @@ const {
  * 列表页只需要展示用的字段，不带 referenceTrack —— 一条轨迹几百个点，
  * 全量返回会让列表接口的响应体膨胀到几百 KB。详情页才需要轨迹。
  */
-async function listRoutes() {
-  const routes = await routeRepo.list()
+async function listRoutes(filters = {}) {
+  const routes = await routeRepo.list(filters)
   return routes.map(toSummary)
 }
 
@@ -67,7 +67,7 @@ async function getRouteDetail(id, options = {}) {
  * @param {string} uploadedBy
  */
 async function createRoute(input, uploadedBy) {
-  const { name, roadWidth, vehicleType, trackPoints } = input
+  const { name, roadWidth, vehicleType, trackPoints, province, city, roadType } = input
 
   const stats = computeStats(trackPoints)
   const first = trackPoints[0]
@@ -90,6 +90,14 @@ async function createRoute(input, uploadedBy) {
     elevationGainMeters: stats.elevationGainMeters,
     roadWidth,
     difficultyStars: computeStars(stats),
+    // 区域与路型：用于列表筛选和版主辖区判断
+    province: province || '',
+    city: city || '',
+    roadType: roadType || 'mountain',
+    // 审核状态：有版主的城市应该走 pending，
+    // 但前端拿不到「这个城市有没有版主」，所以在这里查一次
+    reviewStatus: await resolveReviewStatus(province, city),
+    heat: 0,
     createdAt: new Date().toISOString()
   })
 }
@@ -106,9 +114,28 @@ function toSummary(route) {
     curveCount: route.curveCount,
     elevationGainMeters: route.elevationGainMeters,
     roadWidth: route.roadWidth,
+    roadType: route.roadType,
+    province: route.province,
+    city: route.city,
+    heat: route.heat,
+    pinned: route.pinned,
     vehicleType: route.vehicleType,
     createdAt: route.createdAt
   }
 }
 
-module.exports = { listRoutes, getRouteDetail, createRoute, toSummary }
+/**
+ * 判断新上传的路线要不要审核。
+ *
+ * 有版主的城市走 pending（等版主审），没版主的直接 approved ——
+ * 否则没人审的城市，用户传完永远看不到自己的路线。
+ */
+async function resolveReviewStatus(province, city) {
+  if (!province || !city) return 'approved'
+
+  const moderatorRepo = require('../repositories/moderatorRepo')
+  const count = await moderatorRepo.countInCity(province, city)
+  return count > 0 ? 'pending' : 'approved'
+}
+
+module.exports = { listRoutes, getRouteDetail, createRoute, toSummary, resolveReviewStatus }

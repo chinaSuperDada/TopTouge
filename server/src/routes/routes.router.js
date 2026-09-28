@@ -10,7 +10,19 @@ const router = express.Router()
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    res.json({ routes: await routeService.listRoutes() })
+    // 筛选与排序参数由前端传，service 层负责解释
+    res.json({
+      routes: await routeService.listRoutes({
+        province: req.query.province || 'all',
+        city: req.query.city || 'all',
+        difficulty: req.query.difficulty || 'all',
+        roadType: req.query.roadType || 'all',
+        sort: req.query.sort || 'hot',
+        lat: Number(req.query.lat) || undefined,
+        lng: Number(req.query.lng) || undefined,
+        limit: parseLimit(req.query.limit, 50, 200)
+      })
+    })
   })
 )
 

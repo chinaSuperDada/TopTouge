@@ -11,6 +11,8 @@ const commentsRouter = require('./routes/comments.router')
 const roadConditionsRouter = require('./routes/roadConditions.router')
 const runsRouter = require('./routes/runs.router')
 const meRouter = require('./routes/me.router')
+const bannersRouter = require('./routes/banners.router')
+const moderatorRouter = require('./routes/moderator.router')
 
 /**
  * 组装 Express 应用。不监听端口 —— 便于测试里用 supertest 直接挂载。
@@ -49,6 +51,8 @@ function createApp({ logger = true } = {}) {
   app.use('/api/routes', routesRouter)
   app.use('/api/runs', runsRouter)
   app.use('/api/me', meRouter)
+  app.use('/api/banners', bannersRouter)
+  app.use('/api/moderator', moderatorRouter)
 
   app.use(notFoundHandler)
   app.use(errorHandler)

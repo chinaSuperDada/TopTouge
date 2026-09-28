@@ -37,7 +37,15 @@ function validateCreateRoute(body) {
 
   const trackPoints = normalizeTrackPoints(body.trackPoints)
 
-  return { name, roadWidth, vehicleType, trackPoints }
+  // 区域与路型：列表筛选和版主辖区判断要用。
+  // 不做强校验 —— 前端定位失败时可能拿不到，允许为空
+  const province = typeof body.province === 'string' ? body.province.trim() : ''
+  const city = typeof body.city === 'string' ? body.city.trim() : ''
+
+  const ROAD_TYPES = ['mountain', 'track', 'gravel', 'highway']
+  const roadType = ROAD_TYPES.includes(body.roadType) ? body.roadType : 'mountain'
+
+  return { name, roadWidth, vehicleType, trackPoints, province, city, roadType }
 }
 
 /**

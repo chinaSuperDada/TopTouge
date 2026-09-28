@@ -155,3 +155,16 @@ CREATE TABLE IF NOT EXISTS moderators (
   -- 查「这个城市有哪些版主」——审核时和活动查询都要用
   KEY idx_city (province, city)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/* ==================== 数据回填 ==================== */
+
+-- 加列时给了默认值 ''，已有数据的 province/city 就是空的 ——
+-- 按区域筛选会一条都查不到。
+--
+-- 这里按路线名回填 mock 数据的区域。只 UPDATE 还没有区域的行，
+-- 重复执行不会覆盖已经填好的值（幂等）。
+UPDATE routes SET province = '浙江省', city = '杭州市'
+ WHERE province = '' AND name IN ('九曲发夹弯', '一线天盘山道');
+
+UPDATE routes SET province = '浙江省', city = '湖州市'
+ WHERE province = '' AND name = '西山缓坡环线';
