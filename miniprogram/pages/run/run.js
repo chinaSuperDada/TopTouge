@@ -50,14 +50,11 @@ Page({
 
     this.setData({ routeId, routeName })
 
-    // 先把路线数据拿到 —— 跑山时要用终点坐标判断是否到达
+    // 先把路线数据拿到 —— 跑山时要用终点坐标判断是否到达，
+    // 同时把参考路线画到地图上，让用户知道要往哪跑
     mock.getRoute(routeId).then((route) => {
       this._route = route
-      this.setData({
-        latitude: route.endPoint.lat,
-        longitude: route.endPoint.lng,
-        scale: 15
-      })
+      this.refreshMap()
     })
   },
 
@@ -290,15 +287,24 @@ Page({
 
   /* ==================== 地图 ==================== */
 
+  /**
+   * 刷新地图。
+   *
+   * 同时画两条线：
+   *   - 参考路线（要跑的目标）—— 进页面就该看到，不能等采到点才画
+   *   - 实际轨迹（已经跑的）—— 开始后才逐渐出现
+   *
+   * 之前只画实际轨迹，所以没开始跑时地图是空的，
+   * 用户不知道自己要往哪跑。
+   */
   refreshMap() {
+    const route = this._route
     const track = this.points
     const last = track[track.length - 1]
-    if (!last) return
 
-    const route = this._route
+    const referenceTrack = route && route.track ? route.track : []
+
     const markers = []
-
-    // 终点标记，让用户知道要跑到哪
     if (route && route.endPoint) {
       markers.push({
         id: 1,
@@ -319,16 +325,23 @@ Page({
 
     const patch = {
       pointCount: track.length,
-      polyline: amap.buildPolyline(track),
+      polyline: amap.buildDualPolyline(referenceTrack, track),
       markers
     }
 
-    // 点数少时跟随当前位置，多了就展示全貌
-    if (track.length <= 2) {
-      patch.latitude = last.lat
-      patch.longitude = last.lng
-    } else {
-      const view = amap.fitView(track)
+    // 视野：优先跟随当前位置；还没有位置就展示整条参考路线
+    if (last) {
+      if (track.length <= 2) {
+        patch.latitude = last.lat
+        patch.longitude = last.lng
+      } else {
+        const view = amap.fitView(track)
+        patch.latitude = view.latitude
+        patch.longitude = view.longitude
+        patch.scale = view.scale
+      }
+    } else if (referenceTrack.length >= 2) {
+      const view = amap.fitView(referenceTrack)
       patch.latitude = view.latitude
       patch.longitude = view.longitude
       patch.scale = view.scale

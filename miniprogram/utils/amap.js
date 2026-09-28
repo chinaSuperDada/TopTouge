@@ -25,6 +25,8 @@ const ALT_COLOR = '#6c9c3c'
 const DANGER_COLOR = '#e5484d'
 const MUTED_COLOR = '#8b98a5'
 const TRACK_COLOR = ACCENT_COLOR
+/** 跑山时参考路线的颜色：比主色暗，与实际轨迹区分开 */
+const REFERENCE_COLOR = '#4a5560'
 
 /**
  * SDK 文件是否已就位。
@@ -71,6 +73,42 @@ function createAMapInstance() {
     console.warn('[amap] SDK 初始化失败', err)
     return null
   }
+}
+
+/**
+ * 双线轨迹：参考路线 + 实际跑出的轨迹。
+ *
+ * 跑山时两条线要同时显示 —— 参考线告诉用户「该往哪跑」，
+ * 实际线显示「已经跑了哪」。颜色区分：参考线暗、实际线亮。
+ *
+ * @param {Array} referenceTrack 参考路线（要跑的目标）
+ * @param {Array} actualTrack 实际轨迹（已经跑的）
+ * @returns {Array} polyline 数组
+ */
+function buildDualPolyline(referenceTrack, actualTrack) {
+  const lines = []
+
+  if (Array.isArray(referenceTrack) && referenceTrack.length >= 2) {
+    lines.push({
+      points: referenceTrack.map((p) => ({ latitude: p.lat, longitude: p.lng })),
+      // 参考线用灰蓝色，不抢视线
+      color: REFERENCE_COLOR,
+      width: 6,
+      arrowLine: false,
+      dottedLine: true
+    })
+  }
+
+  if (Array.isArray(actualTrack) && actualTrack.length >= 2) {
+    lines.push({
+      points: actualTrack.map((p) => ({ latitude: p.lat, longitude: p.lng })),
+      color: ACCENT_COLOR,
+      width: 5,
+      arrowLine: true
+    })
+  }
+
+  return lines
 }
 
 /**
@@ -411,6 +449,7 @@ module.exports = {
   DANGER_COLOR,
   MUTED_COLOR,
   TRACK_COLOR,
+  REFERENCE_COLOR,
   isConfigured,
   isSdkAvailable,
   createAMapInstance,
@@ -418,6 +457,7 @@ module.exports = {
   planDrivingRoute,
   parsePolyline,
   buildPolyline,
+  buildDualPolyline,
   buildMarkers,
   fitView
 }
