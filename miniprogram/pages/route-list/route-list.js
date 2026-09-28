@@ -2,8 +2,9 @@ const mock = require('../../utils/mock')
 
 Page({
   data: {
-    // 活动位
+    // 活动位轮播
     banners: [],
+    bannerIndex: 0,
 
     // 当前位置
     location: { province: '', city: '' },
@@ -173,21 +174,31 @@ Page({
       })
   },
 
-  /** 把原始数据转成卡片需要的展示文案 */
+  /**
+   * 把原始数据转成卡片需要的展示文案。
+   *
+   * 缩略图用 CSS 渐变画，不引图片资源 —— 省包体积，也不用维护素材。
+   * 配色按 id 取模分配，保证相邻路线颜色不同，视觉上能区分。
+   */
   decorate(route) {
     const km = route.distanceMeters / 1000
     const distanceText = km < 1 ? `${Math.round(route.distanceMeters)}m` : `${km.toFixed(1)}km`
 
     const ROAD_TYPE_LABEL = { mountain: '山路', track: '赛道', gravel: '非铺装', highway: '公路' }
+    const roadTypeText = ROAD_TYPE_LABEL[route.roadType] || '山路'
 
     return {
       ...route,
       distanceText,
-      roadTypeText: ROAD_TYPE_LABEL[route.roadType] || '山路',
+      roadTypeText,
       // 「离我最近」排序时展示，方便用户判断远近
       fromMeText: route.distanceFromMeMeters < 1000
         ? '附近'
-        : `${Math.round(route.distanceFromMeMeters / 1000)}km`
+        : `${Math.round(route.distanceFromMeMeters / 1000)}km`,
+      // 缩略图配色：从固定色板里按 id 取
+      thumbClass: `thumb-${route.id % 6}`,
+      // 星级用小方块画，比字符整齐
+      stars: [1, 2, 3, 4, 5]
     }
   },
 
@@ -196,9 +207,13 @@ Page({
   },
 
   onBannerTap(e) {
-    // 活动详情页还没做，先给个提示
     const { title } = e.currentTarget.dataset
     wx.showToast({ title: `${title}（开发中）`, icon: 'none' })
+  },
+
+  /** 轮播切换时记下当前页，用于底部指示点 */
+  onBannerChange(e) {
+    this.setData({ bannerIndex: e.detail.current })
   },
 
   onLocationTap() {

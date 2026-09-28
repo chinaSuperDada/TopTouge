@@ -8,21 +8,39 @@
     </view>
   </view>
 
-  <!-- 活动位：横滑 -->
-  <scroll-view class="banners" scroll-x enable-flex show-scrollbar="{{false}}">
-    <view
-      class="banner"
-      wx:for="{{banners}}"
-      wx:key="id"
-      style="background: {{item.color}}"
-      data-title="{{item.title}}"
-      bindtap="onBannerTap"
+  <!-- 活动位：自动轮播 + 手动滑动 + 指示点 -->
+  <view class="banner-wrap">
+    <swiper
+      class="banners"
+      autoplay="{{true}}"
+      interval="3500"
+      duration="400"
+      circular
+      bindchange="onBannerChange"
     >
-      <text class="banner-tag">{{item.tag}}</text>
-      <text class="banner-title">{{item.title}}</text>
-      <text class="banner-sub">{{item.subtitle}}</text>
+      <swiper-item wx:for="{{banners}}" wx:key="id">
+        <view
+          class="banner"
+          style="background: {{item.color}}"
+          data-title="{{item.title}}"
+          bindtap="onBannerTap"
+        >
+          <text class="banner-tag">{{item.tag}}</text>
+          <text class="banner-title">{{item.title}}</text>
+          <text class="banner-sub">{{item.subtitle}}</text>
+        </view>
+      </swiper-item>
+    </swiper>
+
+    <!-- 指示点：当前页拉长，未选中是小圆点 -->
+    <view class="dots">
+      <view
+        class="dot {{bannerIndex === index ? 'dot-on' : ''}}"
+        wx:for="{{banners}}"
+        wx:key="id"
+      ></view>
     </view>
-  </scroll-view>
+  </view>
 
   <!-- 筛选区 -->
   <view class="filters">
@@ -84,28 +102,36 @@
       data-id="{{item.id}}"
       bindtap="onRouteTap"
     >
-      <view class="card-main">
-        <view class="card-info">
-          <text class="card-name">{{item.name}}</text>
-          <view class="card-meta">
-            <text class="meta-item">{{item.distanceText}}</text>
-            <text class="meta-dot">·</text>
-            <text class="meta-item">{{item.curveCount}} 弯</text>
-            <text class="meta-dot">·</text>
-            <text class="meta-item">{{item.roadTypeText}}</text>
-          </view>
-          <view class="card-sub">
-            <text class="sub-item">{{item.city}}</text>
-            <text class="meta-dot">·</text>
-            <text class="sub-item">{{item.fromMeText}}</text>
-            <text class="meta-dot">·</text>
-            <text class="sub-item">🔥 {{item.heat}}</text>
-          </view>
+      <!-- 左：缩略图（CSS 渐变画，配色按 id 区分） -->
+      <view class="thumb {{item.thumbClass}}">
+        <view class="thumb-mountain"></view>
+        <text class="thumb-label">{{item.roadTypeText}}</text>
+      </view>
+
+      <!-- 右：信息 -->
+      <view class="card-info">
+        <text class="card-name">{{item.name}}</text>
+
+        <view class="card-meta">
+          <text class="meta-item">{{item.distanceText}}</text>
+          <text class="meta-dot">·</text>
+          <text class="meta-item">{{item.curveCount}} 弯</text>
+          <text class="meta-dot">·</text>
+          <text class="meta-item">{{item.city}}</text>
         </view>
 
-        <view class="card-stars">
-          <text class="stars-num">{{item.difficultyStars}}</text>
-          <text class="stars-label">星</text>
+        <view class="card-foot">
+          <!-- 星级用小方块，比字符整齐 -->
+          <view class="stars">
+            <view
+              class="star {{si < item.difficultyStars ? 'star-on' : ''}}"
+              wx:for="{{item.stars}}"
+              wx:for-item="s"
+              wx:for-index="si"
+              wx:key="*this"
+            ></view>
+          </view>
+          <text class="heat">🔥 {{item.heat}}</text>
         </view>
       </view>
     </view>
