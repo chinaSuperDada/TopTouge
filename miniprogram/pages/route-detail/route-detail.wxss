@@ -1,9 +1,162 @@
 .page {
   min-height: 100vh;
   padding: var(--space-3);
+  /* 详情页不是 tab 页，不需要给 TabBar 留空间 */
   padding-bottom: var(--space-6);
   box-sizing: border-box;
   background: var(--bg-base);
+}
+
+/* ---------- 顶部与 Tab ---------- */
+
+.header {
+  padding: var(--space-1) var(--space-1) 0;
+}
+
+.tabs {
+  display: flex;
+  margin-top: var(--space-3);
+  border-bottom: 2rpx solid var(--divider);
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: var(--space-2) 0;
+  font-size: var(--fs-body);
+  color: var(--text-secondary);
+  position: relative;
+}
+
+/* 选中的 tab 下方一条橙色指示条 */
+.tab-on {
+  color: var(--text-emphasis);
+  font-weight: 600;
+}
+
+.tab-on::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -2rpx;
+  width: 56rpx;
+  height: 6rpx;
+  margin-left: -28rpx;
+  background: var(--accent);
+  border-radius: 3rpx;
+}
+
+/* ---------- 排名榜 ---------- */
+
+/* 空状态（榜单、评论都用得到） */
+.empty {
+  text-align: center;
+  padding: var(--space-5) 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-label);
+}
+
+.empty-hint {
+  display: block;
+  font-size: var(--fs-caption);
+  margin-top: 12rpx;
+  opacity: 0.7;
+}
+
+/* 次要操作按钮：和主按钮拉开间距 */
+.action-btn {
+  margin-top: var(--space-2);
+}
+
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+}
+
+.rank-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.rank-title {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  color: var(--text-emphasis);
+}
+
+.rank-sub {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 2rpx solid var(--divider);
+}
+
+.rank-item:last-child {
+  border-bottom: none;
+}
+
+/* 名次徽章：前三名用强调色，其余用灰色 */
+.rank-no {
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  text-align: center;
+  border-radius: 50%;
+  font-size: var(--fs-label);
+  font-weight: 700;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+/* 前三名的徽章用强调色 */
+.rank-no-top {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.rank-main {
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--space-3);
+}
+
+.rank-user {
+  display: block;
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+  margin-bottom: 4rpx;
+}
+
+.rank-time {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+}
+
+.rank-score {
+  display: flex;
+  align-items: baseline;
+}
+
+.score-num {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.score-label {
+  font-size: var(--fs-caption);
+  color: var(--accent);
+  margin-left: 4rpx;
 }
 
 /* ---------- 状态 ---------- */

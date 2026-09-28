@@ -1,7 +1,9 @@
-const api = require('../../utils/request')
+const mock = require('../../utils/mock')
 const amap = require('../../utils/amap')
 const navigation = require('../../utils/navigation')
 const { isLoopTrack } = require('../../utils/trackSimplify')
+
+const ROAD_TYPE_LABEL = { mountain: '山路', track: '赛道', gravel: '非铺装', highway: '公路' }
 
 Page({
   data: {
@@ -10,6 +12,11 @@ Page({
     loading: true,
     error: '',
 
+    // 三个 tab：路线主页 / 路线排名 / 评论
+    activeTab: 'home',
+    commentCount: 0,
+    ranking: [],
+
     // 地图
     latitude: 39.9042,
     longitude: 116.4074,
@@ -17,7 +24,7 @@ Page({
     polyline: [],
     markers: [],
 
-    // 导航：闭环路线用外部导航没有意义（起点=终点），要提示用户
+    // 闭环路线用外部导航没有意义（起点=终点），要提示用户
     isLoop: false,
     navigating: false
   },
@@ -30,6 +37,24 @@ Page({
     }
     this.setData({ routeId })
     this.loadDetail()
+  },
+
+  onTabChange(e) {
+    const tab = e.currentTarget.dataset.tab
+    if (tab === this.data.activeTab) return
+
+    this.setData({ activeTab: tab })
+
+    // 排名数据按需加载，切到那个 tab 才拉
+    if (tab === 'rank' && this.data.ranking.length === 0) {
+      this.loadRanking()
+    }
+  },
+
+  loadRanking() {
+    mock.getRanking(this.data.routeId).then((ranking) => {
+      this.setData({ ranking })
+    })
   },
 
   /**
@@ -72,8 +97,8 @@ Page({
   loadDetail() {
     this.setData({ loading: true, error: '' })
 
-    return api
-      .get(`/api/routes/${this.data.routeId}`, { showError: false })
+    return mock
+      .getRoute(this.data.routeId)
       .then((route) => {
         this.applyRoute(route)
       })
@@ -83,12 +108,18 @@ Page({
   },
 
   applyRoute(route) {
-    // 详情接口默认返回抽稀后的 track，画地图够用且传输量小
-    const track = route.track && route.track.length ? route.track : route.referenceTrack
+    const track = route.track || []
     const view = amap.fitView(track)
 
+    const km = route.distanceMeters / 1000
+
     this.setData({
-      route,
+      route: {
+        ...route,
+        distanceText: km < 1 ? `${Math.round(route.distanceMeters)}m` : `${km.toFixed(1)}km`,
+        roadTypeText: ROAD_TYPE_LABEL[route.roadType] || '山路'
+      },
+      commentCount: (route.comments || []).length,
       loading: false,
       error: '',
       latitude: view.latitude,
@@ -168,44 +199,70 @@ Page({
     }
   },
 
-  /** 评论提交：组件把内容抛上来，这里负责发请求和刷新 */
+  /**
+   * 评论提交。
+   *
+   * 后端接口还没实现，先只往本地数组里塞一条，让交互能走通。
+   * 接后端后换成 request.post(`/api/routes/${id}/comments`, { content })，
+   * 并把返回的评论插到列表头部。
+   */
   onCommentSubmit(e) {
     const content = e.detail.content
     const component = this.selectComponent('#commentList')
+    const app = getApp()
 
-    api
-      .post(`/api/routes/${this.data.routeId}/comments`, { content })
-      .then(() => {
-        wx.showToast({ title: '已发布', icon: 'success' })
-        if (component) component.clearInput()
-        return this.loadDetail()
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (component) component.setSubmitting(false)
-      })
+    const comment = {
+      id: Date.now(),
+      userId: app.globalData.userId,
+      content,
+      createdAt: new Date().toISOString()
+    }
+
+    const comments = [comment, ...(this.data.route.comments || [])]
+
+    this.setData({
+      'route.comments': comments,
+      commentCount: comments.length
+    })
+
+    wx.showToast({ title: '已发布', icon: 'success' })
+    if (component) {
+      component.clearInput()
+      component.setSubmitting(false)
+    }
   },
 
   onRoadConditionSubmit(e) {
     const content = e.detail.content
     const component = this.selectComponent('#roadConditionList')
+    const app = getApp()
 
-    api
-      .post(`/api/routes/${this.data.routeId}/road-conditions`, { content })
-      .then(() => {
-        wx.showToast({ title: '已发布', icon: 'success' })
-        if (component) component.clearInput()
-        return this.loadDetail()
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (component) component.setSubmitting(false)
-      })
+    const item = {
+      id: Date.now(),
+      userId: app.globalData.userId,
+      content,
+      createdAt: new Date().toISOString()
+    }
+
+    this.setData({
+      'route.roadConditions': [item, ...(this.data.route.roadConditions || [])]
+    })
+
+    wx.showToast({ title: '已发布', icon: 'success' })
+    if (component) {
+      component.clearInput()
+      component.setSubmitting(false)
+    }
   },
 
-  /** 阶段二实现：跑山与算分 */
+  /** 跑山：进跑山页，带上路线信息 */
   onStartRun() {
-    wx.showToast({ title: '跑山功能将在下一阶段开放', icon: 'none', duration: 2000 })
+    const route = this.data.route
+    if (!route) return
+
+    wx.navigateTo({
+      url: `/pages/run/run?id=${route.id}&name=${encodeURIComponent(route.name)}`
+    })
   },
 
   onRetry() {

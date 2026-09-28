@@ -8,7 +8,9 @@
     "pages/mine-runs/mine-runs",
     "pages/mine-routes/mine-routes",
     "pages/mine-favorites/mine-favorites",
-    "pages/moderator/moderator"
+    "pages/moderator/moderator",
+    "pages/run/run",
+    "pages/run-result/run-result"
   ],
   "tabBar": {
     "custom": true,
@@ -17,8 +19,14 @@
     "backgroundColor": "#141414",
     "borderStyle": "black",
     "list": [
-      { "pagePath": "pages/route-list/route-list", "text": "首页" },
-      { "pagePath": "pages/mine/mine", "text": "我的" }
+      {
+        "pagePath": "pages/route-list/route-list",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的"
+      }
     ]
   },
   "window": {

@@ -1,0 +1,6 @@
+<view class="page">
+  <view class="placeholder">
+    <text class="ph-title">跑山中</text>
+    <text class="ph-hint">此页面待开发</text>
+  </view>
+</view>

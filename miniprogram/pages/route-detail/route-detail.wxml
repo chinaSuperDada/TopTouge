@@ -1,4 +1,5 @@
 <view class="page">
+  <!-- 加载 / 错误 -->
   <view class="state-box" wx:if="{{loading}}">
     <view class="spinner"></view>
     <text class="state-text">加载中…</text>
@@ -10,47 +11,99 @@
   </view>
 
   <block wx:else>
-    <view class="hero">
+    <!-- 顶部固定区：路线名 + 三个 tab -->
+    <view class="header">
       <text class="hero-title">{{route.name}}</text>
       <view class="hero-tags">
+        <text class="tag">{{route.distanceText}}</text>
         <text class="tag">{{route.curveCount}} 个弯道</text>
-        <text class="tag">{{route.distanceMeters}} 米</text>
+        <text class="tag">{{route.roadTypeText}}</text>
+      </view>
+
+      <view class="tabs">
+        <view
+          class="tab {{activeTab === 'home' ? 'tab-on' : ''}}"
+          data-tab="home"
+          bindtap="onTabChange"
+        >路线主页</view>
+        <view
+          class="tab {{activeTab === 'rank' ? 'tab-on' : ''}}"
+          data-tab="rank"
+          bindtap="onTabChange"
+        >路线排名</view>
+        <view
+          class="tab {{activeTab === 'comment' ? 'tab-on' : ''}}"
+          data-tab="comment"
+          bindtap="onTabChange"
+        >评论 {{commentCount}}</view>
       </view>
     </view>
 
-    <view class="map-wrap">
-      <map
-        id="routeMap"
-        class="map"
-        latitude="{{latitude}}"
-        longitude="{{longitude}}"
-        scale="{{scale}}"
-        polyline="{{polyline}}"
-        markers="{{markers}}"
-        show-location
-      ></map>
-    </view>
+    <!-- ============ Tab 1：路线主页 ============ -->
+    <block wx:if="{{activeTab === 'home'}}">
+      <view class="map-wrap">
+        <map
+          id="routeMap"
+          class="map"
+          latitude="{{latitude}}"
+          longitude="{{longitude}}"
+          scale="{{scale}}"
+          polyline="{{polyline}}"
+          markers="{{markers}}"
+          show-location
+        ></map>
+      </view>
 
-    <difficulty-panel route="{{route}}" />
+      <difficulty-panel route="{{route}}" />
 
-    <comment-list
-      id="commentList"
-      comments="{{route.comments}}"
-      bind:submit="onCommentSubmit"
-    />
+      <view class="start-area">
+        <view class="btn btn-primary" bindtap="onStartRun">开始跑山</view>
+        <view class="btn btn-ghost action-btn" bindtap="onNavigate">分享路线到微信</view>
+      </view>
+    </block>
 
-    <road-condition-list
-      id="roadConditionList"
-      roadConditions="{{route.roadConditions}}"
-      bind:submit="onRoadConditionSubmit"
-    />
+    <!-- ============ Tab 2：路线排名 ============ -->
+    <block wx:elif="{{activeTab === 'rank'}}">
+      <view class="card">
+        <view class="rank-head">
+          <text class="rank-title">成绩榜</text>
+          <text class="rank-sub">{{ranking.length}} 人跑过</text>
+        </view>
 
-    <view class="start-area">
-      <view class="btn btn-primary" bindtap="onStartRun">开始跑山</view>
-      <text class="btn-hint">阶段二开放</text>
+        <view class="rank-item" wx:for="{{ranking}}" wx:key="rank">
+          <view class="rank-no {{item.rank <= 3 ? 'rank-no-top' : ''}}">
+            {{item.rank}}
+          </view>
+          <view class="rank-main">
+            <text class="rank-user">{{item.userName}}</text>
+            <text class="rank-time">{{item.timeText}}</text>
+          </view>
+          <view class="rank-score">
+            <text class="score-num">{{item.score}}</text>
+            <text class="score-label">分</text>
+          </view>
+        </view>
 
-      <view class="btn btn-ghost navigate-btn" bindtap="onNavigate">分享路线到微信</view>
-      <text class="btn-hint">复制后粘贴到聊天窗口，好友点击即可用高德打开完整路线</text>
-    </view>
+        <view class="empty" wx:if="{{ranking.length === 0}}">
+          <text>还没有人跑过</text>
+          <text class="empty-hint">你可以做第一个</text>
+        </view>
+      </view>
+    </block>
+
+    <!-- ============ Tab 3：评论 ============ -->
+    <block wx:else>
+      <comment-list
+        id="commentList"
+        comments="{{route.comments}}"
+        bind:submit="onCommentSubmit"
+      />
+
+      <road-condition-list
+        id="roadConditionList"
+        roadConditions="{{route.roadConditions}}"
+        bind:submit="onRoadConditionSubmit"
+      />
+    </block>
   </block>
 </view>

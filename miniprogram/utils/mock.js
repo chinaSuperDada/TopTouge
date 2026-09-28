@@ -189,22 +189,83 @@ function queryRoutes(filters = {}) {
   return Promise.resolve(list)
 }
 
-/** 单个路线详情。接后端后换成 GET /api/routes/:id */
+/**
+ * 单个路线详情。接后端后换成 GET /api/routes/:id
+ *
+ * 备注：路径规划用的坐标放在 markRawData 里，
+ * 详情页要用它画地图和生成导航链接。
+ */
 function getRoute(id) {
   const found = MOCK_ROUTES.find((r) => r.id === Number(id)) || MOCK_ROUTES[0]
+
   return Promise.resolve({
     ...found,
-    // 轨迹与起终点是详情页特有的字段
-    track: [],
+    // 轨迹：一圈带起伏的环线，够画出形状即可
+    track: buildTrack(found),
     startPoint: { lat: 30.236382, lng: 119.955802, radiusMeters: 30 },
-    endPoint: { lat: 30.139339, lng: 119.884014, radiusMeters: 30 },
+    endPoint: { lat: 30.236382, lng: 119.955802, radiusMeters: 30 },
     waypoints: [
-      { name: '观景台', lat: 30.21, lng: 119.93 },
-      { name: '半山亭', lat: 30.18, lng: 119.91 }
+      { name: '观景台', lat: 30.2451, lng: 119.9682 },
+      { name: '半山亭', lat: 30.2288, lng: 119.9431 }
     ],
     comments: [],
     roadConditions: []
   })
+}
+
+/** 生成一条闭合轨迹，用于地图绘制 */
+function buildTrack(route) {
+  const centerLat = 30.236382
+  const centerLng = 119.955802
+  // 半径按路线长度粗略换算，让不同路线在地图上的大小有区别
+  const radius = Math.min(0.03, route.distanceMeters / 1000 / 400)
+  const points = []
+  const steps = 48
+
+  for (let i = 0; i < steps; i++) {
+    const angle = (i / steps) * 2 * Math.PI
+    // 加一点正弦扰动，看起来像山路而不是正圆
+    const r = radius * (1 + 0.25 * Math.sin(angle * 4))
+    points.push({
+      lat: centerLat + Math.cos(angle) * r,
+      lng: centerLng + Math.sin(angle) * r * 1.2,
+      altitude: Math.round(200 + Math.sin(angle * 2) * 150)
+    })
+  }
+  return points
+}
+
+/**
+ * 路线成绩榜。
+ * 接后端后换成 GET /api/routes/:id/ranking
+ */
+function getRanking(routeId) {
+  const base = [
+    { userName: '车友 3072', score: 982, seconds: 512 },
+    { userName: '车友 7790', score: 951, seconds: 548 },
+    { userName: '车友 1145', score: 923, seconds: 571 },
+    { userName: '车友 6203', score: 894, seconds: 602 },
+    { userName: '车友 8834', score: 861, seconds: 634 },
+    { userName: '车友 2261', score: 830, seconds: 668 },
+    { userName: '车友 5518', score: 802, seconds: 695 },
+    { userName: '车友 9907', score: 776, seconds: 721 }
+  ]
+
+  const list = base.map((item, i) => ({
+    rank: i + 1,
+    userName: item.userName,
+    score: item.score,
+    // 用时只在榜单上展示 —— 详情页的跑山结果页是不显示的（任务书要求）
+    timeText: formatDuration(item.seconds)
+  }))
+
+  return Promise.resolve(list)
+}
+
+function formatDuration(seconds) {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m}:${String(s).padStart(2, '0')}`
 }
 
 /** 当前位置。接后端/定位后由真实定位替换 */
@@ -221,5 +282,6 @@ module.exports = {
   MOCK_ROUTES,
   queryRoutes,
   getRoute,
+  getRanking,
   getCurrentLocation
 }
