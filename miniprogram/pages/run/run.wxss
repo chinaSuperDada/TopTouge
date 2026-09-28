@@ -156,3 +156,48 @@
 .controls .btn {
   flex: 1;
 }
+
+/* ---------- 外部导航 ---------- */
+
+.nav-hint-box {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 2rpx solid var(--divider);
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  border-radius: var(--radius-pill);
+  border: 2rpx solid var(--border-strong);
+  font-size: var(--fs-body);
+  color: var(--text-secondary);
+}
+
+.nav-btn:active {
+  background: var(--bg-surface);
+  color: var(--accent);
+}
+
+/* 「不记录成绩」跟在按钮文字后面，字号小一点 */
+.nav-note {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  margin-left: var(--space-2);
+  padding: 4rpx 12rpx;
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+}
+
+/* 解释为什么不能记成绩 —— 用户容易困惑，写清楚 */
+.nav-explain {
+  display: block;
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  line-height: 1.6;
+  margin-top: var(--space-2);
+  padding: 0 var(--space-2);
+  text-align: center;
+}

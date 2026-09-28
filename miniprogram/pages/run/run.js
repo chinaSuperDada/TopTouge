@@ -1,6 +1,7 @@
 const mock = require('../../utils/mock')
 const runGeo = require('../../utils/runGeo')
 const amap = require('../../utils/amap')
+const navigation = require('../../utils/navigation')
 
 // 位移小于这个距离不记点 —— 等红灯时 GPS 会回一堆同一个位置
 const MIN_MOVE_METERS = 8
@@ -348,6 +349,71 @@ Page({
     }
 
     this.setData(patch)
+  },
+
+  /* ==================== 外部导航 ==================== */
+
+  /**
+   * 用高德导航。
+   *
+   * ⚠️ 这条路**不能记录成绩** —— 小程序一旦切到后台，
+   * wx.onLocationChange 就停止回调，轨迹断了。这是微信的平台限制，
+   * 绕不过去。所以要在按钮上明确标出来，避免用户以为能算分。
+   *
+   * 跑山途中点它会更严重：已经跑的一段白费。所以额外拦一道，
+   * 让用户确认确实要放弃记录。
+   */
+  onExternalNav() {
+    const route = this._route
+    if (!route) {
+      wx.showToast({ title: '路线还没加载完', icon: 'none' })
+      return
+    }
+
+    const recording = this.data.status === 'running' || this.data.status === 'paused'
+
+    const doNavigate = () => {
+      if (recording) {
+        // 跳走就没有成绩了，先把记录停掉，免得留下半截数据
+        this.stopLocationListening()
+        this.stopTimer()
+        this.setData({ status: 'idle' })
+      }
+
+      navigation
+        .copyAmapShareLink({
+          name: route.name,
+          startPoint: route.startPoint,
+          endPoint: route.endPoint,
+          waypoints: route.waypoints || []
+        })
+        .then(() => {
+          wx.showModal({
+            title: '路线链接已复制',
+            content: '粘贴到微信发送，或直接在浏览器打开即可用高德导航。',
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        })
+        .catch((err) => {
+          wx.showToast({ title: err.message || '生成链接失败', icon: 'none' })
+        })
+    }
+
+    if (recording) {
+      wx.showModal({
+        title: '将放弃本次记录',
+        content: '跳转到高德后小程序进入后台，定位采集会中断，这段轨迹无法计入成绩。确认切换吗？',
+        confirmText: '放弃并跳转',
+        cancelText: '继续跑',
+        success: (res) => {
+          if (res.confirm) doNavigate()
+        }
+      })
+      return
+    }
+
+    doNavigate()
   },
 
   /* ==================== 提交 ==================== */

@@ -76,4 +76,17 @@
       <view class="btn btn-ghost" bindtap="onBack">返回</view>
     </block>
   </view>
+
+  <!-- 外部导航：与记录成绩互斥，所以单独一块并说明清楚 -->
+  <view class="nav-hint-box">
+    <view class="nav-btn" bindtap="onExternalNav">
+      <text>用高德导航</text>
+      <text class="nav-note">不记录成绩</text>
+    </view>
+    <text class="nav-explain">
+      跳到高德后小程序会进入后台，定位采集会中断，所以这条路无法计分。
+      想留成绩请用「开始跑山」。
+    </text>
+  </view>
 </view>
+
