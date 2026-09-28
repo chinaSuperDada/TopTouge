@@ -198,10 +198,6 @@
 
 /* ---------- 头部 ---------- */
 
-.hero {
-  padding: var(--space-3) var(--space-1) var(--space-4);
-}
-
 .hero-title {
   display: block;
   font-size: 60rpx;
@@ -210,20 +206,6 @@
   line-height: 1.25;
   letter-spacing: 1rpx;
   margin-bottom: var(--space-2);
-}
-
-.hero-tags {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.tag {
-  font-size: var(--fs-label);
-  color: var(--text-secondary);
-  background: var(--bg-surface);
-  padding: 10rpx var(--space-2);
-  border-radius: var(--radius-sm);
-  margin-right: var(--space-2);
 }
 
 /* ---------- 地图 ---------- */
@@ -242,23 +224,65 @@
   opacity: 0.92;
 }
 
+/* 定位按钮：浮在地图右下角 */
+.locate-btn {
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+  background: rgba(20, 20, 20, 0.88);
+  border: 2rpx solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.locate-btn:active {
+  background: var(--accent);
+}
+
+/* 用 CSS 画一个准星图标，避免引入图片 */
+.locate-icon {
+  position: relative;
+  width: 30rpx;
+  height: 30rpx;
+  border: 4rpx solid var(--accent);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+/* 准星四周的四个短刻度 */
+.locate-icon::before,
+.locate-icon::after {
+  content: '';
+  position: absolute;
+  background: var(--accent);
+}
+
+.locate-icon::before {
+  left: 50%;
+  top: -8rpx;
+  width: 4rpx;
+  height: 8rpx;
+  margin-left: -2rpx;
+  box-shadow: 0 38rpx 0 var(--accent);
+}
+
+.locate-icon::after {
+  top: 50%;
+  left: -8rpx;
+  width: 8rpx;
+  height: 4rpx;
+  margin-top: -2rpx;
+  box-shadow: 38rpx 0 0 var(--accent);
+}
+
 /* ---------- 开始跑山 ---------- */
 
 .start-area {
   margin-top: var(--space-4);
 }
 
-.navigate-btn {
-  margin-top: var(--space-4);
-}
 
-/* 按钮下方的一行说明 */
-.btn-hint {
-  display: block;
-  text-align: center;
-  font-size: var(--fs-caption);
-  color: var(--text-tertiary);
-  line-height: 1.5;
-  margin-top: var(--space-2);
-  padding: 0 var(--space-3);
-}

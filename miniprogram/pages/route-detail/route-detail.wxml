@@ -14,11 +14,6 @@
     <!-- 顶部固定区：路线名 + 三个 tab -->
     <view class="header">
       <text class="hero-title">{{route.name}}</text>
-      <view class="hero-tags">
-        <text class="tag">{{route.distanceText}}</text>
-        <text class="tag">{{route.curveCount}} 个弯道</text>
-        <text class="tag">{{route.roadTypeText}}</text>
-      </view>
 
       <view class="tabs">
         <view
@@ -52,6 +47,11 @@
           markers="{{markers}}"
           show-location
         ></map>
+
+        <!-- 微信 map 组件没有内置定位按钮，自己加一个 -->
+        <view class="locate-btn" bindtap="onLocateMe">
+          <view class="locate-icon"></view>
+        </view>
       </view>
 
       <difficulty-panel route="{{route}}" />

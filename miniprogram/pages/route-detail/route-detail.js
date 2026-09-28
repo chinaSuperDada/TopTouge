@@ -4,8 +4,6 @@ const amap = require('../../utils/amap')
 const navigation = require('../../utils/navigation')
 const { isLoopTrack } = require('../../utils/trackSimplify')
 
-const ROAD_TYPE_LABEL = { mountain: '山路', track: '赛道', gravel: '非铺装', highway: '公路' }
-
 Page({
   data: {
     routeId: null,
@@ -60,6 +58,28 @@ Page({
         if (pos) this.setData({ myLocation: pos })
       })
       .catch(() => {})
+  },
+
+  /**
+   * 点定位按钮：把地图移到自己所在位置。
+   *
+   * 微信 map 组件没有内置定位按钮，得自己画一个再调 moveToLocation。
+   * 这次不传 silent —— 用户主动点的定位，没权限时应该引导他去开。
+   */
+  onLocateMe() {
+    location.getLocation().then((pos) => {
+      if (!pos) return
+
+      this.setData({ myLocation: pos })
+
+      const ctx = wx.createMapContext('routeMap')
+      ctx.moveToLocation({
+        latitude: pos.lat,
+        longitude: pos.lng,
+        // 部分基础库版本不接受坐标参数，退回用系统定位
+        fail: () => ctx.moveToLocation({ fail: () => {} })
+      })
+    })
   },
 
   onTabChange(e) {
@@ -134,14 +154,8 @@ Page({
     const track = route.track || []
     const view = amap.fitView(track)
 
-    const km = route.distanceMeters / 1000
-
     this.setData({
-      route: {
-        ...route,
-        distanceText: km < 1 ? `${Math.round(route.distanceMeters)}m` : `${km.toFixed(1)}km`,
-        roadTypeText: ROAD_TYPE_LABEL[route.roadType] || '山路'
-      },
+      route,
       commentCount: (route.comments || []).length,
       loading: false,
       error: '',

@@ -144,6 +144,12 @@
       bindtap="onMapTap"
     ></map>
 
+    <!-- 微信 map 组件没有内置定位按钮，自己加一个。
+         按钮盖在 map 上，点击会被它截获，不会误触发地图取点 -->
+    <view class="locate-btn" bindtap="onLocateMe">
+      <view class="locate-icon"></view>
+    </view>
+
     <view class="counter">
       <text class="counter-num t-num">{{points.length}}</text>
       <text class="counter-label">个点</text>

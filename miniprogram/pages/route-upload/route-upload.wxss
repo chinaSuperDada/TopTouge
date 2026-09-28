@@ -216,6 +216,61 @@
   opacity: 0.92;
 }
 
+/* 定位按钮：浮在地图左下角。
+   右下角被取点计数器占了，两个放一起会重叠 */
+.locate-btn {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-2);
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+  background: rgba(20, 20, 20, 0.88);
+  border: 2rpx solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.locate-btn:active {
+  background: var(--accent);
+}
+
+/* 准星图标，CSS 画，不引图片 */
+.locate-icon {
+  position: relative;
+  width: 30rpx;
+  height: 30rpx;
+  border: 4rpx solid var(--accent);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.locate-icon::before,
+.locate-icon::after {
+  content: '';
+  position: absolute;
+  background: var(--accent);
+}
+
+.locate-icon::before {
+  left: 50%;
+  top: -8rpx;
+  width: 4rpx;
+  height: 8rpx;
+  margin-left: -2rpx;
+  box-shadow: 0 38rpx 0 var(--accent);
+}
+
+.locate-icon::after {
+  top: 50%;
+  left: -8rpx;
+  width: 8rpx;
+  height: 4rpx;
+  margin-top: -2rpx;
+  box-shadow: 38rpx 0 0 var(--accent);
+}
+
 .counter {
   position: absolute;
   right: var(--space-2);

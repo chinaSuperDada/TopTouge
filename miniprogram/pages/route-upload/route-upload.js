@@ -1,5 +1,6 @@
 const api = require('../../utils/request')
 const amap = require('../../utils/amap')
+const location = require('../../utils/location')
 const { ROAD_WIDTH_OPTIONS, ROAD_WIDTH_LABELS } = require('../../utils/roadWidth')
 
 // 搜索联想用的防抖间隔，避免每敲一个字都发请求
@@ -55,6 +56,41 @@ Page({
 
   onLoad() {
     this._debounceTimer = null
+    this.initLocation()
+  },
+
+  /**
+   * 进页面先定位到当前位置。
+   *
+   * 用户多半就在要标记的地方附近，直接把他放到当前点比让他自己找方便。
+   * 没给权限时降级到默认中心（北京），不影响后续操作。
+   */
+  initLocation() {
+    location.getLocation().then((pos) => {
+      if (!pos) return
+      this.setData({ myLocation: pos, latitude: pos.lat, longitude: pos.lng, scale: 15 })
+    })
+  },
+
+  /**
+   * 点定位按钮：回到自己的位置。
+   *
+   * 微信 map 组件没有内置定位按钮，得自己画一个再调 moveToLocation。
+   */
+  onLocateMe() {
+    location.getLocation().then((pos) => {
+      if (!pos) return
+
+      this.setData({ myLocation: pos })
+
+      const ctx = wx.createMapContext('pickMap')
+      ctx.moveToLocation({
+        latitude: pos.lat,
+        longitude: pos.lng,
+        // 部分基础库版本不接受坐标参数，退回用系统定位
+        fail: () => ctx.moveToLocation({ fail: () => {} })
+      })
+    })
   },
 
   onUnload() {
