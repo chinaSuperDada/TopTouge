@@ -268,6 +268,86 @@ function formatDuration(seconds) {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
+/**
+ * 提交跑山记录。
+ *
+ * 后端接口还没实现，这里按真实算法算一个分数出来，让流程能走通：
+ *   分数 = 时间百分位 × 1000
+ *
+ * 真实实现里「百分位」要拿该路线所有历史成绩来算；没有历史数据时
+ * 只能估一个。这里用「越快分越高」的简化映射，避免出现所有新路线
+ * 第一次跑都是 0 分的情况。
+ *
+ * 接后端后换成 POST /api/runs { routeId, vehicleType, trackPoints, dataMode }
+ */
+function submitRun({ routeId, elapsedSeconds }) {
+  const route = MOCK_ROUTES.find((r) => r.id === Number(routeId)) || MOCK_ROUTES[0]
+
+  // 用路线长度估一个「参考用时」：按平均时速 35km 算，再留 30% 浮动
+  const refSeconds = (route.distanceMeters / 1000 / 35) * 3600
+
+  // 比参考用时快 → 分高。比值 0.5 得满分，2.0 得 0 分
+  const ratio = elapsedSeconds / refSeconds
+  const score = Math.max(1, Math.min(1000, Math.round((2 - ratio) * 666)))
+
+  // 名次：假设榜上已有若干人，按分数粗排
+  const total = 24
+  const rank = Math.max(1, Math.min(total, Math.round((1 - score / 1000) * total) + 1))
+
+  return Promise.resolve({ score, rank, total })
+}
+
+
+/* ==================== 我的 ==================== */
+
+/**
+ * 我跑过的记录。
+ * 接后端后换成 GET /api/me/runs
+ */
+function getMyRuns() {
+  const base = [
+    { routeId: 1, routeName: '九曲发夹弯', score: 782, rank: 8, total: 24, daysAgo: 1 },
+    { routeId: 1, routeName: '九曲发夹弯', score: 745, rank: 13, total: 24, daysAgo: 5 },
+    { routeId: 2, routeName: '一线天盘山道', score: 861, rank: 3, total: 17, daysAgo: 8 },
+    { routeId: 3, routeName: '西山缓坡环线', score: 690, rank: 11, total: 32, daysAgo: 12 },
+    { routeId: 5, routeName: '妙峰山经典线', score: 903, rank: 2, total: 41, daysAgo: 20 },
+    { routeId: 7, routeName: '四明山越野线', score: 618, rank: 9, total: 12, daysAgo: 33 }
+  ]
+
+  return Promise.resolve(
+    base.map((r, i) => ({ ...r, id: i + 1, timeText: relativeDay(r.daysAgo) }))
+  )
+}
+
+/** 我上传的路线。接后端后换成 GET /api/me/routes */
+function getMyRoutes() {
+  return Promise.resolve(
+    MOCK_ROUTES.slice(0, 3).map((r) => ({
+      id: r.id,
+      name: r.name,
+      distanceMeters: r.distanceMeters,
+      difficultyStars: r.difficultyStars,
+      curveCount: r.curveCount,
+      heat: r.heat,
+      // 审核状态：pending 待审核 / approved 已通过 / rejected 已驳回
+      reviewStatus: 'approved'
+    }))
+  )
+}
+
+/** 我收藏的路线。接后端后换成 GET /api/me/favorites */
+function getMyFavorites() {
+  return Promise.resolve(MOCK_ROUTES.slice(2, 7).map((r) => ({ ...r })))
+}
+
+/** 天数转「N天前」这种相对描述 */
+function relativeDay(days) {
+  if (days <= 0) return '今天'
+  if (days === 1) return '昨天'
+  if (days < 30) return `${days}天前`
+  return `${Math.floor(days / 30)}个月前`
+}
+
 /** 当前位置。接后端/定位后由真实定位替换 */
 function getCurrentLocation() {
   return Promise.resolve({ province: '浙江省', city: '杭州市', lat: 30.2741, lng: 120.1551 })
@@ -283,5 +363,9 @@ module.exports = {
   queryRoutes,
   getRoute,
   getRanking,
+  submitRun,
+  getMyRuns,
+  getMyRoutes,
+  getMyFavorites,
   getCurrentLocation
 }

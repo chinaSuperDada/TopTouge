@@ -5,27 +5,70 @@
   background: var(--bg-base);
 }
 
-.placeholder {
+.run-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding-top: 200rpx;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
-.ph-title {
-  font-size: 48rpx;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 16rpx;
+.run-item:active {
+  background: var(--bg-elevated);
 }
 
-.ph-desc {
-  font-size: var(--fs-body);
-  color: var(--text-secondary);
-  margin-bottom: 12rpx;
+.run-main {
+  flex: 1;
+  min-width: 0;
 }
 
-.ph-hint {
+.run-name {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-emphasis);
+  margin-bottom: 8rpx;
+}
+
+.run-meta {
   font-size: var(--fs-caption);
   color: var(--text-tertiary);
+}
+
+.run-score {
+  display: flex;
+  align-items: baseline;
+  margin-left: var(--space-3);
+}
+
+.score-num {
+  font-size: 40rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.score-label {
+  font-size: var(--fs-caption);
+  margin-left: 4rpx;
+}
+
+/* 分数分档：越高越亮，一眼看出哪次跑得好 */
+.score-high { color: var(--accent); }
+.score-mid { color: var(--text-emphasis); }
+.score-low { color: var(--text-secondary); }
+
+.loading,
+.empty {
+  text-align: center;
+  padding: var(--space-6) 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-label);
+}
+
+.empty-hint {
+  display: block;
+  font-size: var(--fs-caption);
+  margin-top: 12rpx;
+  opacity: 0.7;
 }
