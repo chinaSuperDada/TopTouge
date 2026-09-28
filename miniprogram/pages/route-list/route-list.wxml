@@ -1,34 +1,118 @@
 <view class="page">
-  <view class="header">
-    <text class="header-title">跑山路线</text>
-    <text class="header-sub">{{routes.length}} 条路线可挑战</text>
+  <!-- 顶栏：标题 + 当前城市 -->
+  <view class="topbar">
+    <text class="topbar-title">跑山路线</text>
+    <view class="location" bindtap="onLocationTap">
+      <text class="location-text">{{location.city || '定位中…'}}</text>
+      <text class="location-arrow">▾</text>
+    </view>
   </view>
 
-  <view class="state-box" wx:if="{{loading}}">
-    <view class="spinner"></view>
-    <text class="state-text">加载中…</text>
+  <!-- 活动位：横滑 -->
+  <scroll-view class="banners" scroll-x enable-flex show-scrollbar="{{false}}">
+    <view
+      class="banner"
+      wx:for="{{banners}}"
+      wx:key="id"
+      style="background: {{item.color}}"
+      data-title="{{item.title}}"
+      bindtap="onBannerTap"
+    >
+      <text class="banner-tag">{{item.tag}}</text>
+      <text class="banner-title">{{item.title}}</text>
+      <text class="banner-sub">{{item.subtitle}}</text>
+    </view>
+  </scroll-view>
+
+  <!-- 筛选区 -->
+  <view class="filters">
+    <view class="filter-row">
+      <picker mode="selector" range="{{provinceLabels}}" value="{{provinceIndex}}" bindchange="onProvinceChange">
+        <view class="filter {{provinceIndex > 0 ? 'filter-on' : ''}}">
+          <text>{{provinceLabels[provinceIndex]}}</text>
+          <text class="filter-arrow">▾</text>
+        </view>
+      </picker>
+
+      <picker mode="selector" range="{{cityLabels}}" value="{{cityIndex}}" bindchange="onCityChange">
+        <view class="filter {{cityIndex > 0 ? 'filter-on' : ''}}">
+          <text>{{cityLabels[cityIndex]}}</text>
+          <text class="filter-arrow">▾</text>
+        </view>
+      </picker>
+
+      <picker mode="selector" range="{{difficultyLabels}}" value="{{difficultyIndex}}" bindchange="onDifficultyChange">
+        <view class="filter {{difficultyIndex > 0 ? 'filter-on' : ''}}">
+          <text>{{difficultyLabels[difficultyIndex]}}</text>
+          <text class="filter-arrow">▾</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="filter-row">
+      <picker mode="selector" range="{{roadTypeLabels}}" value="{{roadTypeIndex}}" bindchange="onRoadTypeChange">
+        <view class="filter {{roadTypeIndex > 0 ? 'filter-on' : ''}}">
+          <text>{{roadTypeLabels[roadTypeIndex]}}</text>
+          <text class="filter-arrow">▾</text>
+        </view>
+      </picker>
+
+      <picker mode="selector" range="{{sortLabels}}" value="{{sortIndex}}" bindchange="onSortChange">
+        <view class="filter {{sortIndex > 0 ? 'filter-on' : ''}}">
+          <text>{{sortLabels[sortIndex]}}</text>
+          <text class="filter-arrow">▾</text>
+        </view>
+      </picker>
+
+      <view class="filter filter-reset" bindtap="onResetFilters">重置</view>
+    </view>
   </view>
 
-  <view class="error-box" wx:elif="{{error}}">
-    <text>{{error}}</text>
-    <view class="btn btn-ghost retry" bindtap="onRetry">重试</view>
+  <!-- 结果统计 -->
+  <view class="result-bar">
+    <text class="result-count">{{routes.length}} 条路线</text>
   </view>
+
+  <!-- 列表 -->
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
 
   <block wx:else>
-    <route-card
+    <view
+      class="route-card"
       wx:for="{{routes}}"
       wx:key="id"
-      route="{{item}}"
-      bind:select="onRouteTap"
-    />
+      data-id="{{item.id}}"
+      bindtap="onRouteTap"
+    >
+      <view class="card-main">
+        <view class="card-info">
+          <text class="card-name">{{item.name}}</text>
+          <view class="card-meta">
+            <text class="meta-item">{{item.distanceText}}</text>
+            <text class="meta-dot">·</text>
+            <text class="meta-item">{{item.curveCount}} 弯</text>
+            <text class="meta-dot">·</text>
+            <text class="meta-item">{{item.roadTypeText}}</text>
+          </view>
+          <view class="card-sub">
+            <text class="sub-item">{{item.city}}</text>
+            <text class="meta-dot">·</text>
+            <text class="sub-item">{{item.fromMeText}}</text>
+            <text class="meta-dot">·</text>
+            <text class="sub-item">🔥 {{item.heat}}</text>
+          </view>
+        </view>
+
+        <view class="card-stars">
+          <text class="stars-num">{{item.difficultyStars}}</text>
+          <text class="stars-label">星</text>
+        </view>
+      </view>
+    </view>
 
     <view class="empty" wx:if="{{routes.length === 0}}">
-      <text class="empty-line">还没有路线</text>
-      <text class="empty-line">点下面的按钮上传第一条</text>
+      <text>没有符合条件的路线</text>
+      <text class="empty-hint">试试放宽筛选条件</text>
     </view>
   </block>
-
-  <view class="fab-bar">
-    <view class="fab-btn fab-primary" bindtap="onCreate">＋ 制作路线</view>
-  </view>
 </view>

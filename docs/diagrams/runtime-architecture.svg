@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ar" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 z" fill="#5a6b7d"/>
+    </marker>
+    <marker id="arD" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 z" fill="#c0392b"/>
+    </marker>
+    <style>
+      .t   { font-size:15px; font-weight:700; fill:#1f2d3d; }
+      .s   { font-size:11px; fill:#6b7a8a; }
+      .m   { font-family:Menlo,Consolas,monospace; font-size:10.5px; fill:#2c3e50; }
+      .note{ font-size:11.5px; fill:#7a8a9a; }
+    </style>
+  </defs>
+
+  <rect width="1100" height="720" fill="#fbfcfd"/>
+  <text x="40" y="40" font-size="21" font-weight="700" fill="#1f2d3d">TopTouge 运行时架构</text>
+  <text x="40" y="62" font-size="12" fill="#7a8a9a">用户操作 → 小程序 → 微信网关 → 云托管容器 → 内网 MySQL</text>
+
+  <!-- 用户 -->
+  <rect x="40" y="100" width="150" height="90" rx="10" fill="#eef2f7" stroke="#b9c6d4"/>
+  <text x="58" y="128" class="t">用户手机</text>
+  <text x="58" y="150" class="s">微信客户端</text>
+  <text x="58" y="168" class="s">打开小程序</text>
+
+  <!-- 小程序 -->
+  <rect x="250" y="90" width="230" height="110" rx="10" fill="#f0f7ff" stroke="#a9cdea"/>
+  <text x="268" y="116" class="t">小程序（前端）</text>
+  <text x="268" y="138" class="m">CLOUD_ENV_ID</text>
+  <text x="268" y="154" class="m">  = prod-d7gomq...</text>
+  <text x="268" y="174" class="s">utils/request.js 判断走哪条路</text>
+  <text x="268" y="190" class="s">页面 → request → 结果渲染</text>
+
+  <!-- 微信网关 -->
+  <rect x="540" y="90" width="200" height="110" rx="10" fill="#f6f4fb" stroke="#c9bfe4"/>
+  <text x="558" y="116" class="t">微信网关</text>
+  <text x="558" y="138" class="s">callContainer 走内网</text>
+  <text x="558" y="158" class="m">注入 X-WX-OPENID</text>
+  <text x="558" y="178" class="s">按服务名路由</text>
+
+  <!-- 云托管容器 -->
+  <rect x="800" y="80" width="250" height="130" rx="10" fill="#f1fbf5" stroke="#a4d7b9"/>
+  <text x="818" y="106" class="t">云托管容器</text>
+  <text x="818" y="126" class="m">toptouge-server</text>
+  <text x="818" y="146" class="s">Express 服务</text>
+  <text x="818" y="164" class="s">监听 3000 端口</text>
+  <text x="818" y="184" class="s">routes/services/repositories</text>
+  <text x="818" y="200" class="s">启动时自动建库建表</text>
+
+  <!-- MySQL -->
+  <rect x="800" y="270" width="250" height="110" rx="10" fill="#fdf7f0" stroke="#dcbe95"/>
+  <text x="818" y="296" class="t">MySQL（内网）</text>
+  <text x="818" y="316" class="m">MYSQL_ADDRESS</text>
+  <text x="818" y="332" class="m">MYSQL_USERNAME / PASSWORD</text>
+  <text x="818" y="352" class="s">4 张表：routes / comments</text>
+  <text x="818" y="368" class="s">        road_conditions / schema_migrations</text>
+
+  <!-- 高德 -->
+  <rect x="250" y="270" width="230" height="110" rx="10" fill="#fff8f0" stroke="#e8cfb0"/>
+  <text x="268" y="296" class="t">高德开放平台</text>
+  <text x="268" y="318" class="s">地点搜索 inputtips</text>
+  <text x="268" y="336" class="s">路径规划 driving</text>
+  <text x="268" y="356" class="m">restapi.amap.com</text>
+  <text x="268" y="372" class="s">需配 request 合法域名</text>
+
+  <!-- 连线 -->
+  <line x1="190" y1="145" x2="250" y2="145" stroke="#5a6b7d" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="480" y1="145" x2="540" y2="145" stroke="#5a6b7d" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="490" y="136" class="note">cloud</text>
+  <text x="490" y="166" class="note">callContainer</text>
+  <line x1="740" y1="145" x2="800" y2="145" stroke="#5a6b7d" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="925" y1="210" x2="925" y2="270" stroke="#5a6b7d" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="935" y="245" class="note">mysql 协议</text>
+  <line x1="480" y1="300" x2="250" y2="325" stroke="#c9a24a" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="500" y="300" class="note">小程序直连高德</text>
+
+  <!-- 本地开发分支 -->
+  <rect x="40" y="440" width="1000" height="120" rx="10" fill="#fafafa" stroke="#c9d2da" stroke-dasharray="7,4"/>
+  <text x="58" y="466" class="t" fill="#6b7a8a">本地开发（不走云托管）</text>
+  <text x="58" y="490" class="s">CLOUD_ENV_ID 留空时，request.js 改走 wx.request</text>
+  <text x="58" y="510" class="m">模拟器 → http://localhost:3000      真机 → http://192.168.1.199:3000</text>
+  <text x="58" y="532" class="s">后端同样跑 .env 里的配置：DATA_SOURCE=memory 或 mysql</text>
+  <text x="58" y="550" class="s">本地用内存时不连数据库，重启即重置</text>
+
+  <!-- 关键提示 -->
+  <rect x="40" y="596" width="1000" height="96" rx="10" fill="#fff5f5" stroke="#e8b4b4"/>
+  <text x="58" y="622" class="t" fill="#c0392b">当前状态：后端没读到 DATA_SOURCE，走了内存模式</text>
+  <text x="58" y="646" class="s">日志显示「数据源: memory」——环境变量没生效，所以没连 MySQL，表也就不会建</text>
+  <text x="58" y="666" class="s">需要在云托管「服务设置 → 环境变量」配 DATA_SOURCE=mysql，然后重新部署新版本（改环境变量不热更新）</text>
+  <text x="58" y="686" class="s">小程序端已就绪：CLOUD_ENV_ID 已填，请求走的就是 callContainer</text>
+</svg>

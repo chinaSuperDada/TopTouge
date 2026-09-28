@@ -1,0 +1,7 @@
+<view class="page">
+  <view class="placeholder">
+    <text class="ph-title">版主工作台</text>
+    <text class="ph-desc">审核与管理</text>
+    <text class="ph-hint">此页面待开发</text>
+  </view>
+</view>

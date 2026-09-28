@@ -1,0 +1,7 @@
+<view class="page">
+  <view class="placeholder">
+    <text class="ph-title">我的成绩</text>
+    <text class="ph-desc">跑过的路线和成绩</text>
+    <text class="ph-hint">此页面待开发</text>
+  </view>
+</view>

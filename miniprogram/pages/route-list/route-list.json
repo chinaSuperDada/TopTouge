@@ -1,9 +1,7 @@
 {
   "navigationBarTitleText": "跑山路线",
   "enablePullDownRefresh": true,
-  "usingComponents": {
-    "route-card": "/components/route-card/route-card"
-  },
+  "usingComponents": {},
   "enableShareTimeline": true,
   "enableShareAppMessage": true
 }

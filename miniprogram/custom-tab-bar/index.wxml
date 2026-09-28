@@ -1,0 +1,28 @@
+<view class="tabbar">
+  <!-- 左：首页 -->
+  <view
+    class="tab {{selected === 0 ? 'tab-on' : ''}}"
+    data-index="0"
+    bindtap="onTabTap"
+  >
+    <view class="icon icon-home"></view>
+    <text class="tab-label">首页</text>
+  </view>
+
+  <!-- 中：凸起的制作按钮 -->
+  <view class="tab tab-center" bindtap="onCreateTap">
+    <view class="create-btn">
+      <text class="plus">＋</text>
+    </view>
+  </view>
+
+  <!-- 右：我的 -->
+  <view
+    class="tab {{selected === 2 ? 'tab-on' : ''}}"
+    data-index="2"
+    bindtap="onTabTap"
+  >
+    <view class="icon icon-mine"></view>
+    <text class="tab-label">我的</text>
+  </view>
+</view>

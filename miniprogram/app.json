@@ -1,10 +1,26 @@
 {
   "pages": [
     "pages/route-list/route-list",
+    "pages/mine/mine",
     "pages/route-detail/route-detail",
     "pages/route-upload/route-upload",
-    "pages/route-record/route-record"
+    "pages/route-record/route-record",
+    "pages/mine-runs/mine-runs",
+    "pages/mine-routes/mine-routes",
+    "pages/mine-favorites/mine-favorites",
+    "pages/moderator/moderator"
   ],
+  "tabBar": {
+    "custom": true,
+    "color": "#6e6e6e",
+    "selectedColor": "#0c9cfc",
+    "backgroundColor": "#141414",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/route-list/route-list", "text": "首页" },
+      { "pagePath": "pages/mine/mine", "text": "我的" }
+    ]
+  },
   "window": {
     "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#080808",
@@ -16,13 +32,14 @@
   },
   "permission": {
     "scope.userLocation": {
-      "desc": "用于跑山时记录轨迹和判断是否到达终点"
+      "desc": "用于展示附近路线、制作路线时定位起点、以及跑山时记录轨迹"
     }
   },
   "requiredPrivateInfos": [
     "getLocation",
     "startLocationUpdate",
-    "onLocationChange"
+    "onLocationChange",
+    "chooseLocation"
   ],
   "style": "v2",
   "sitemapLocation": "sitemap.json"
