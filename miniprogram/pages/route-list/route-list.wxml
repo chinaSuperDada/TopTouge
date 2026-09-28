@@ -21,13 +21,24 @@
       <swiper-item wx:for="{{banners}}" wx:key="id">
         <view
           class="banner"
-          style="background: {{item.color}}"
+          style="{{item.image ? '' : 'background: ' + item.color}}"
           data-title="{{item.title}}"
           bindtap="onBannerTap"
         >
-          <text class="banner-tag">{{item.tag}}</text>
-          <text class="banner-title">{{item.title}}</text>
-          <text class="banner-sub">{{item.subtitle}}</text>
+          <!-- 有海报图就用图，没有就用纯色（item.color） -->
+          <image
+            wx:if="{{item.image}}"
+            class="banner-bg"
+            src="{{item.image}}"
+            mode="aspectFill"
+          />
+          <view class="banner-mask" wx:if="{{item.image}}"></view>
+
+          <view class="banner-content">
+            <text class="banner-tag">{{item.tag}}</text>
+            <text class="banner-title">{{item.title}}</text>
+            <text class="banner-sub">{{item.subtitle}}</text>
+          </view>
         </view>
       </swiper-item>
     </swiper>

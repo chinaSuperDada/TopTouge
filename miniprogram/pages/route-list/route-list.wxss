@@ -50,18 +50,44 @@
 }
 
 .banners {
-  /* swiper 需要显式高度 */
-  height: 220rpx;
+  /* swiper 需要显式高度。360rpx 约 5:3，够放海报图 */
+  height: 360rpx;
 }
 
 .banner {
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-end;
   height: 100%;
   border-radius: var(--radius-lg);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4);
   box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* 有海报图时铺满做背景 */
+.banner-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 图片上方压一层暗色渐变，保证白字可读 */
+.banner-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
+}
+
+/* 文字压在图上 */
+.banner-content {
+  position: relative;
 }
 
 .banner:active {
