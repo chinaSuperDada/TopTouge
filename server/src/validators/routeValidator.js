@@ -105,8 +105,69 @@ function parseLimit(raw, fallback, max) {
   return Math.min(n, max)
 }
 
+/**
+ * 校验跑山提交。
+ *
+ * trackPoints 里的 timestamp 是必须的 —— 算分要靠它确定
+ * 「进起点」到「进终点」的时间差。没有时间戳就无法匹配，
+ * 所以这里比上传路线的校验更严。
+ */
+function validateRun(body) {
+  if (!body || typeof body !== 'object') {
+    throw validationFailed('请求体必须是 JSON 对象')
+  }
+
+  const routeId = Number(body.routeId)
+  if (!Number.isInteger(routeId) || routeId <= 0) {
+    throw validationFailed('routeId 非法')
+  }
+
+  const dataMode = body.dataMode === 'local_only' ? 'local_only' : 'ranked'
+  const vehicleType = body.vehicleType || DEFAULT_VEHICLE_TYPE
+  if (!VEHICLE_TYPES.includes(vehicleType)) {
+    throw validationFailed(`车型必须是 ${VEHICLE_TYPES.join(' / ')} 之一`)
+  }
+
+  // 仅本机模式不需要轨迹 —— 前端根本不传
+  if (dataMode === 'local_only') {
+    return { routeId, vehicleType, dataMode, trackPoints: [] }
+  }
+
+  const raw = body.trackPoints
+  if (!Array.isArray(raw) || raw.length < 2) {
+    throw validationFailed('trackPoints 至少需要 2 个点')
+  }
+  if (raw.length > MAX_TRACK_POINTS) {
+    throw validationFailed(`trackPoints 不能超过 ${MAX_TRACK_POINTS} 个点`)
+  }
+
+  const trackPoints = raw.map((p, i) => {
+    const lat = Number(p && p.lat)
+    const lng = Number(p && p.lng)
+    const ts = Number(p && p.timestamp)
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      throw validationFailed(`第 ${i + 1} 个点的坐标非法`)
+    }
+    if (!Number.isFinite(ts) || ts <= 0) {
+      throw validationFailed(`第 ${i + 1} 个点缺少时间戳，无法计算用时`)
+    }
+
+    return {
+      lat,
+      lng,
+      altitude: Number(p.altitude) || 0,
+      speed: Number(p.speed) || 0,
+      timestamp: ts
+    }
+  })
+
+  return { routeId, vehicleType, dataMode, trackPoints }
+}
+
 module.exports = {
   validateCreateRoute,
+  validateRun,
   normalizeTrackPoints,
   validateContent,
   parseId,

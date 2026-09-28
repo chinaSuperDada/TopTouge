@@ -54,6 +54,10 @@ async function prepareDataSource() {
 async function main() {
   await prepareDataSource()
 
+  // 定时清理过期轨迹（任务书要求每小时一次）
+  const { startCleanupJob } = require('./jobs/cleanupTracks')
+  startCleanupJob()
+
   const app = createApp()
   const server = app.listen(config.port, () => {
     console.log(`[TopTouge] 服务已启动，监听端口 ${config.port}`)

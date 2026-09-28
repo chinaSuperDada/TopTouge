@@ -86,7 +86,12 @@ async function runMigrations() {
     try {
       await conn.beginTransaction()
       for (const stmt of statements) {
-        await conn.query(stmt)
+        const decision = await shouldSkip(conn, stmt)
+        if (decision.skip) {
+          console.log(`[migrate]   跳过（${decision.reason}）`)
+          continue
+        }
+        await conn.query(decision.sql)
       }
       await conn.execute('INSERT INTO schema_migrations (name) VALUES (?)', [file])
       await conn.commit()
@@ -103,6 +108,68 @@ async function runMigrations() {
 
   console.log(`[migrate] 共执行 ${ran} 个文件，${files.length - ran} 个已是最新`)
   return { ran, skipped: files.length - ran, total: files.length }
+}
+
+/**
+ * MySQL 不支持 ADD COLUMN IF NOT EXISTS / CREATE INDEX IF NOT EXISTS
+ * （那是 PostgreSQL 和 MariaDB 的语法）。但迁移脚本需要幂等 ——
+ * 云托管每次部署都可能重跑。
+ *
+ * 这里在应用层补上这个能力：遇到这类语句先查 information_schema，
+ * 已经存在就跳过。SQL 文件保持可读，幂等性由执行器保证。
+ *
+ * @returns {{skip: boolean, sql: string, reason?: string}}
+ */
+async function shouldSkip(conn, stmt) {
+  // CREATE INDEX IF NOT EXISTS
+  let m = stmt.match(/CREATE\s+INDEX\s+IF\s+NOT\s+EXISTS\s+(\w+)\s+ON\s+(\w+)/i)
+  if (m) {
+    const [, indexName, tableName] = m
+    const [rows] = await conn.query(
+      `SELECT 1 FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?
+        LIMIT 1`,
+      [tableName, indexName]
+    )
+    if (rows.length > 0) return { skip: true, reason: `索引 ${indexName} 已存在`, sql: stmt }
+    // MySQL 不认 IF NOT EXISTS，去掉它再执行
+    return { skip: false, sql: stmt.replace(/IF\s+NOT\s+EXISTS\s+/i, '') }
+  }
+
+  // ALTER TABLE ... ADD COLUMN IF NOT EXISTS 可能有多个，逐个处理
+  if (/ALTER\s+TABLE\s+\w+\s+ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS/i.test(stmt)) {
+    const tableMatch = stmt.match(/ALTER\s+TABLE\s+(\w+)/i)
+    const tableName = tableMatch[1]
+
+    // 每条 ADD COLUMN 拆出来单独判断
+    const addParts = stmt.split(/,\s*(?=ADD\s+COLUMN)/i)
+    const keep = []
+
+    for (const part of addParts) {
+      const cm = part.match(/ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+(\w+)/i)
+      if (!cm) {
+        keep.push(part)
+        continue
+      }
+      const colName = cm[1]
+      const [rows] = await conn.query(
+        `SELECT 1 FROM information_schema.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?
+          LIMIT 1`,
+        [tableName, colName]
+      )
+      if (rows.length === 0) keep.push(part)
+    }
+
+    if (keep.length === 0) {
+      return { skip: true, reason: `表 ${tableName} 的列都已存在`, sql: stmt }
+    }
+    // 把剩下的重新拼成一条 ALTER
+    const rest = keep.map((p, i) => (i === 0 ? p : p.trim())).join(',\n  ')
+    return { skip: false, sql: rest.replace(/IF\s+NOT\s+EXISTS\s+/gi, '') }
+  }
+
+  return { skip: false, sql: stmt }
 }
 
 async function main() {
