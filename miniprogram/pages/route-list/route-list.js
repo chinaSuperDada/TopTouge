@@ -36,8 +36,10 @@ Page({
 
   onLoad() {
     this.initOptions()
+    // 定位只是为了「离我最近」排序，拿不到也不影响 —— 所以不 await
     this.loadLocation()
     this.loadRoutes()
+    this.loadBanners()
   },
 
   onShow() {
@@ -51,12 +53,11 @@ Page({
     this.loadRoutes().finally(() => wx.stopPullDownRefresh())
   },
 
-  /** 把 mock 里的选项转成 picker 需要的格式 */
+  /** 把选项转成 picker 需要的格式 */
   initOptions() {
-    const { REGIONS, DIFFICULTY_OPTIONS, ROAD_TYPE_OPTIONS, SORT_OPTIONS, BANNERS } = mock
+    const { REGIONS, DIFFICULTY_OPTIONS, ROAD_TYPE_OPTIONS, SORT_OPTIONS } = mock
 
     this.setData({
-      banners: BANNERS,
       // picker 的 range 是纯字符串数组
       provinceLabels: ['全部省份', ...REGIONS.map((r) => r.province)],
       difficultyLabels: DIFFICULTY_OPTIONS.map((o) => o.label),
@@ -67,39 +68,41 @@ Page({
   },
 
   /**
+   * 拉活动位。
+   *
+   * 后端会把「人工活动」和「算法位」合并后返回 ——
+   * 算法位（本周最热、新路线、高难度）是动态算的，不落库。
+   * 所以活动位必须等区域确定后再拉，不能写死在 initOptions 里。
+   */
+  loadBanners() {
+    return mock
+      .getBanners({ province: this.data.province, city: this.data.city })
+      .then((banners) => {
+        this.setData({ banners, bannerIndex: 0 })
+      })
+      .catch(() => {
+        // 活动位拉不到不影响看路线
+        this.setData({ banners: [] })
+      })
+  },
+
+  /**
    * 定位当前城市。
    *
    * 失败不弹错误 —— 用户可能只是没给权限，不影响浏览，
    * 只是「离我最近」排序和城市筛选用不了默认值。
    */
   loadLocation() {
-    mock
+    return mock
       .getCurrentLocation()
       .then((loc) => {
-        const { REGIONS } = mock
-        const provinceIndex = REGIONS.findIndex((r) => r.province === loc.province)
-
-        if (provinceIndex < 0) {
-          this.setData({ location: loc })
-          return
-        }
-
-        // 定位到的省份默认选中，城市也一并选中
-        const cityLabels = ['全部城市', ...REGIONS[provinceIndex].cities]
-        const cityIndex = cityLabels.indexOf(loc.city)
-
-        this.setData({
-          location: loc,
-          provinceIndex: provinceIndex + 1,
-          province: loc.province,
-          cityLabels,
-          cityIndex: cityIndex > 0 ? cityIndex : 0,
-          city: cityIndex > 0 ? loc.city : 'all'
-        })
-        this.loadRoutes()
+        // 真实定位只给坐标，不给省市 —— 要拿到城市得调高德的逆地理编码，
+        // 那需要额外配置。所以这里只记录坐标（「离我最近」排序要用），
+        // 省市筛选保持「全部」，用户自己选。
+        this.setData({ location: loc })
       })
       .catch(() => {
-        // 定位失败就保持「全部」，不影响使用
+        // 定位失败不影响浏览，保持默认
       })
   },
 

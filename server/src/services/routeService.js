@@ -5,7 +5,7 @@ const roadConditionRepo = require('../repositories/roadConditionRepo')
 const { computeStats } = require('./statsService')
 const { computeStars } = require('./difficultyService')
 const { simplifyToMaxPoints } = require('../geo/simplify')
-const { notFound } = require('../errors')
+const { notFound, badRequest } = require('../errors')
 const {
   DEFAULT_RADIUS_METERS,
   DETAIL_EMBED_LIMIT,
@@ -138,4 +138,28 @@ async function resolveReviewStatus(province, city) {
   return count > 0 ? 'pending' : 'approved'
 }
 
-module.exports = { listRoutes, getRouteDetail, createRoute, toSummary, resolveReviewStatus }
+/**
+ * 删除路线（作者本人）。
+ *
+ * 软删除 —— 不是物理删。这条路线下面挂着别人的评论、跑山成绩、
+ * 收藏，物理删会级联清掉这些不属于作者的数据。
+ */
+async function deleteOwnRoute(routeId, userId) {
+  const route = await routeRepo.getById(routeId)
+  if (!route) throw notFound(`路线 ${routeId} 不存在`)
+  if (route.uploadedBy !== userId) {
+    throw badRequest('只能删除自己上传的路线', 'NOT_OWNER')
+  }
+
+  await routeRepo.softDelete(routeId)
+  return { id: routeId, deleted: true }
+}
+
+module.exports = {
+  listRoutes,
+  getRouteDetail,
+  createRoute,
+  toSummary,
+  resolveReviewStatus,
+  deleteOwnRoute
+}

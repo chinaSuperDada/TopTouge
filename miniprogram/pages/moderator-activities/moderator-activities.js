@@ -1,5 +1,12 @@
 const mock = require('../../utils/mock')
 
+/** 活动状态转展示文案 */
+const STATUS_TEXT = {
+  published: '进行中',
+  draft: '草稿',
+  offline: '已下线'
+}
+
 Page({
   data: {
     items: [],
@@ -16,16 +23,20 @@ Page({
 
   loadItems() {
     mock.getManagedActivities().then((items) => {
-      this.setData({ items, loading: false })
+      this.setData({
+        items: items.map((a) => ({
+          ...a,
+          statusText: STATUS_TEXT[a.status] || '草稿',
+          // 活动目前还没有报名功能，先固定显示 0
+          joined: a.joined || 0,
+          startsAt: a.startsAt ? formatDate(a.startsAt) : '待设置'
+        })),
+        loading: false
+      })
     })
   },
 
-  /**
-   * 新建活动。
-   *
-   * 表单还没做，先用一个简化流程：点「新建」弹输入框填标题。
-   * 完整表单（时间、路线、人数上限）等后端接口就绪再补。
-   */
+  /** 新建活动。完整表单（时间、关联路线）等后续再补 */
   onCreate() {
     wx.showModal({
       title: '新建活动',
@@ -34,20 +45,12 @@ Page({
       success: (res) => {
         if (!res.confirm || !res.content || !res.content.trim()) return
 
-        this.setData({
-          items: [
-            {
-              id: Date.now(),
-              title: res.content.trim(),
-              status: 'draft',
-              statusText: '草稿',
-              joined: 0,
-              startsAt: '待设置'
-            },
-            ...this.data.items
-          ]
-        })
-        wx.showToast({ title: '已创建草稿', icon: 'success' })
+        mock.createActivity({ title: res.content.trim() })
+          .then((created) => {
+            wx.showToast({ title: '已创建草稿', icon: 'success' })
+            this.loadItems()
+          })
+          .catch(() => {})
       }
     })
   },
@@ -55,24 +58,24 @@ Page({
   /** 发布 / 下线 */
   onToggleStatus(e) {
     const id = Number(e.currentTarget.dataset.id)
-
-    this.setData({
-      items: this.data.items.map((a) => {
-        if (a.id !== id) return a
-        const published = a.status === 'published'
-        return {
-          ...a,
-          status: published ? 'draft' : 'published',
-          statusText: published ? '草稿' : '进行中'
-        }
-      })
-    })
-
     const item = this.data.items.find((a) => a.id === id)
-    wx.showToast({
-      title: item.status === 'published' ? '已发布，会展示在首页' : '已下线',
-      icon: 'none'
-    })
+    if (!item) return
+
+    const next = item.status === 'published' ? 'draft' : 'published'
+
+    mock.updateActivityStatus(id, next)
+      .then(() => {
+        this.setData({
+          items: this.data.items.map((a) =>
+            a.id === id ? { ...a, status: next, statusText: STATUS_TEXT[next] } : a
+          )
+        })
+        wx.showToast({
+          title: next === 'published' ? '已发布，会展示在首页' : '已下线',
+          icon: 'none'
+        })
+      })
+      .catch(() => {})
   },
 
   onDelete(e) {
@@ -85,9 +88,22 @@ Page({
       confirmColor: '#e5484d',
       success: (res) => {
         if (!res.confirm) return
-        this.setData({ items: this.data.items.filter((a) => a.id !== Number(id)) })
-        wx.showToast({ title: '已删除', icon: 'none' })
+
+        mock.deleteActivity(id)
+          .then(() => {
+            this.setData({ items: this.data.items.filter((a) => a.id !== Number(id)) })
+            wx.showToast({ title: '已删除', icon: 'none' })
+          })
+          .catch(() => {})
       }
     })
   }
 })
+
+/** ISO 时间转 MM-DD HH:mm */
+function formatDate(iso) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '待设置'
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}

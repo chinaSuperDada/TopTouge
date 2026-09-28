@@ -437,9 +437,12 @@ Page({
 
     wx.showLoading({ title: '计算成绩…', mask: true })
 
-    // 接后端后换成 POST /api/runs { routeId, vehicleType, trackPoints, dataMode }
     mock
-      .submitRun({ routeId: this.data.routeId, elapsedSeconds })
+      .submitRun({
+        routeId: this.data.routeId,
+        dataMode: 'ranked',
+        trackPoints: this.points
+      })
       .then((result) => {
         wx.hideLoading()
         wx.redirectTo({

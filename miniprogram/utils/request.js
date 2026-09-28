@@ -12,8 +12,30 @@
 const app = getApp()
 const env = require('./env')
 
+/**
+ * 把对象拼成 query string。
+ *
+ * GET 请求的参数必须走 URL —— wx.request 会自动帮我们转，
+ * 但 wx.cloud.callContainer 不会，它会把 data 当请求体。
+ * 为了两种模式行为一致，这里统一自己拼。
+ */
+function buildUrl(url, method, data) {
+  if (method !== 'GET' || !data) return url
+
+  const parts = Object.keys(data)
+    .filter((k) => data[k] !== undefined && data[k] !== null && data[k] !== '')
+    .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(data[k])}`)
+
+  if (parts.length === 0) return url
+  return url + (url.includes('?') ? '&' : '?') + parts.join('&')
+}
+
 function request(options) {
-  const { url, method = 'GET', data, showError = true } = options
+  const { url: rawUrl, method = 'GET', data, showError = true } = options
+
+  // GET 的参数拼进 URL，body 置空
+  const url = buildUrl(rawUrl, method, data)
+  const body = method === 'GET' ? undefined : data
 
   return new Promise((resolve, reject) => {
     const handleSuccess = (res) => {
@@ -39,7 +61,7 @@ function request(options) {
         config: { env: env.CLOUD_ENV_ID },
         path: url,
         method,
-        data,
+        data: body,
         header: {
           'X-WX-SERVICE': env.CLOUD_SERVICE,
           'Content-Type': 'application/json'
@@ -53,7 +75,7 @@ function request(options) {
     wx.request({
       url: `${app.globalData.baseUrl}${url}`,
       method,
-      data,
+      data: body,
       header: {
         'Content-Type': 'application/json',
         // 本地开发没有云托管注入，手动指定一个身份
@@ -96,4 +118,6 @@ const get = (url, options = {}) => request({ url, method: 'GET', ...options })
 
 const post = (url, data, options = {}) => request({ url, method: 'POST', data, ...options })
 
-module.exports = { request, get, post }
+const del = (url, options = {}) => request({ url, method: 'DELETE', ...options })
+
+module.exports = { request, get, post, del }

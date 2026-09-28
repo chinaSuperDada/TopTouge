@@ -78,6 +78,9 @@ const memoryImpl = {
   },
   async countByRegion() {
     return 0
+  },
+  async softDelete() {
+    return null
   }
 }
 
@@ -334,6 +337,27 @@ const mysqlImpl = {
     return this.getById(id)
   },
 
+  /**
+   * 删除路线。
+   *
+   * **软删除** —— 只把 review_status 改成 deleted，不删行。
+   *
+   * 为什么不做物理删除：这条路线下面挂着评论、路况、跑山成绩、
+   * 别人的收藏。物理删会通过外键级联把这些一起清掉 ——
+   * 别人跑出的成绩、写过的评论会莫名消失，这是不可接受的。
+   *
+   * 软删之后所有查询会自动过滤掉（list/listPending 都带
+   * review_status 条件），对用户来说等同于已删除。
+   */
+  async softDelete(id) {
+    const { getPool } = require('../db/pool')
+    const [res] = await getPool().execute(
+      "UPDATE routes SET review_status = 'deleted' WHERE id = ?",
+      [id]
+    )
+    return res.affectedRows > 0
+  },
+
   /** 某区域的路线数，版主工作台首页用 */
   async countByRegion({ province, city }) {
     const { getPool } = require('../db/pool')
@@ -356,7 +380,8 @@ const impl = {
   listPending: (...a) => (useMysql() ? mysqlImpl : memoryImpl).listPending(...a),
   updateReview: (...a) => (useMysql() ? mysqlImpl : memoryImpl).updateReview(...a),
   setPinned: (...a) => (useMysql() ? mysqlImpl : memoryImpl).setPinned(...a),
-  countByRegion: (...a) => (useMysql() ? mysqlImpl : memoryImpl).countByRegion(...a)
+  countByRegion: (...a) => (useMysql() ? mysqlImpl : memoryImpl).countByRegion(...a),
+  softDelete: (...a) => (useMysql() ? mysqlImpl : memoryImpl).softDelete(...a)
 }
 
 module.exports = impl

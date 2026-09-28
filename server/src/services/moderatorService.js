@@ -131,8 +131,27 @@ async function getModeratorStats(userId) {
   }
 }
 
+/**
+ * 版主删除本区路线。
+ * 走和审核一样的辖区校验 —— 不能删别人城市的。
+ */
+async function deleteRoute(userId, routeId) {
+  const route = await routeRepo.getById(routeId)
+  if (!route) throw notFound(`路线 ${routeId} 不存在`)
+
+  const info = await getMyModeratorInfo(userId)
+  const inRegion = info.regions.some(
+    (r) => r.province === route.province && r.city === route.city
+  )
+  if (!inRegion) throw badRequest('只能删除自己辖区的路线', 'OUT_OF_REGION')
+
+  await routeRepo.softDelete(routeId)
+  return { id: routeId, deleted: true }
+}
+
 module.exports = {
   getMyModeratorInfo,
+  deleteRoute,
   listPendingRoutes,
   reviewRoute,
   listManagedRoutes,

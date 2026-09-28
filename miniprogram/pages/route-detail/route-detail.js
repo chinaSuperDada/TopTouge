@@ -1,8 +1,11 @@
+const api = require('../../utils/request')
 const mock = require('../../utils/mock')
 const location = require('../../utils/location')
 const amap = require('../../utils/amap')
 const navigation = require('../../utils/navigation')
 const { isLoopTrack } = require('../../utils/trackSimplify')
+
+const ROAD_TYPE_LABEL = { mountain: '山路', track: '赛道', gravel: '非铺装', highway: '公路' }
 
 Page({
   data: {
@@ -154,8 +157,14 @@ Page({
     const track = route.track || []
     const view = amap.fitView(track)
 
+    const km = route.distanceMeters / 1000
+
     this.setData({
-      route,
+      route: {
+        ...route,
+        distanceText: km < 1 ? `${Math.round(route.distanceMeters)}m` : `${km.toFixed(1)}km`,
+        roadTypeText: ROAD_TYPE_LABEL[route.roadType] || '山路'
+      },
       commentCount: (route.comments || []).length,
       loading: false,
       error: '',
@@ -248,25 +257,34 @@ Page({
     const component = this.selectComponent('#commentList')
     const app = getApp()
 
-    const comment = {
+    // 先用本地对象乐观更新 —— 用户立刻看到自己发的评论，
+    // 不用等请求回来。失败了再提示
+    const optimistic = {
       id: Date.now(),
       userId: app.globalData.userId,
       content,
       createdAt: new Date().toISOString()
     }
 
-    const comments = [comment, ...(this.data.route.comments || [])]
+    const comments = [optimistic, ...(this.data.route.comments || [])]
+    this.setData({ 'route.comments': comments, commentCount: comments.length })
 
-    this.setData({
-      'route.comments': comments,
-      commentCount: comments.length
-    })
-
-    wx.showToast({ title: '已发布', icon: 'success' })
-    if (component) {
-      component.clearInput()
-      component.setSubmitting(false)
-    }
+    api
+      .post(`/api/routes/${this.data.routeId}/comments`, { content })
+      .then(() => {
+        wx.showToast({ title: '已发布', icon: 'success' })
+        if (component) component.clearInput()
+      })
+      .catch(() => {
+        // 失败就把乐观更新的那条撤掉
+        this.setData({
+          'route.comments': this.data.route.comments.filter((c) => c.id !== optimistic.id),
+          commentCount: this.data.commentCount - 1
+        })
+      })
+      .finally(() => {
+        if (component) component.setSubmitting(false)
+      })
   },
 
   onRoadConditionSubmit(e) {
@@ -274,7 +292,7 @@ Page({
     const component = this.selectComponent('#roadConditionList')
     const app = getApp()
 
-    const item = {
+    const optimistic = {
       id: Date.now(),
       userId: app.globalData.userId,
       content,
@@ -282,14 +300,23 @@ Page({
     }
 
     this.setData({
-      'route.roadConditions': [item, ...(this.data.route.roadConditions || [])]
+      'route.roadConditions': [optimistic, ...(this.data.route.roadConditions || [])]
     })
 
-    wx.showToast({ title: '已发布', icon: 'success' })
-    if (component) {
-      component.clearInput()
-      component.setSubmitting(false)
-    }
+    api
+      .post(`/api/routes/${this.data.routeId}/road-conditions`, { content })
+      .then(() => {
+        wx.showToast({ title: '已发布', icon: 'success' })
+        if (component) component.clearInput()
+      })
+      .catch(() => {
+        this.setData({
+          'route.roadConditions': this.data.route.roadConditions.filter((c) => c.id !== optimistic.id)
+        })
+      })
+      .finally(() => {
+        if (component) component.setSubmitting(false)
+      })
   },
 
   /** 跑山：进跑山页，带上路线信息 */

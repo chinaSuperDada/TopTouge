@@ -10,36 +10,47 @@ Page({
       routeCount: 0,
       favoriteCount: 0
     },
-    // 版主标识。真实项目由后端返回，现在先用 mock 里的城市判断
     isModerator: false,
     moderatorRegion: ''
   },
 
   onShow() {
-    // 切换 tab 时同步底部选中态
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 2 })
     }
     this.loadProfile()
   },
 
+  /**
+   * 拉个人信息。
+   *
+   * 三个统计数字要各查一次 —— 用 Promise.all 并发，别串行等。
+   * 任一失败不影响其他，所以每个都 catch 兜底成 0。
+   */
   loadProfile() {
-    // 接后端后换成 GET /api/me
     const app = getApp()
     const name = displayName(app.globalData.userId)
 
     this.setData({
       userName: name,
-      // 没做头像上传，先用名字首字做一个色块头像
-      avatarText: name.slice(-2),
-      stats: {
-        runCount: 12,
-        routeCount: 3,
-        favoriteCount: 8
-      },
-      // 假定杭州是当前用户所在区域，且有版主权限
-      isModerator: true,
-      moderatorRegion: '杭州市'
+      avatarText: name.slice(-2)
+    })
+
+    Promise.all([
+      mock.getMyRuns().catch(() => []),
+      mock.getMyRoutes().catch(() => []),
+      mock.getMyFavorites().catch(() => []),
+      mock.getModeratorInfo().catch(() => ({ isModerator: false, regions: [] }))
+    ]).then(([runs, routes, favorites, modInfo]) => {
+      this.setData({
+        stats: {
+          runCount: runs.length,
+          routeCount: routes.length,
+          favoriteCount: favorites.length
+        },
+        isModerator: Boolean(modInfo.isModerator),
+        moderatorRegion: (modInfo.regions || []).map((r) => r.city).join(' · ')
+      })
     })
   },
 

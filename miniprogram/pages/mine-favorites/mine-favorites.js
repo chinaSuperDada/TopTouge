@@ -1,5 +1,7 @@
 const mock = require('../../utils/mock')
 
+const ROAD_TYPE_LABEL = { mountain: '山路', track: '赛道', gravel: '非铺装', highway: '公路' }
+
 Page({
   data: {
     routes: [],
@@ -11,7 +13,6 @@ Page({
       this.setData({
         routes: routes.map((r) => {
           const km = r.distanceMeters / 1000
-          const ROAD_TYPE_LABEL = { mountain: '山路', track: '赛道', gravel: '非铺装', highway: '公路' }
           return {
             ...r,
             distanceText: km < 1 ? `${Math.round(r.distanceMeters)}m` : `${km.toFixed(1)}km`,
@@ -29,7 +30,7 @@ Page({
     wx.navigateTo({ url: `/pages/route-detail/route-detail?id=${e.currentTarget.dataset.id}` })
   },
 
-  /** 左滑或长按取消收藏。这里先用长按，简单可靠 */
+  /** 长按取消收藏 */
   onLongPress(e) {
     const { id, name } = e.currentTarget.dataset
 
@@ -39,8 +40,13 @@ Page({
       confirmText: '取消收藏',
       success: (res) => {
         if (!res.confirm) return
-        this.setData({ routes: this.data.routes.filter((r) => r.id !== Number(id)) })
-        wx.showToast({ title: '已取消收藏', icon: 'none' })
+
+        mock.removeFavorite(id)
+          .then(() => {
+            this.setData({ routes: this.data.routes.filter((r) => r.id !== Number(id)) })
+            wx.showToast({ title: '已取消收藏', icon: 'none' })
+          })
+          .catch(() => {})
       }
     })
   }

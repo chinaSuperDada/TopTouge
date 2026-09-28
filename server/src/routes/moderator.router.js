@@ -57,6 +57,20 @@ router.post(
   })
 )
 
+/**
+ * DELETE /api/moderator/routes/:id — 删除本区路线
+ *
+ * 软删除：只标记为 deleted，不物理删行。
+ * 否则会级联清掉别人的评论和成绩。
+ */
+router.delete(
+  '/routes/:id',
+  asyncHandler(async (req, res) => {
+    const routeId = parseId(req.params.id)
+    res.json(await moderatorService.deleteRoute(req.userId, routeId))
+  })
+)
+
 /** GET /api/moderator/activities — 本区活动 */
 router.get(
   '/activities',

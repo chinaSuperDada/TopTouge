@@ -7,7 +7,9 @@
       wx:for="{{routes}}"
       wx:key="id"
       data-id="{{item.id}}"
+      data-name="{{item.name}}"
       bindtap="onRouteTap"
+      bindlongpress="onLongPress"
     >
         <view class="item-head">
           <text class="item-name">{{item.name}}</text>

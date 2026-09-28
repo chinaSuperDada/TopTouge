@@ -26,6 +26,16 @@ router.get(
   })
 )
 
+/** DELETE /api/me/routes/:routeId — 作者删除自己的路线 */
+router.delete(
+  '/routes/:routeId',
+  asyncHandler(async (req, res) => {
+    const routeId = parseId(req.params.routeId)
+    const routeService = require('../services/routeService')
+    res.json(await routeService.deleteOwnRoute(routeId, req.userId))
+  })
+)
+
 /** GET /api/me/favorites — 我的收藏 */
 router.get(
   '/favorites',
