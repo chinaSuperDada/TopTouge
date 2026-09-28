@@ -1,9 +1,19 @@
 <view class="panel">
   <view class="panel-head">
     <text class="section-title">难度信息</text>
+
+    <!-- 星级：五格方块，已点亮的是当前难度 -->
     <view class="star-badge">
-      <text class="star-num t-num">{{route.difficultyStars}}</text>
-      <text class="star-unit">星</text>
+      <view class="stars">
+        <view
+          class="star {{si < route.difficultyStars ? 'star-on' : ''}}"
+          wx:for="{{[1,2,3,4,5]}}"
+          wx:for-item="s"
+          wx:for-index="si"
+          wx:key="*this"
+        ></view>
+      </view>
+      <text class="star-text">{{difficultyLabel}}</text>
     </view>
   </view>
 

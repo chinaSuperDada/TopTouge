@@ -1,4 +1,5 @@
 const mock = require('../../utils/mock')
+const location = require('../../utils/location')
 const amap = require('../../utils/amap')
 const navigation = require('../../utils/navigation')
 const { isLoopTrack } = require('../../utils/trackSimplify')
@@ -26,7 +27,10 @@ Page({
 
     // 闭环路线用外部导航没有意义（起点=终点），要提示用户
     isLoop: false,
-    navigating: false
+    navigating: false,
+
+    // 自己的位置，拿到后地图上会显示蓝点
+    myLocation: null
   },
 
   onLoad(query) {
@@ -37,6 +41,25 @@ Page({
     }
     this.setData({ routeId })
     this.loadDetail()
+    this.requestLocation()
+  },
+
+  /**
+   * 申请定位权限。
+   *
+   * map 组件的 show-location 只负责「已授权时显示蓝点」，
+   * 它不会主动申请权限 —— 必须自己调一次定位 API 触发系统弹窗。
+   * 不调的话，用户在地图上永远看不到自己的位置。
+   *
+   * 拿不到位置也不影响看路线，所以失败静默处理。
+   */
+  requestLocation() {
+    location
+      .getLocation({ silent: true })
+      .then((pos) => {
+        if (pos) this.setData({ myLocation: pos })
+      })
+      .catch(() => {})
   },
 
   onTabChange(e) {

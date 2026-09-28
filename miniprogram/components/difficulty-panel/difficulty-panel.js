@@ -1,5 +1,14 @@
 const { formatDistance, formatElevation, formatRatio, formatRoadWidth } = require('../../utils/format')
 
+/** 星级对应的文字描述，让用户不用猜几星算难 */
+const DIFFICULTY_LABEL = {
+  1: '轻松',
+  2: '较易',
+  3: '中等',
+  4: '较难',
+  5: '挑战'
+}
+
 Component({
   properties: {
     route: {
@@ -12,7 +21,9 @@ Component({
     // 数值型指标，用大号数字展示
     metrics: [],
     // 文字型属性，小号辅助信息
-    meta: []
+    meta: [],
+    // 星级对应的文字，如「中等」
+    difficultyLabel: ''
   },
 
   observers: {
@@ -20,6 +31,7 @@ Component({
       if (!route || !route.id) return
 
       this.setData({
+        difficultyLabel: DIFFICULTY_LABEL[route.difficultyStars] || '',
         metrics: [
           { label: '距离', value: formatDistance(route.distanceMeters) },
           { label: '弯道数', value: `${route.curveCount} 个` },

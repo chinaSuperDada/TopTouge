@@ -19,24 +19,36 @@
 
 .star-badge {
   display: flex;
-  align-items: baseline;
-  padding: 6rpx var(--space-2);
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 10rpx var(--space-2);
   background: var(--accent-dim);
   border: 2rpx solid var(--accent-border);
   border-radius: var(--radius-sm);
 }
 
-.star-num {
-  font-size: 44rpx;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1;
+.stars {
+  display: flex;
 }
 
-.star-unit {
-  font-size: var(--fs-label);
+/* 五格方块表示难度，与列表页卡片一致 */
+.star {
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 4rpx;
+  background: var(--star-empty);
+  margin-left: 6rpx;
+}
+
+.star-on {
+  background: var(--accent);
+}
+
+/* 星级对应的文字，如「中等」 */
+.star-text {
+  font-size: var(--fs-caption);
   color: var(--accent);
-  margin-left: 4rpx;
+  margin-top: 6rpx;
 }
 
 /* ---------- 指标网格 ---------- */

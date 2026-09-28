@@ -13,37 +13,29 @@
   padding: var(--space-1) var(--space-1) 0;
 }
 
+/* 分段控件：灰底容器 + 选中项是蓝色药丸，比单纯文字变色明显得多 */
 .tabs {
   display: flex;
   margin-top: var(--space-3);
-  border-bottom: 2rpx solid var(--divider);
+  padding: 6rpx;
+  background: var(--bg-inset);
+  border-radius: var(--radius-pill);
 }
 
 .tab {
   flex: 1;
   text-align: center;
-  padding: var(--space-2) 0;
+  padding: 16rpx 0;
   font-size: var(--fs-body);
   color: var(--text-secondary);
-  position: relative;
+  border-radius: var(--radius-pill);
+  transition: background-color 0.2s, color 0.2s;
 }
 
-/* 选中的 tab 下方一条橙色指示条 */
 .tab-on {
-  color: var(--text-emphasis);
-  font-weight: 600;
-}
-
-.tab-on::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: -2rpx;
-  width: 56rpx;
-  height: 6rpx;
-  margin-left: -28rpx;
   background: var(--accent);
-  border-radius: 3rpx;
+  color: #fff;
+  font-weight: 600;
 }
 
 /* ---------- 排名榜 ---------- */
