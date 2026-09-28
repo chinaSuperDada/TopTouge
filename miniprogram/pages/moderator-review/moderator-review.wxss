@@ -1,0 +1,137 @@
+.page {
+  min-height: 100vh;
+  padding: var(--space-3);
+  box-sizing: border-box;
+  background: var(--bg-base);
+}
+
+.tip {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  line-height: 1.6;
+  padding: 0 var(--space-1) var(--space-3);
+}
+
+.review-item {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.item-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: var(--text-emphasis);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-time {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  margin-left: var(--space-2);
+  flex-shrink: 0;
+}
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  font-size: var(--fs-label);
+  color: var(--text-secondary);
+  margin-bottom: 12rpx;
+}
+
+.meta-dot {
+  margin: 0 8rpx;
+  color: var(--text-tertiary);
+}
+
+.item-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.stars {
+  display: flex;
+}
+
+.star {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 3rpx;
+  background: var(--star-empty);
+  margin-right: 6rpx;
+}
+
+.star-on {
+  background: var(--accent);
+}
+
+.item-author {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+}
+
+/* ---------- 操作按钮 ---------- */
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.act {
+  flex: 1;
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-body);
+}
+
+.act:active {
+  opacity: 0.8;
+}
+
+.act-ghost {
+  color: var(--text-secondary);
+  border: 2rpx solid var(--border-strong);
+}
+
+.act-approve {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.act-reject {
+  color: var(--danger);
+  border: 2rpx solid var(--danger-border);
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: var(--space-6) 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-label);
+}
+
+.empty-hint {
+  display: block;
+  font-size: var(--fs-caption);
+  margin-top: 12rpx;
+  opacity: 0.7;
+}

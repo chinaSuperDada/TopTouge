@@ -1,0 +1,42 @@
+<view class="page">
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+
+  <block wx:else>
+    <view class="tip" wx:if="{{items.length > 0}}">
+      发布后的活动会出现在首页活动位，只对本区用户展示。
+    </view>
+
+    <view class="act-item" wx:for="{{items}}" wx:key="id">
+      <text class="item-title">{{item.title}}</text>
+
+      <view class="item-meta">
+        <text class="status status-{{item.status}}">{{item.statusText}}</text>
+        <text class="meta-dot">·</text>
+        <text>{{item.startsAt}}</text>
+        <text class="meta-dot">·</text>
+        <text>{{item.joined}} 人报名</text>
+      </view>
+
+      <view class="actions">
+        <view
+          class="act act-ghost"
+          data-id="{{item.id}}"
+          bindtap="onToggleStatus"
+        >{{item.status === 'published' ? '下线' : '发布'}}</view>
+        <view
+          class="act act-danger"
+          data-id="{{item.id}}"
+          data-title="{{item.title}}"
+          bindtap="onDelete"
+        >删除</view>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{items.length === 0}}">
+      <text>还没有活动</text>
+      <text class="empty-hint">点下面的按钮创建第一个</text>
+    </view>
+
+    <view class="btn btn-primary create-btn" bindtap="onCreate">＋ 新建活动</view>
+  </block>
+</view>

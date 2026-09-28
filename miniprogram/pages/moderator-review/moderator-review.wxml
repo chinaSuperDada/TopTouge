@@ -1,0 +1,65 @@
+<view class="page">
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+
+  <block wx:else>
+    <view class="tip" wx:if="{{items.length > 0}}">
+      共 {{items.length}} 条待审。通过后所有人可见，驳回会退回给作者。
+    </view>
+
+    <view class="review-item" wx:for="{{items}}" wx:key="id">
+      <view class="item-head">
+        <text class="item-name">{{item.name}}</text>
+        <text class="item-time">{{item.timeText}}</text>
+      </view>
+
+      <view class="item-meta">
+        <text>{{item.distanceText}}</text>
+        <text class="meta-dot">·</text>
+        <text>{{item.curveCount}} 弯</text>
+        <text class="meta-dot">·</text>
+        <text>{{item.roadTypeText}}</text>
+        <text class="meta-dot">·</text>
+        <text>{{item.city}}</text>
+      </view>
+
+      <view class="item-foot">
+        <view class="stars">
+          <view
+            class="star {{si < item.difficultyStars ? 'star-on' : ''}}"
+            wx:for="{{item.stars}}"
+            wx:for-item="s"
+            wx:for-index="si"
+            wx:key="*this"
+          ></view>
+        </view>
+        <text class="item-author">{{item.author}}</text>
+      </view>
+
+      <!-- 三个操作：先看详情再决定，别让人盲审 -->
+      <view class="actions">
+        <view
+          class="act act-ghost"
+          data-id="{{item.id}}"
+          bindtap="onViewDetail"
+        >看详情</view>
+        <view
+          class="act act-reject"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+          bindtap="onReject"
+        >驳回</view>
+        <view
+          class="act act-approve"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+          bindtap="onApprove"
+        >通过</view>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{items.length === 0}}">
+      <text>没有待审核的路线</text>
+      <text class="empty-hint">本区用户上传后会出现在这里</text>
+    </view>
+  </block>
+</view>

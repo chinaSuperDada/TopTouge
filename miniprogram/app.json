@@ -10,7 +10,10 @@
     "pages/mine-favorites/mine-favorites",
     "pages/moderator/moderator",
     "pages/run/run",
-    "pages/run-result/run-result"
+    "pages/run-result/run-result",
+    "pages/moderator-review/moderator-review",
+    "pages/moderator-routes/moderator-routes",
+    "pages/moderator-activities/moderator-activities"
   ],
   "tabBar": {
     "custom": true,

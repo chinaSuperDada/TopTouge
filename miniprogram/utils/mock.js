@@ -348,6 +348,84 @@ function relativeDay(days) {
   return `${Math.floor(days / 30)}个月前`
 }
 
+
+/* ==================== 版主 ==================== */
+
+/**
+ * 当前用户的版主身份。
+ * 接后端后换成 GET /api/me/moderator
+ */
+function getModeratorInfo() {
+  return Promise.resolve({
+    // 没有版主身份时 regions 为空数组
+    regions: [{ province: '浙江省', city: '杭州市' }],
+    nickname: '车友 3072',
+    // 什么时候成为版主的
+    since: '2026-06-01'
+  })
+}
+
+/**
+ * 待审核的路线。
+ * 接后端后换成 GET /api/moderator/routes?status=pending
+ */
+function getPendingRoutes() {
+  const base = [
+    { id: 101, name: '龙泉山新环线', distanceMeters: 12300, curveCount: 45, difficultyStars: 4,
+      roadType: 'mountain', city: '杭州市', author: '车友 8834', hoursAgo: 2 },
+    { id: 102, name: '径山盘山道', distanceMeters: 8700, curveCount: 28, difficultyStars: 3,
+      roadType: 'mountain', city: '杭州市', author: '车友 2261', hoursAgo: 5 },
+    { id: 103, name: '千岛湖东线', distanceMeters: 15200, curveCount: 33, difficultyStars: 2,
+      roadType: 'highway', city: '杭州市', author: '车友 5518', hoursAgo: 26 },
+    { id: 104, name: '莫干山非铺装', distanceMeters: 9400, curveCount: 51, difficultyStars: 5,
+      roadType: 'gravel', city: '湖州市', author: '车友 9907', hoursAgo: 40 }
+  ]
+
+  return Promise.resolve(
+    base.map((r) => ({ ...r, id: r.id, timeText: relativeHour(r.hoursAgo) }))
+  )
+}
+
+/**
+ * 本区已上架的路线。
+ * 接后端后换成 GET /api/moderator/routes?status=approved
+ */
+function getManagedRoutes() {
+  return Promise.resolve(
+    MOCK_ROUTES.filter((r) => r.city === '杭州市').map((r) => ({
+      id: r.id,
+      name: r.name,
+      distanceMeters: r.distanceMeters,
+      curveCount: r.curveCount,
+      difficultyStars: r.difficultyStars,
+      heat: r.heat,
+      // 版主可以把优质路线置顶
+      pinned: r.id === 1
+    }))
+  )
+}
+
+/**
+ * 本区活动。
+ * 接后端后换成 GET /api/moderator/activities
+ */
+function getManagedActivities() {
+  return Promise.resolve([
+    { id: 1, title: '周六晨跑 · 九曲发夹弯', status: 'published', statusText: '进行中',
+      joined: 12, startsAt: '09-28 07:00' },
+    { id: 2, title: '新手教学 · 缓坡环线', status: 'draft', statusText: '草稿',
+      joined: 0, startsAt: '10-05 09:00' }
+  ])
+}
+
+/** 小时数转相对描述 */
+function relativeHour(hours) {
+  if (hours < 1) return '刚刚'
+  if (hours < 24) return `${hours}小时前`
+  const d = Math.floor(hours / 24)
+  return d === 1 ? '昨天' : `${d}天前`
+}
+
 /** 当前位置。接后端/定位后由真实定位替换 */
 function getCurrentLocation() {
   return Promise.resolve({ province: '浙江省', city: '杭州市', lat: 30.2741, lng: 120.1551 })
@@ -367,5 +445,9 @@ module.exports = {
   getMyRuns,
   getMyRoutes,
   getMyFavorites,
+  getModeratorInfo,
+  getPendingRoutes,
+  getManagedRoutes,
+  getManagedActivities,
   getCurrentLocation
 }

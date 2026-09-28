@@ -1,7 +1,45 @@
 <view class="page">
-  <view class="placeholder">
-    <text class="ph-title">版主工作台</text>
-    <text class="ph-desc">审核与管理</text>
-    <text class="ph-hint">此页面待开发</text>
-  </view>
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+
+  <block wx:else>
+    <!-- 版主身份 -->
+    <view class="header">
+      <text class="header-title">{{regionText}}</text>
+      <text class="header-sub">版主工作台 · 自 {{info.since}}</text>
+    </view>
+
+    <!-- 三个入口，待审核带数字角标 -->
+    <view class="card menu">
+      <view class="menu-item" bindtap="onOpenPending">
+        <view class="menu-badge badge-warn">{{stats.pending}}</view>
+        <view class="menu-main">
+          <text class="menu-label">待审核路线</text>
+          <text class="menu-desc">本区用户新上传的路线，审核后公开</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="onOpenManaged">
+        <view class="menu-badge badge-ok">{{stats.managed}}</view>
+        <view class="menu-main">
+          <text class="menu-label">本区路线管理</text>
+          <text class="menu-desc">置顶优质路线、下架不合规的</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="onOpenActivities">
+        <view class="menu-badge badge-info">{{stats.activities}}</view>
+        <view class="menu-main">
+          <text class="menu-label">本区活动</text>
+          <text class="menu-desc">组织车友活动，会展示在首页活动位</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="note">
+      版主只管理自己辖区的路线和活动，不能跨区操作
+    </view>
+  </block>
 </view>
