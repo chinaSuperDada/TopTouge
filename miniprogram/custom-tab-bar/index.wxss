@@ -1,3 +1,13 @@
+/**
+ * ⚠️ 这里全部用写死的颜色，不要改成 CSS 变量。
+ *
+ * custom-tab-bar 渲染在 page 标签之外，拿不到 app.wxss 里定义在
+ * page 选择器下的变量。用 var() 会静默失效，表现为深色底上元素
+ * 变成默认黑色 —— 看起来像「没渲染」，极难排查。
+ *
+ * 颜色值与 styles/tokens.wxss 手动保持同步。
+ */
+
 .tabbar {
   position: fixed;
   left: 0;
@@ -7,11 +17,12 @@
   /* 让出 iPhone 底部安全区 */
   padding-bottom: env(safe-area-inset-bottom);
   box-sizing: content-box;
-  background: var(--bg-surface);
-  border-top: 2rpx solid var(--divider);
+  background: #141414;
+  border-top: 2rpx solid rgba(255, 255, 255, 0.07);
   display: flex;
   align-items: center;
-  z-index: 100;
+  /* 必须足够高，否则会被页面内容盖住 */
+  z-index: 9999;
 }
 
 .tab {
@@ -25,15 +36,10 @@
 
 .tab-label {
   font-size: 20rpx;
-  color: var(--text-tertiary);
   margin-top: 6rpx;
 }
 
-.tab-on .tab-label {
-  color: var(--accent);
-}
-
-/* ---------- 图标：用 CSS 画，避免引入图片资源 ---------- */
+/* ---------- 图标：CSS 画，不引图片资源 ---------- */
 
 .icon {
   width: 40rpx;
@@ -41,59 +47,42 @@
   position: relative;
 }
 
-/* 首页：一个圆角方块的轮廓 */
+/* 首页：圆角方块轮廓 */
 .icon-home {
-  border: 4rpx solid var(--text-tertiary);
+  border: 4rpx solid #6e6e6e;
   border-radius: 8rpx;
   box-sizing: border-box;
 }
 
-.tab-on .icon-home {
-  border-color: var(--accent);
-}
-
-/* 我的：一个圆（头）加一条弧（肩） */
+/* 我的：圆头 + 肩膀弧 */
 .icon-mine {
-  width: 40rpx;
-  height: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.icon-mine::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 4rpx;
+.head {
   width: 16rpx;
   height: 16rpx;
-  margin-left: -8rpx;
-  border: 4rpx solid var(--text-tertiary);
+  border: 4rpx solid #6e6e6e;
   border-radius: 50%;
   box-sizing: border-box;
 }
 
-.icon-mine::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: 2rpx;
+.shoulder {
   width: 30rpx;
-  height: 16rpx;
-  margin-left: -15rpx;
-  border: 4rpx solid var(--text-tertiary);
+  height: 14rpx;
+  margin-top: 3rpx;
+  border: 4rpx solid #6e6e6e;
   border-bottom: none;
   border-radius: 16rpx 16rpx 0 0;
   box-sizing: border-box;
 }
 
-.tab-on .icon-mine::before,
-.tab-on .icon-mine::after {
-  border-color: var(--accent);
-}
-
 /* ---------- 中间凸起按钮 ---------- */
 
 .tab-center {
-  /* 稍微向上提，做出凸起效果 */
+  /* 向上提，做出凸起效果 */
   transform: translateY(-28rpx);
 }
 
@@ -101,13 +90,13 @@
   width: 108rpx;
   height: 108rpx;
   border-radius: 50%;
-  background: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 8rpx 24rpx rgba(12, 156, 252, 0.4);
-  /* 与 TabBar 背景同色的描边，让按钮看起来是浮在上面的 */
-  border: 8rpx solid var(--bg-base);
+  /* 与 TabBar 同色的描边，让按钮看起来浮在上面。
+     颜色要和 .tabbar 的 background 一致 */
+  border: 8rpx solid #080808;
   box-sizing: content-box;
 }
 

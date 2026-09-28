@@ -2,7 +2,7 @@
   min-height: 100vh;
   padding: var(--space-3);
   /* 给自定义 TabBar 留出空间 */
-  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(270rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   background: var(--bg-base);
 }
