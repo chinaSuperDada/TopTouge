@@ -2,10 +2,19 @@
   <!-- 顶栏：标题 + 当前城市 -->
   <view class="topbar">
     <text class="topbar-title">跑山路线</text>
-    <view class="location" bindtap="onLocationTap">
-      <text class="location-text">{{location.city || '定位中…'}}</text>
-      <text class="location-arrow">▾</text>
-    </view>
+    <!-- 定位给不出省市，所以城市靠手选。picker 直接套在 view 上，
+         比 bindtap 弹 ActionSheet 少一层交互，也能显示当前选中值 -->
+    <picker
+      mode="selector"
+      range="{{provinceLabels}}"
+      value="{{provinceIndex}}"
+      bindchange="onProvinceChange"
+    >
+      <view class="location">
+        <text class="location-text">{{province === 'all' ? '全部地区' : province}}</text>
+        <text class="location-arrow">▾</text>
+      </view>
+    </picker>
   </view>
 
   <!-- 活动位：自动轮播 + 手动滑动 + 指示点 -->
@@ -23,6 +32,7 @@
           class="banner"
           style="{{item.image ? '' : 'background: ' + item.color}}"
           data-title="{{item.title}}"
+          data-link="{{item.link}}"
           bindtap="onBannerTap"
         >
           <!-- 有海报图就用图，没有就用纯色（item.color） -->

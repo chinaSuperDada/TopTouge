@@ -3,6 +3,16 @@ const amap = require('../../utils/amap')
 const location = require('../../utils/location')
 const { ROAD_WIDTH_OPTIONS, ROAD_WIDTH_LABELS } = require('../../utils/roadWidth')
 
+/** 路型选项。value 必须与后端 constants / validator 里的枚举一致 */
+const ROAD_TYPE_OPTIONS = [
+  { value: 'mountain', label: '山路' },
+  { value: 'track', label: '赛道' },
+  { value: 'gravel', label: '非铺装' },
+  { value: 'highway', label: '公路' }
+]
+
+const ROAD_TYPE_LABELS = ROAD_TYPE_OPTIONS.map((o) => o.label)
+
 // 搜索联想用的防抖间隔，避免每敲一个字都发请求
 const SEARCH_DEBOUNCE_MS = 350
 
@@ -26,6 +36,10 @@ Page({
     name: '',
     roadWidthIndex: 1,
     roadWidthLabels: ROAD_WIDTH_LABELS,
+    roadTypeIndex: 0,
+    roadTypeLabels: ROAD_TYPE_LABELS,
+    // 提交时由逆地理编码填上，只用于展示
+    regionText: '',
 
     // 采集结果
     points: [],
@@ -351,6 +365,26 @@ Page({
     this.setData({ roadWidthIndex: Number(e.detail.value) })
   },
 
+  onRoadTypeChange(e) {
+    this.setData({ roadTypeIndex: Number(e.detail.value) })
+  },
+
+  /**
+   * 解析路线所在的省市。
+   *
+   * 用起点坐标反查 —— 一条跑山路线通常不会跨省，起点足够代表。
+   * 解析失败不阻断提交：省市只影响列表筛选和版主辖区判断，
+   * 拿不到就让后端存空串（那条路线会直接过审，见 routeService）。
+   *
+   * @returns {Promise<{province: string, city: string}>}
+   */
+  resolveRegion(point) {
+    return amap
+      .reverseGeocode(point)
+      .then((r) => ({ province: r.province, city: r.city }))
+      .catch(() => ({ province: '', city: '' }))
+  },
+
   onSubmit() {
     const name = this.data.name.trim()
     if (!name) {
@@ -369,11 +403,27 @@ Page({
     this.setData({ submitting: true })
     wx.showLoading({ title: '提交中…', mask: true })
 
-    api
-      .post('/api/routes', {
-        name,
-        roadWidth: ROAD_WIDTH_OPTIONS[this.data.roadWidthIndex].value,
-        trackPoints: this.data.points
+    const points = this.data.points
+    const first = points[0]
+
+    this.resolveRegion(first)
+      .then((region) => {
+        this.setData({ regionText: region.city || region.province || '' })
+
+        return api.post('/api/routes', {
+          name,
+          roadWidth: ROAD_WIDTH_OPTIONS[this.data.roadWidthIndex].value,
+          roadType: ROAD_TYPE_OPTIONS[this.data.roadTypeIndex].value,
+          // 途经点只用于导航与分享，按采集顺序传
+          waypoints: this.data.waypoints.map((w) => ({
+            lat: w.place.lat,
+            lng: w.place.lng,
+            name: w.place.name
+          })),
+          trackPoints: points,
+          province: region.province,
+          city: region.city
+        })
       })
       .then((route) => {
         wx.hideLoading()

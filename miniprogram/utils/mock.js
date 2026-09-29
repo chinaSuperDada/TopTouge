@@ -75,7 +75,7 @@ function queryRoutes(filters = {}) {
   return api.get('/api/routes', { data: query }).then((res) => res.routes || [])
 }
 
-/** 路线详情 */
+/** 路线详情。返回值里带 favorited，收藏按钮据此决定状态 */
 function getRoute(id) {
   return api.get(`/api/routes/${id}`)
 }
@@ -198,6 +198,11 @@ function pinRoute(routeId, pinned) {
   return api.post(`/api/moderator/routes/${routeId}/pin`, { pinned })
 }
 
+/** 下架本区路线。作者仍能在「我的路线」看到，数据不丢 */
+function takeDownRoute(routeId, reason) {
+  return api.post(`/api/moderator/routes/${routeId}/take-down`, { reason })
+}
+
 /** 删除本区路线 */
 function deleteManagedRoute(routeId) {
   return api.request({ url: `/api/moderator/routes/${routeId}`, method: 'DELETE' })
@@ -258,6 +263,7 @@ module.exports = {
   getManagedRoutes,
   reviewRoute,
   pinRoute,
+  takeDownRoute,
   deleteManagedRoute,
   getManagedActivities,
   createActivity,

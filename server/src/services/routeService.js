@@ -35,13 +35,7 @@ async function getRouteDetail(id, options = {}) {
   const route = await routeRepo.getById(id)
   if (!route) throw notFound(`路线 ${id} 不存在`)
 
-  // 评论和路况互不依赖，并发查，省一个来回
-  const [comments, roadConditions] = await Promise.all([
-    commentRepo.listByRoute(id, DETAIL_EMBED_LIMIT),
-    roadConditionRepo.listByRoute(id, DETAIL_EMBED_LIMIT)
-  ])
-
-  const { includeFullTrack = false } = options
+  const { includeFullTrack = false, userId } = options
   const result = { ...route }
 
   result.track = route.displayTrack && route.displayTrack.length
@@ -50,7 +44,16 @@ async function getRouteDetail(id, options = {}) {
 
   if (!includeFullTrack) delete result.referenceTrack
 
-  return { ...result, comments, roadConditions }
+  // 当前用户有没有收藏过 —— 详情页的收藏按钮要据此决定是实心还是空心。
+  // 和评论/路况一样属于「随详情一起返回」的附属信息，不单独开接口
+  const favoriteRepo = require('../repositories/favoriteRepo')
+  const [comments, roadConditions, favorited] = await Promise.all([
+    commentRepo.listByRoute(id, DETAIL_EMBED_LIMIT),
+    roadConditionRepo.listByRoute(id, DETAIL_EMBED_LIMIT),
+    userId ? favoriteRepo.isFavorited(userId, id) : Promise.resolve(false)
+  ])
+
+  return { ...result, comments, roadConditions, favorited }
 }
 
 /**
@@ -67,7 +70,7 @@ async function getRouteDetail(id, options = {}) {
  * @param {string} uploadedBy
  */
 async function createRoute(input, uploadedBy) {
-  const { name, roadWidth, vehicleType, trackPoints, province, city, roadType } = input
+  const { name, roadWidth, vehicleType, trackPoints, province, city, roadType, waypoints } = input
 
   const stats = computeStats(trackPoints)
   const first = trackPoints[0]
@@ -79,7 +82,8 @@ async function createRoute(input, uploadedBy) {
     distanceMeters: stats.distanceMeters,
     startPoint: { lat: first.lat, lng: first.lng, radiusMeters: DEFAULT_RADIUS_METERS },
     endPoint: { lat: last.lat, lng: last.lng, radiusMeters: DEFAULT_RADIUS_METERS },
-    waypoints: [],
+    // 途经点用于导航与分享，不参与难度计算
+    waypoints: waypoints || [],
     // 全量轨迹：难度计算与导航抽稀的数据源
     referenceTrack: trackPoints,
     // 展示用轨迹：DP 抽稀保形状，供地图绘制

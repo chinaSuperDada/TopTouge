@@ -8,7 +8,17 @@ Page({
     loading: true
   },
 
-  onLoad() {
+  /**
+   * 每次进页面都重拉。
+   *
+   * 不能用 onLoad —— 从这个页面点进详情、在详情页取消收藏、再返回，
+   * onLoad 不会重跑，列表还留着已经取消的那条。
+   */
+  onShow() {
+    this.load()
+  },
+
+  load() {
     mock.getMyFavorites().then((routes) => {
       this.setData({
         routes: routes.map((r) => {

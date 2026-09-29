@@ -37,7 +37,8 @@ router.get(
   asyncHandler(async (req, res) => {
     const id = parseId(req.params.id)
     const includeFullTrack = req.query.fullTrack === '1' || req.query.fullTrack === 'true'
-    res.json(await routeService.getRouteDetail(id, { includeFullTrack }))
+    // 带上 userId —— 详情要回一个 favorited 标记给收藏按钮用
+    res.json(await routeService.getRouteDetail(id, { includeFullTrack, userId: req.userId }))
   })
 )
 

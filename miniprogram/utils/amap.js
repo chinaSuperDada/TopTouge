@@ -410,6 +410,59 @@ function planDrivingRoute(origin, destination, waypoints = []) {
 }
 
 /**
+ * 逆地理编码：坐标 → 省市区。
+ *
+ * 上传路线时用它自动填 province/city —— 让用户在表单里手选省市很容易选错，
+ * 而且多一步操作。高德直接能给准确结果。
+ *
+ * 注意 adcode 是 6 位行政区划码，定位到直辖市时 city 会是空数组，
+ * 所以 city 用「city 为空则退回 province」兜底 —— 北京市的 province
+ * 本身就是「北京市」，符合我们存省市字符串的约定。
+ *
+ * @param {{lat:number, lng:number}} point
+ * @returns {Promise<{province, city, district, adcode}>} 失败时 reject
+ */
+function reverseGeocode(point) {
+  const sdk = getInstance()
+  if (!sdk) return Promise.reject(new Error('地图服务未就绪'))
+
+  return new Promise((resolve, reject) => {
+    sdk.getRegeo({
+      location: `${point.lng},${point.lat}`,
+      success(res) {
+        const first = Array.isArray(res) ? res[0] : null
+        const comp = (first && first.regeocodeData && first.regeocodeData.addressComponent) || null
+
+        if (!comp) {
+          reject(new Error('未能解析出行政区划'))
+          return
+        }
+
+        // 高德字段拼写就是 provice（不是 province），别改
+        const pick = (v) => {
+          if (typeof v === 'string') return v
+          // 直辖市这类会返回空数组
+          return Array.isArray(v) && v.length ? String(v[0]) : ''
+        }
+
+        const province = pick(comp.provice)
+        const city = pick(comp.city) || province
+
+        resolve({
+          province,
+          city,
+          district: pick(comp.district),
+          adcode: typeof comp.adcode === 'string' ? comp.adcode : ''
+        })
+      },
+      fail(err) {
+        reject(new Error((err && err.errMsg) || '逆地理编码失败'))
+      }
+    })
+  })
+}
+
+/**
  * 把高德路线规划结果里各步骤的 polyline 拼成完整轨迹。
  *
  * 响应格式：steps[].polyline = "lng,lat;lng,lat;lng,lat"
@@ -455,6 +508,7 @@ module.exports = {
   createAMapInstance,
   searchPlaces,
   planDrivingRoute,
+  reverseGeocode,
   parsePolyline,
   buildPolyline,
   buildDualPolyline,

@@ -167,7 +167,11 @@ Page({
         city: this.data.city,
         difficulty: this.data.difficulty,
         roadType: this.data.roadType,
-        sort: this.data.sort
+        sort: this.data.sort,
+        // 「离我最近」要在服务端按起点算距离，必须把坐标传过去。
+        // 定位失败时 location 里没有坐标，传 undefined 让后端回落到热度排序
+        lat: this.data.location.lat,
+        lng: this.data.location.lng
       })
       .then((routes) => {
         this.setData({ routes: routes.map(this.decorate), loading: false })
@@ -209,17 +213,36 @@ Page({
     wx.navigateTo({ url: `/pages/route-detail/route-detail?id=${e.currentTarget.dataset.id}` })
   },
 
+  /**
+   * 活动位点击。
+   *
+   * 后端已经算好跳转目标放在 link 里（算法位指向具体路线，
+   * 平台活动可能指向外链或没有目标），这里照做就行。
+   */
   onBannerTap(e) {
-    const { title } = e.currentTarget.dataset
-    wx.showToast({ title: `${title}（开发中）`, icon: 'none' })
+    const { title, link } = e.currentTarget.dataset
+
+    if (!link) {
+      // 平台活动可能只是通知，没有跳转目标
+      wx.showToast({ title, icon: 'none' })
+      return
+    }
+
+    // 只认小程序内部路径 —— 后端算出来的 link 都是 /pages/... 形式。
+    // 万一将来配了外链，navigateTo 会直接报错，不如提前挡掉
+    if (!link.startsWith('/pages/')) {
+      wx.showToast({ title: '暂不支持该活动跳转', icon: 'none' })
+      return
+    }
+
+    wx.navigateTo({
+      url: link,
+      fail: () => wx.showToast({ title: '活动目标暂不可用', icon: 'none' })
+    })
   },
 
   /** 轮播切换时记下当前页，用于底部指示点 */
   onBannerChange(e) {
     this.setData({ bannerIndex: e.detail.current })
-  },
-
-  onLocationTap() {
-    wx.showToast({ title: '手动切换城市开发中', icon: 'none' })
   }
 })

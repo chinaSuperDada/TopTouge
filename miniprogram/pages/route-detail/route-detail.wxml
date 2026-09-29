@@ -58,7 +58,13 @@
 
       <view class="start-area">
         <view class="btn btn-primary" bindtap="onStartRun">开始跑山</view>
-        <view class="btn btn-ghost action-btn" bindtap="onNavigate">分享路线到微信</view>
+        <view class="sub-actions">
+          <view
+            class="btn btn-ghost action-btn {{favorited ? 'btn-fav-on' : ''}}"
+            bindtap="onToggleFavorite"
+          >{{favorited ? '已收藏' : '收藏'}}</view>
+          <view class="btn btn-ghost action-btn" bindtap="onNavigate">分享路线到微信</view>
+        </view>
       </view>
     </block>
 

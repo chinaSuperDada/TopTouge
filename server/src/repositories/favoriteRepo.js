@@ -13,7 +13,10 @@ const memoryImpl = {
   async listByUser() { return [] },
   async add() { return null },
   async remove() { return 0 },
-  async countByUser() { return 0 }
+  async countByUser() { return 0 },
+  async countByRoute() { return 0 },
+  /** 内存模式没有持久化，一律当作未收藏 */
+  async isFavorited() { return false }
 }
 
 const mysqlImpl = {
@@ -84,6 +87,16 @@ const mysqlImpl = {
       [routeId]
     )
     return rows[0].n
+  },
+
+  /** 某人是否收藏了某条路线。详情页要据此决定按钮状态 */
+  async isFavorited(userId, routeId) {
+    const { getPool } = require('../db/pool')
+    const [rows] = await getPool().execute(
+      'SELECT 1 FROM favorites WHERE user_id = ? AND route_id = ? LIMIT 1',
+      [userId, routeId]
+    )
+    return rows.length > 0
   }
 }
 
@@ -92,7 +105,8 @@ const impl = {
   add: (...a) => (useMysql() ? mysqlImpl : memoryImpl).add(...a),
   remove: (...a) => (useMysql() ? mysqlImpl : memoryImpl).remove(...a),
   countByUser: (...a) => (useMysql() ? mysqlImpl : memoryImpl).countByUser(...a),
-  countByRoute: (...a) => (useMysql() ? mysqlImpl : memoryImpl).countByRoute(...a)
+  countByRoute: (...a) => (useMysql() ? mysqlImpl : memoryImpl).countByRoute(...a),
+  isFavorited: (...a) => (useMysql() ? mysqlImpl : memoryImpl).isFavorited(...a)
 }
 
 module.exports = impl

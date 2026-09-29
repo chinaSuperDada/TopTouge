@@ -54,6 +54,31 @@ Page({
       .catch(() => {})
   },
 
+  /**
+   * 下架：打回「已驳回」，作者仍能在「我的路线」看到并能改后重传。
+   * 和「删除」的区别是作者侧还能看见 —— 所以要在确认框里说清楚。
+   */
+  onTakeDown(e) {
+    const { id, name } = e.currentTarget.dataset
+
+    wx.showModal({
+      title: '下架路线',
+      content: `「${name}」将从公开列表移除，作者会在「我的路线」看到已被下架。`,
+      confirmText: '下架',
+      confirmColor: '#e5484d',
+      success: (res) => {
+        if (!res.confirm) return
+
+        mock.takeDownRoute(id)
+          .then(() => {
+            this.setData({ items: this.data.items.filter((r) => r.id !== Number(id)) })
+            wx.showToast({ title: '已下架', icon: 'none' })
+          })
+          .catch(() => {})
+      }
+    })
+  },
+
   /** 删除：软删除，作者的评论和成绩会保留 */
   onDelete(e) {
     const { id, name } = e.currentTarget.dataset

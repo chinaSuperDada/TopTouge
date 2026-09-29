@@ -191,6 +191,28 @@
       </picker>
     </view>
 
+    <view class="field">
+      <text class="field-label">路型</text>
+      <picker
+        mode="selector"
+        range="{{roadTypeLabels}}"
+        value="{{roadTypeIndex}}"
+        bindchange="onRoadTypeChange"
+      >
+        <view class="picker">
+          <text>{{roadTypeLabels[roadTypeIndex]}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <text class="field-label">所在地区</text>
+      <view class="picker picker-static">
+        <text class="{{regionText ? '' : 'picker-placeholder'}}">{{regionText || '提交时自动识别'}}</text>
+      </view>
+    </view>
+
     <view class="note">
       距离、弯道数、急弯占比、爬升、难度星级由后端根据坐标自动计算
     </view>

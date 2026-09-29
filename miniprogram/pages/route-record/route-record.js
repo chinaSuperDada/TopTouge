@@ -2,6 +2,16 @@ const api = require('../../utils/request')
 const amap = require('../../utils/amap')
 const { ROAD_WIDTH_OPTIONS, ROAD_WIDTH_LABELS } = require('../../utils/roadWidth')
 
+/** 路型选项。value 必须与后端 constants / validator 里的枚举一致 */
+const ROAD_TYPE_OPTIONS = [
+  { value: 'mountain', label: '山路' },
+  { value: 'track', label: '赛道' },
+  { value: 'gravel', label: '非铺装' },
+  { value: 'highway', label: '公路' }
+]
+
+const ROAD_TYPE_LABELS = ROAD_TYPE_OPTIONS.map((o) => o.label)
+
 // 采点节流：GPS 每 2 秒回一次，但停车等红灯时点会扎堆，
 // 位移小于这个距离就不记，避免轨迹里全是同一个位置。
 const MIN_MOVE_METERS = 8
@@ -49,6 +59,8 @@ Page({
     name: '',
     roadWidthIndex: 1,
     roadWidthLabels: ROAD_WIDTH_LABELS,
+    roadTypeIndex: 0,
+    roadTypeLabels: ROAD_TYPE_LABELS,
 
     submitting: false,
     error: ''
@@ -285,6 +297,10 @@ Page({
     this.setData({ roadWidthIndex: Number(e.detail.value) })
   },
 
+  onRoadTypeChange(e) {
+    this.setData({ roadTypeIndex: Number(e.detail.value) })
+  },
+
   onSubmit() {
     const name = this.data.name.trim()
     if (!name) {
@@ -300,12 +316,28 @@ Page({
     this.setData({ submitting: true })
     wx.showLoading({ title: '提交中…', mask: true })
 
-    api
-      .post('/api/routes', {
-        name,
-        roadWidth: ROAD_WIDTH_OPTIONS[this.data.roadWidthIndex].value,
-        trackPoints: this.points
-      })
+    const points = this.points
+    const first = points[0]
+
+    // 录制的轨迹是自己跑过的，起点即路线所在位置。
+    // 解析失败不阻断 —— 省市只影响筛选和版主辖区，拿不到就让后端存空串
+    amap
+      .reverseGeocode(first)
+      .then((r) => ({ province: r.province, city: r.city }))
+      .catch(() => ({ province: '', city: '' }))
+      .then((region) =>
+        api.post('/api/routes', {
+          name,
+          roadWidth: ROAD_WIDTH_OPTIONS[this.data.roadWidthIndex].value,
+          // 录制的是自己跑的轨迹，路型让用户选 —— 默认山路
+          roadType: ROAD_TYPE_OPTIONS[this.data.roadTypeIndex].value,
+          // 录制模式没有途经点：轨迹已经是完整路径了
+          waypoints: [],
+          trackPoints: points,
+          province: region.province,
+          city: region.city
+        })
+      )
       .then((route) => {
         wx.hideLoading()
         wx.showToast({ title: '已保存为路线', icon: 'success' })

@@ -71,6 +71,22 @@ router.delete(
   })
 )
 
+/**
+ * POST /api/moderator/routes/:id/take-down — 下架本区路线
+ *
+ * 与 DELETE 的区别：下架只是打回「已驳回」，作者仍能在「我的路线」
+ * 看到并能改后重传；删除是从公开列表彻底移除。
+ * 作者侧看到的结果不同，所以是两个接口。
+ */
+router.post(
+  '/routes/:id/take-down',
+  asyncHandler(async (req, res) => {
+    const routeId = parseId(req.params.id)
+    const reason = (req.body && req.body.reason) || ''
+    res.json(await moderatorService.takeDownRoute(req.userId, routeId, reason))
+  })
+)
+
 /** GET /api/moderator/activities — 本区活动 */
 router.get(
   '/activities',

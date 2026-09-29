@@ -303,10 +303,27 @@
   box-shadow: 38rpx 0 0 var(--accent);
 }
 
-/* ---------- 开始跑山 ---------- */
-
+/* 次要操作按钮：两个并排，和主按钮拉开间距 */
 .start-area {
   margin-top: var(--space-4);
+}
+
+.sub-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* 撑满可用宽度，两个按钮等分 */
+.sub-actions .action-btn {
+  flex: 1;
+  margin-top: 0;
+}
+
+/* 已收藏：描边和文字换成强调色，一眼能看出状态 */
+.btn-fav-on {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 

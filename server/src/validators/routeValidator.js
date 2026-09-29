@@ -3,6 +3,22 @@ const { ROAD_WIDTHS, VEHICLE_TYPES, DEFAULT_VEHICLE_TYPE } = require('../constan
 
 const MAX_TRACK_POINTS = 5000
 const MAX_NAME_LENGTH = 40
+const MAX_WAYPOINTS = 16
+
+/**
+ * 严格解析数值。
+ *
+ * 不能直接用 Number()：Number(null)、Number('')、Number([]) 全是 0，
+ * 于是 {lat: null, lng: null} 会被当成合法的 (0, 0) —— 那是几内亚湾，
+ * 一条轨迹里混进这种点会算出几千公里的假距离。所以先挡掉空值。
+ *
+ * @returns {number|null} 不是有效数值时返回 null
+ */
+function toFiniteNumber(v) {
+  if (v === null || v === undefined || v === '' || Array.isArray(v)) return null
+  const n = Number(v)
+  return Number.isFinite(n) ? n : null
+}
 
 /**
  * 校验上传路线的入参。
@@ -11,7 +27,7 @@ const MAX_NAME_LENGTH = 40
  * altitude 允许缺省（地图点选拿不到海拔），按 0 处理。
  *
  * @param {object} body
- * @returns {{ name, roadWidth, vehicleType, trackPoints }}
+ * @returns {{ name, roadWidth, vehicleType, trackPoints, province, city, roadType, waypoints }}
  * @throws {AppError} 校验不通过时抛 VALIDATION_FAILED
  */
 function validateCreateRoute(body) {
@@ -45,7 +61,38 @@ function validateCreateRoute(body) {
   const ROAD_TYPES = ['mountain', 'track', 'gravel', 'highway']
   const roadType = ROAD_TYPES.includes(body.roadType) ? body.roadType : 'mountain'
 
-  return { name, roadWidth, vehicleType, trackPoints, province, city, roadType }
+  const waypoints = normalizeWaypoints(body.waypoints)
+
+  return { name, roadWidth, vehicleType, trackPoints, province, city, roadType, waypoints }
+}
+
+/**
+ * 规范化途经点。
+ *
+ * 途经点只用于导航与分享（生成高德的 viaaddr），不参与难度计算，
+ * 所以缺省或格式不对时直接丢弃那一项，不像轨迹点那样抛错 ——
+ * 少一个途经点不影响路线本身可用。
+ */
+function normalizeWaypoints(raw) {
+  if (!Array.isArray(raw)) return []
+
+  return raw
+    .slice(0, MAX_WAYPOINTS)
+    .map((p) => {
+      if (!p || typeof p !== 'object') return null
+
+      const lat = toFiniteNumber(p.lat)
+      const lng = toFiniteNumber(p.lng)
+      if (lat === null || lng === null) return null
+      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null
+
+      return {
+        lat,
+        lng,
+        name: typeof p.name === 'string' ? p.name.trim().slice(0, 60) : ''
+      }
+    })
+    .filter(Boolean)
 }
 
 /**
@@ -63,21 +110,22 @@ function normalizeTrackPoints(raw) {
       throw validationFailed(`第 ${i + 1} 个坐标点格式错误`)
     }
 
-    const lat = Number(p.lat)
-    const lng = Number(p.lng)
+    const lat = toFiniteNumber(p.lat)
+    const lng = toFiniteNumber(p.lng)
 
-    if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
+    if (lat === null || lat < -90 || lat > 90) {
       throw validationFailed(`第 ${i + 1} 个点的 lat 非法: ${p.lat}`)
     }
-    if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
+    if (lng === null || lng < -180 || lng > 180) {
       throw validationFailed(`第 ${i + 1} 个点的 lng 非法: ${p.lng}`)
     }
 
-    const altitude = Number(p.altitude)
+    // 海拔允许缺省（地图点选拿不到），空值按 0 处理
+    const altitude = toFiniteNumber(p.altitude)
     return {
       lat,
       lng,
-      altitude: Number.isFinite(altitude) ? altitude : 0
+      altitude: altitude === null ? 0 : altitude
     }
   })
 }

@@ -14,7 +14,8 @@
     "pages/moderator-review/moderator-review",
     "pages/moderator-routes/moderator-routes",
     "pages/moderator-activities/moderator-activities",
-    "pages/profile-edit/profile-edit"
+    "pages/profile-edit/profile-edit",
+    "pages/settings/settings"
   ],
   "tabBar": {
     "custom": true,

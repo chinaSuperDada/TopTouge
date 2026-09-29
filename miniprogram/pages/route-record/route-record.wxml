@@ -102,6 +102,21 @@
       </picker>
     </view>
 
+    <view class="field">
+      <text class="field-label">路型</text>
+      <picker
+        mode="selector"
+        range="{{roadTypeLabels}}"
+        value="{{roadTypeIndex}}"
+        bindchange="onRoadTypeChange"
+      >
+        <view class="picker">
+          <text>{{roadTypeLabels[roadTypeIndex]}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
     <view class="note">
       距离、弯道数、急弯占比、爬升、难度星级由后端根据轨迹自动计算
     </view>

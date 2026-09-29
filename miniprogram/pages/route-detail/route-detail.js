@@ -20,6 +20,10 @@ Page({
     commentCount: 0,
     ranking: [],
 
+    // 收藏状态。favoriting 用来防连点
+    favorited: false,
+    favoriting: false,
+
     // 地图
     latitude: 39.9042,
     longitude: 116.4074,
@@ -173,6 +177,7 @@ Page({
         distanceText: km < 1 ? `${Math.round(route.distanceMeters)}m` : `${km.toFixed(1)}km`,
         roadTypeText: ROAD_TYPE_LABEL[route.roadType] || '山路'
       },
+      favorited: Boolean(route.favorited),
       commentCount: (route.comments || []).length,
       loading: false,
       error: '',
@@ -183,6 +188,32 @@ Page({
       markers: amap.buildMarkers(route),
       isLoop: isLoopTrack(track)
     })
+  },
+
+  /**
+   * 收藏 / 取消收藏。
+   *
+   * 先乐观更新再发请求 —— 收藏是高频轻操作，等一个来回再变色会显得卡。
+   * 失败时回滚，用户看到按钮弹回去了就知道没成功。
+   */
+  onToggleFavorite() {
+    if (this.data.favoriting) return
+
+    const next = !this.data.favorited
+    this.setData({ favorited: next, favoriting: true })
+
+    const call = next
+      ? mock.addFavorite(this.data.routeId)
+      : mock.removeFavorite(this.data.routeId)
+
+    call
+      .then(() => {
+        this.setData({ favoriting: false })
+        wx.showToast({ title: next ? '已收藏' : '已取消收藏', icon: 'none' })
+      })
+      .catch(() => {
+        this.setData({ favorited: !next, favoriting: false })
+      })
   },
 
   /**

@@ -422,7 +422,7 @@ Page({
    * 提交本次跑山。
    *
    * local_only 不发请求，只在本机看统计。
-   * ranked 提交后端算分 —— 后端接口还没实现，先用 mock。
+   * ranked 提交后端算分。
    */
   submitRun(elapsedSeconds) {
     if (this.dataMode === 'local_only') {
@@ -457,5 +457,21 @@ Page({
         wx.hideLoading()
         wx.showToast({ title: '提交失败，请重试', icon: 'none' })
       })
+  },
+
+  /**
+   * 结束后的「返回」。
+   *
+   * 走的是 redirectTo 到结果页的路径 —— 跑山页已经不在栈里了，
+   * 所以回详情页要 navigateBack，回到的是来时的详情页。
+   */
+  onBack() {
+    const stack = getCurrentPages()
+    if (stack.length > 1) {
+      wx.navigateBack()
+      return
+    }
+    // 直接从分享链接等入口进来的，没有可返回的页面，回路线详情兜底
+    wx.redirectTo({ url: `/pages/route-detail/route-detail?id=${this.data.routeId}` })
   }
 })

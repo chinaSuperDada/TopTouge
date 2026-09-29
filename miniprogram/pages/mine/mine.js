@@ -78,6 +78,6 @@ Page({
   },
 
   onOpenSettings() {
-    wx.showToast({ title: '设置页开发中', icon: 'none' })
+    wx.navigateTo({ url: '/pages/settings/settings' })
   }
 })

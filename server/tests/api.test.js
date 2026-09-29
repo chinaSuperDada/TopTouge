@@ -186,6 +186,77 @@ test('POST /api/routes 上传路线', async (t) => {
     assert.match(res.body.error.message, /路宽/)
   })
 
+  await t.test('途经点会被保存', async () => {
+    const res = await request(app)
+      .post('/api/routes')
+      .send({
+        name: '带途经点',
+        roadWidth: 'wide',
+        trackPoints: sampleTrack(),
+        waypoints: [
+          { lat: 30.1, lng: 120.1, name: '观景台' },
+          { lat: 30.2, lng: 120.2, name: '补给点' }
+        ]
+      })
+      .expect(201)
+
+    assert.strictEqual(res.body.waypoints.length, 2)
+    assert.strictEqual(res.body.waypoints[0].name, '观景台')
+    assert.strictEqual(res.body.waypoints[1].lat, 30.2)
+  })
+
+  await t.test('途经点缺坐标时被丢弃，不影响提交', async () => {
+    const res = await request(app)
+      .post('/api/routes')
+      .send({
+        name: '坏途经点',
+        roadWidth: 'wide',
+        trackPoints: sampleTrack(),
+        waypoints: [{ lat: 30.1, lng: 120.1, name: '好的' }, { name: '没有坐标' }, null]
+      })
+      .expect(201)
+
+    // 只留下合法的那一个 —— 途经点缺失不该让整条路线提交失败
+    assert.strictEqual(res.body.waypoints.length, 1)
+    assert.strictEqual(res.body.waypoints[0].name, '好的')
+  })
+
+  await t.test('不传途经点时为空数组', async () => {
+    const res = await request(app)
+      .post('/api/routes')
+      .send({ name: '无途经点', roadWidth: 'wide', trackPoints: sampleTrack() })
+      .expect(201)
+
+    assert.deepStrictEqual(res.body.waypoints, [])
+  })
+
+  await t.test('省市与路型会被保存，用于筛选和辖区判断', async () => {
+    const res = await request(app)
+      .post('/api/routes')
+      .send({
+        name: '杭州路线',
+        roadWidth: 'wide',
+        roadType: 'gravel',
+        province: '浙江省',
+        city: '杭州市',
+        trackPoints: sampleTrack()
+      })
+      .expect(201)
+
+    assert.strictEqual(res.body.province, '浙江省')
+    assert.strictEqual(res.body.city, '杭州市')
+    assert.strictEqual(res.body.roadType, 'gravel')
+  })
+
+  await t.test('路型非法时回落到默认山路', async () => {
+    const res = await request(app)
+      .post('/api/routes')
+      .send({ name: 'x', roadWidth: 'wide', roadType: '不存在的路型', trackPoints: sampleTrack() })
+      .expect(201)
+
+    assert.strictEqual(res.body.roadType, 'mountain')
+  })
+
   await t.test('轨迹点少于 2 个返回 400', async () => {
     const res = await request(app)
       .post('/api/routes')
