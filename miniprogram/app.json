@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/route-list/route-list",
+    "pages/route-activity/route-activity",
     "pages/mine/mine",
     "pages/route-detail/route-detail",
     "pages/route-upload/route-upload",
@@ -26,7 +27,11 @@
     "list": [
       {
         "pagePath": "pages/route-list/route-list",
-        "text": "首页"
+        "text": "跑山路线"
+      },
+      {
+        "pagePath": "pages/route-activity/route-activity",
+        "text": "跑山活动"
       },
       {
         "pagePath": "pages/mine/mine",
@@ -37,7 +42,7 @@
   "window": {
     "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#080808",
-    "navigationBarTitleText": "跑山路线",
+    "navigationBarTitleText": "TopTouge",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#080808",
     "backgroundColorTop": "#080808",

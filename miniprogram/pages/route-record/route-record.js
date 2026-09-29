@@ -1,5 +1,6 @@
 const api = require('../../utils/request')
 const amap = require('../../utils/amap')
+const reporter = require('../../utils/errorReporter')
 const { ROAD_WIDTH_OPTIONS, ROAD_WIDTH_LABELS } = require('../../utils/roadWidth')
 
 /** 路型选项。value 必须与后端 constants / validator 里的枚举一致 */
@@ -146,9 +147,14 @@ Page({
         wx.onLocationChange(this._locationHandler)
       },
       fail: (err) => {
+        reporter.report({
+          code: 'LOCATION_START_FAILED',
+          message: '录制页开启定位失败',
+          detail: (err && err.errMsg) || ''
+        })
         this.setData({
           status: 'idle',
-          error: `无法开启定位：${(err && err.errMsg) || '未知错误'}。请检查是否授予了位置权限。`
+          error: '无法开始录制：需要位置权限。你可以在「设置」里开启后再试。'
         })
         this.stopTimer()
       }

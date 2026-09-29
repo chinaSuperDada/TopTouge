@@ -2,6 +2,7 @@ const mock = require('../../utils/mock')
 const runGeo = require('../../utils/runGeo')
 const amap = require('../../utils/amap')
 const navigation = require('../../utils/navigation')
+const reporter = require('../../utils/errorReporter')
 
 // 位移小于这个距离不记点 —— 等红灯时 GPS 会回一堆同一个位置
 const MIN_MOVE_METERS = 8
@@ -207,10 +208,16 @@ Page({
       fail: (err) => {
         this.setData({ status: 'idle' })
         this.stopTimer()
+        // 用户只看人话；技术细节上报给管理员
+        reporter.report({
+          code: 'LOCATION_START_FAILED',
+          message: '跑山页开启定位失败',
+          detail: (err && err.errMsg) || ''
+        })
         wx.showModal({
           title: '无法开始记录',
-          content: `需要定位权限才能记录轨迹。${(err && err.errMsg) || ''}`,
-          confirmText: '去设置',
+          content: '需要位置权限才能记录轨迹。你可以在「设置」里开启后再试。',
+          confirmText: '去开启',
           success: (res) => {
             if (res.confirm) wx.openSetting({ fail: () => {} })
           }
@@ -396,7 +403,12 @@ Page({
           })
         })
         .catch((err) => {
-          wx.showToast({ title: err.message || '生成链接失败', icon: 'none' })
+          reporter.report({
+            code: 'SHARE_LINK_FAILED',
+            message: '跑山页生成高德导航链接失败',
+            detail: (err && err.detail) || (err && err.message) || ''
+          })
+          wx.showToast({ title: '生成导航链接失败，请稍后再试', icon: 'none' })
         })
     }
 

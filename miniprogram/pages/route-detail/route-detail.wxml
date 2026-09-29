@@ -13,6 +13,11 @@
   <block wx:else>
     <!-- 顶部固定区：路线名 + 三个 tab -->
     <view class="header">
+      <!-- 只有作者看得到：这条路线还没上公开列表 -->
+      <view class="review-strip review-{{route.reviewStatus}}" wx:if="{{reviewNotice}}">
+        <text class="review-text">{{reviewNotice}}</text>
+      </view>
+
       <text class="hero-title">{{route.name}}</text>
 
       <view class="tabs">

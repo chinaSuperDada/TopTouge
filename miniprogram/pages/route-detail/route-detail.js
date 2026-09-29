@@ -3,10 +3,36 @@ const mock = require('../../utils/mock')
 const location = require('../../utils/location')
 const amap = require('../../utils/amap')
 const navigation = require('../../utils/navigation')
+const reporter = require('../../utils/errorReporter')
 const { isLoopTrack } = require('../../utils/trackSimplify')
 const { displayName } = require('../../utils/user')
 
 const ROAD_TYPE_LABEL = { mountain: '山路', track: '赛道', gravel: '非铺装', highway: '公路' }
+
+/**
+ * 审核状态的提示文案。
+ *
+ * 只对「未通过」的状态给提示 —— 已通过的路线不该占地方，
+ * 用户也不需要看到「已通过」这种无信息量的标签。
+ *
+ * @returns {string} 空串表示不显示提示条
+ */
+function describeReviewStatus(route) {
+  if (!route) return ''
+
+  switch (route.reviewStatus) {
+    case 'pending':
+      return '这条路线正在审核，通过后才会出现在公开列表'
+    case 'rejected':
+      return route.reviewReason
+        ? `这条路线已被下架：${route.reviewReason}`
+        : '这条路线已被下架'
+    case 'deleted':
+      return '这条路线已被删除'
+    default:
+      return ''
+  }
+}
 
 Page({
   data: {
@@ -161,7 +187,16 @@ Page({
         this.applyRoute(route)
       })
       .catch((err) => {
-        this.setData({ loading: false, error: err.message })
+        // err.message 已经是给人看的白话（见 utils/request.js），
+        // 技术细节在 err.detail 里，只用于上报
+        reporter.report({
+          code: 'ROUTE_DETAIL_FAILED',
+          message: '加载路线详情失败',
+          detail: (err && err.detail) || (err && err.message) || '',
+          url: (err && err.url) || '',
+          statusCode: (err && err.statusCode) || null
+        })
+        this.setData({ loading: false, error: '路线加载失败，请下拉重试' })
       })
   },
 
@@ -178,6 +213,7 @@ Page({
         roadTypeText: ROAD_TYPE_LABEL[route.roadType] || '山路'
       },
       favorited: Boolean(route.favorited),
+      reviewNotice: describeReviewStatus(route),
       // 用后端给的总数，不是内嵌评论数组的长度 ——
       // 内嵌只有最近 10 条，用长度当总数会一直卡在 10
       commentCount: typeof route.commentCount === 'number'
@@ -268,7 +304,12 @@ Page({
         })
       })
       .catch((err) => {
-        wx.showToast({ title: err.message || '复制失败', icon: 'none' })
+        reporter.report({
+          code: 'SHARE_LINK_FAILED',
+          message: '详情页生成高德导航链接失败',
+          detail: (err && err.detail) || (err && err.message) || ''
+        })
+        wx.showToast({ title: '生成导航链接失败，请稍后再试', icon: 'none' })
       })
   },
 

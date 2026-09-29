@@ -122,8 +122,40 @@ async function removeBanner(id) {
   return bannerRepo.remove(id)
 }
 
+/**
+ * 活动列表。
+ *
+ * 和首页活动位的区别：这里**只要人工活动**（平台活动 + 版主活动），
+ * 不含算法位 —— 算法位是「本周最热」这类自动推荐，不是活动。
+ * 活动页把它们混在一起会让人分不清哪些是真人组织的。
+ *
+ * @param {{province?, city?, limit?}} options
+ */
+async function listActivities({ province, city, limit = 30 } = {}) {
+  const rows = await bannerRepo.listActive({ province, city, limit })
+
+  return rows.map((b) => ({
+    id: b.id,
+    source: b.source,
+    // platform 是平台级活动，moderator 是版主活动 —— 前端要分开展示
+    organizer: b.source === 'platform' ? '官方' : '版主',
+    title: b.title,
+    subtitle: b.subtitle,
+    tag: b.tag,
+    image: b.image,
+    color: b.color,
+    link: b.link,
+    province: b.province || '',
+    city: b.city || '',
+    startsAt: b.startsAt,
+    endsAt: b.endsAt,
+    status: b.status
+  }))
+}
+
 module.exports = {
   listBanners,
+  listActivities,
   createModeratorBanner,
   listModeratorBanners,
   updateBannerStatus,

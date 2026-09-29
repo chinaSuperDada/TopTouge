@@ -1,0 +1,51 @@
+<view class="page">
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+
+  <block wx:else>
+    <!-- 有活动：列表 -->
+    <block wx:if="{{activities.length > 0}}">
+      <view class="tip">共 {{activities.length}} 个活动</view>
+
+      <view
+        class="act-card"
+        wx:for="{{activities}}"
+        wx:key="id"
+        data-link="{{item.link}}"
+        data-title="{{item.title}}"
+        bindtap="onActivityTap"
+      >
+        <!-- 海报图优先；没有就用后端配的纯色 -->
+        <image
+          class="act-bg"
+          wx:if="{{item.hasImage}}"
+          src="{{item.image}}"
+          mode="aspectFill"
+        />
+        <view class="act-tint" style="{{item.hasImage ? '' : 'background: ' + item.color}}"></view>
+
+        <view class="act-body">
+          <view class="act-head">
+            <text class="act-tag" wx:if="{{item.tag}}">{{item.tag}}</text>
+            <text class="act-org">{{item.organizer}}</text>
+          </view>
+
+          <text class="act-title">{{item.title}}</text>
+          <text class="act-sub" wx:if="{{item.subtitle}}">{{item.subtitle}}</text>
+
+          <view class="act-meta">
+            <text wx:if="{{item.periodText}}">{{item.periodText}}</text>
+            <text class="meta-dot" wx:if="{{item.periodText && item.regionText}}">·</text>
+            <text wx:if="{{item.regionText}}">{{item.regionText}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 没活动：空状态 -->
+    <view class="empty" wx:else>
+      <view class="empty-mark"></view>
+      <text class="empty-title">还没有跑山活动</text>
+      <text class="empty-hint">平台和版主发布的活动会出现在这里</text>
+    </view>
+  </block>
+</view>

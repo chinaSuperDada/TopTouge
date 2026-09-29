@@ -1,5 +1,6 @@
 const api = require('../../utils/request')
 const mock = require('../../utils/mock')
+const reporter = require('../../utils/errorReporter')
 const amap = require('../../utils/amap')
 const location = require('../../utils/location')
 const { ROAD_WIDTH_OPTIONS, ROAD_WIDTH_LABELS } = require('../../utils/roadWidth')
@@ -157,7 +158,12 @@ Page({
         this.setData({ candidates: list.slice(0, 10), searching: false })
       })
       .catch((err) => {
-        this.setData({ searching: false, planError: err.message })
+        reporter.report({
+          code: 'PLACE_SEARCH_FAILED',
+          message: '地点搜索失败',
+          detail: (err && err.detail) || (err && err.message) || ''
+        })
+        this.setData({ searching: false, planError: '搜索失败，请重试' })
       })
   },
 
@@ -254,7 +260,12 @@ Page({
         this.refreshMap(result.track)
       })
       .catch((err) => {
-        this.setData({ planError: err.message })
+        reporter.report({
+          code: 'ROUTE_PLAN_FAILED',
+          message: '驾车路线规划失败',
+          detail: (err && err.detail) || (err && err.message) || ''
+        })
+        this.setData({ planError: '没能规划出路线，换个起终点试试' })
         this.refreshMap([])
       })
       .finally(() => {
@@ -329,31 +340,62 @@ Page({
     this.setData(patch)
   },
 
+  /**
+   * 地图上的标记。
+   *
+   * ⚠️ 只画起点终点，**不给每个点画标记**。
+   *
+   * 搜索模式规划出来的轨迹有几百上千个点，逐点画标记会让地图糊成
+   * 一片彩色方块 —— 既看不出路线形状，也让地图组件卡顿。轨迹的形状
+   * 由 polyline 表达就够了，标记只负责标出首尾。
+   *
+   * 手动点选时点少（几个到几十个），但仍然只标首尾，保持一致。
+   */
   buildMarkers(points) {
     if (points.length === 0) return []
 
     const lastIndex = points.length - 1
-    return points.map((p, i) => {
-      const isFirst = i === 0
-      const isLast = i === lastIndex && lastIndex > 0
-      const label = isFirst ? '起点' : isLast ? '终点' : `第 ${i + 1} 点`
+    const first = points[0]
+    const last = points[lastIndex]
 
-      return {
-        id: i + 1,
-        latitude: p.lat,
-        longitude: p.lng,
-        width: isFirst || isLast ? 26 : 16,
-        height: isFirst || isLast ? 26 : 16,
+    const markers = [
+      {
+        id: 1,
+        latitude: first.lat,
+        longitude: first.lng,
+        width: 26,
+        height: 26,
         callout: {
-          content: label,
-          color: isFirst ? amap.ACCENT_COLOR : isLast ? amap.DANGER_COLOR : amap.MUTED_COLOR,
+          content: '起点',
+          color: amap.ACCENT_COLOR,
           fontSize: 12,
           borderRadius: 4,
           padding: 4,
-          display: isFirst || isLast ? 'ALWAYS' : 'BYCLICK'
+          display: 'ALWAYS'
         }
       }
-    })
+    ]
+
+    // 只有一个点时首尾重合，不用再画一个终点标记
+    if (lastIndex > 0) {
+      markers.push({
+        id: 2,
+        latitude: last.lat,
+        longitude: last.lng,
+        width: 26,
+        height: 26,
+        callout: {
+          content: '终点',
+          color: amap.DANGER_COLOR,
+          fontSize: 12,
+          borderRadius: 4,
+          padding: 4,
+          display: 'ALWAYS'
+        }
+      })
+    }
+
+    return markers
   },
 
   /* ==================== 表单与提交 ==================== */
@@ -433,12 +475,29 @@ Page({
       })
       .then((route) => {
         wx.hideLoading()
+
+        // 说清楚到底发生了什么。有版主的城市会先走审核，
+        // 这时候只说「上传成功」会让用户回首页找不到自己的路线，以为没保存
+        if (route.reviewStatus === 'pending') {
+          wx.showModal({
+            title: '已提交审核',
+            content: '本地区有版主，路线通过审核后才会出现在公开列表。你可以在「我的 - 我的路线」里查看进度。',
+            showCancel: false,
+            confirmText: '知道了',
+            success: () => {
+              wx.redirectTo({ url: `/pages/route-detail/route-detail?id=${route.id}` })
+            }
+          })
+          return
+        }
+
         wx.showToast({ title: '上传成功', icon: 'success' })
         setTimeout(() => {
           wx.redirectTo({ url: `/pages/route-detail/route-detail?id=${route.id}` })
         }, 600)
       })
-      .catch(() => {
+      .catch((err) => {
+        // 错误已由 request 层上报并转成白话文案，这里只需恢复按钮状态
         wx.hideLoading()
         this.setData({ submitting: false })
       })

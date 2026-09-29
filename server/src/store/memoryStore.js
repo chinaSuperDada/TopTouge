@@ -11,6 +11,8 @@ const state = {
   routes: [],
   comments: [],
   roadConditions: [],
+  // 客户端错误上报。内存模式下只用于本地开发时能看到，不长期保存
+  clientErrors: [],
   counters: { routes: 0, comments: 0, roadConditions: 0 }
 }
 
@@ -25,6 +27,7 @@ const reset = () => {
   state.routes = []
   state.comments = []
   state.roadConditions = []
+  state.clientErrors = []
   state.counters = { routes: 0, comments: 0, roadConditions: 0 }
 }
 

@@ -1,0 +1,165 @@
+.page {
+  min-height: 100vh;
+  padding: var(--space-3);
+  /* 给自定义 TabBar 留出空间 */
+  padding-bottom: calc(270rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  background: var(--bg-base);
+}
+
+.loading {
+  text-align: center;
+  padding: var(--space-6) 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-label);
+}
+
+.tip {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+  padding-left: var(--space-1);
+}
+
+/* ---------- 活动卡片 ---------- */
+
+.act-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+  min-height: 240rpx;
+  /* 没配图时靠这层底色撑出视觉 */
+  background: var(--bg-surface);
+}
+
+.act-card:active {
+  opacity: 0.9;
+}
+
+.act-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 纯色底：直接用后端配的 color。有图时这层不渲染 */
+.act-tint {
+  position: absolute;
+  inset: 0;
+  opacity: 0.85;
+}
+
+/* 有海报图时压一层暗色，保证白字读得清 */
+.act-bg + .act-tint {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.72));
+  opacity: 1;
+}
+
+.act-body {
+  position: relative;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  min-height: 240rpx;
+  box-sizing: border-box;
+  justify-content: flex-end;
+}
+
+.act-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.act-tag {
+  padding: 4rpx 14rpx;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: var(--fs-caption);
+  margin-right: 12rpx;
+}
+
+.act-org {
+  font-size: var(--fs-caption);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.act-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.act-sub {
+  font-size: var(--fs-label);
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 8rpx;
+}
+
+.act-meta {
+  display: flex;
+  align-items: center;
+  margin-top: var(--space-2);
+  font-size: var(--fs-caption);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.meta-dot {
+  margin: 0 10rpx;
+}
+
+/* ---------- 空状态 ---------- */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-6) 0;
+}
+
+/* 用 CSS 画个旗子，和 TabBar 上的图标呼应 */
+.empty-mark {
+  position: relative;
+  width: 64rpx;
+  height: 64rpx;
+  margin-bottom: var(--space-3);
+  opacity: 0.35;
+}
+
+.empty-mark::before {
+  content: '';
+  position: absolute;
+  left: 8rpx;
+  top: 0;
+  width: 5rpx;
+  height: 64rpx;
+  background: var(--text-tertiary);
+}
+
+.empty-mark::after {
+  content: '';
+  position: absolute;
+  left: 13rpx;
+  top: 4rpx;
+  width: 44rpx;
+  height: 30rpx;
+  border: 5rpx solid var(--text-tertiary);
+  border-left: none;
+  box-sizing: border-box;
+}
+
+.empty-title {
+  font-size: var(--fs-body);
+  color: var(--text-secondary);
+}
+
+.empty-hint {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  margin-top: 12rpx;
+  opacity: 0.75;
+}

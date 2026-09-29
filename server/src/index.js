@@ -62,6 +62,19 @@ async function main() {
   const { startHeatJob } = require('./jobs/recomputeHeat')
   startHeatJob()
 
+  // 补齐数据库结构。
+  // 迁移是幂等的（跑过的记在 schema_migrations 里），所以每次启动都跑一遍 ——
+  // 否则每次加表加列都得记得手工执行，部署时漏掉就是线上报错。
+  // 失败不阻断启动：服务照常起，health 会报 not-ready 便于排查
+  if (config.dataSource === 'mysql') {
+    try {
+      const { runMigrations } = require('./db/migrate')
+      await runMigrations()
+    } catch (err) {
+      console.error('[TopTouge] 数据库迁移失败:', err.message)
+    }
+  }
+
   const app = createApp()
   const server = app.listen(config.port, () => {
     console.log(`[TopTouge] 服务已启动，监听端口 ${config.port}`)

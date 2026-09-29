@@ -355,6 +355,87 @@ test('GET /api/routes/:id/similar 相似路线', async (t) => {
   })
 })
 
+test('POST /api/client-errors 客户端错误上报', async (t) => {
+  t.beforeEach(resetWithSeed)
+
+  await t.test('单条上报返回接收数', async () => {
+    const res = await request(app)
+      .post('/api/client-errors')
+      .set('x-user-id', 'reporter-1')
+      .send({
+        code: 'REQUEST_FAILED',
+        message: '请求 /api/routes 失败',
+        detail: 'request:fail timeout',
+        page: 'pages/route-list/route-list',
+        url: '/api/routes',
+        method: 'GET'
+      })
+      .expect(200)
+
+    assert.strictEqual(res.body.received, 1)
+  })
+
+  await t.test('支持批量上报（客户端断网恢复后补报）', async () => {
+    const res = await request(app)
+      .post('/api/client-errors')
+      .send([
+        { code: 'A', message: '第一条' },
+        { code: 'B', message: '第二条' },
+        { code: 'C', message: '第三条' }
+      ])
+      .expect(200)
+
+    assert.strictEqual(res.body.received, 3)
+  })
+
+  await t.test('缺少 message 的条目被丢弃，不影响其他条目', async () => {
+    const res = await request(app)
+      .post('/api/client-errors')
+      .send([{ code: 'A', message: '有效' }, { code: 'B' }, null, { message: '' }])
+      .expect(200)
+
+    assert.strictEqual(res.body.received, 1)
+  })
+
+  await t.test('超长字段被截断，不会写爆数据库', async () => {
+    const res = await request(app)
+      .post('/api/client-errors')
+      .send({
+        code: 'LONG',
+        message: 'x'.repeat(5000),
+        detail: 'y'.repeat(10000)
+      })
+      .expect(200)
+
+    assert.strictEqual(res.body.received, 1)
+
+    const { listClientErrors } = require('../src/repositories/clientErrorRepo')
+    const rows = await listClientErrors(10)
+    const saved = rows.find((r) => r.code === 'LONG')
+
+    assert.ok(saved, '应能查到刚上报的记录')
+    assert.ok(saved.message.length <= 510, 'message 应被截断')
+    assert.ok(saved.detail.length <= 2010, 'detail 应被截断')
+  })
+
+  await t.test('一次请求最多接收 20 条', async () => {
+    const many = Array.from({ length: 50 }, (_, i) => ({
+      code: 'BULK',
+      message: `第 ${i} 条`
+    }))
+
+    const res = await request(app).post('/api/client-errors').send(many).expect(200)
+
+    assert.strictEqual(res.body.received, 20, '超出部分应被丢弃')
+  })
+
+  await t.test('上报失败也不该抛错给客户端', async () => {
+    // 空对象没有 message，全部被过滤，但接口仍应正常返回
+    const res = await request(app).post('/api/client-errors').send({}).expect(200)
+    assert.strictEqual(res.body.received, 0)
+  })
+})
+
 test('评论接口', async (t) => {
   t.beforeEach(resetWithSeed)
 

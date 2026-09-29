@@ -14,6 +14,7 @@ const meRouter = require('./routes/me.router')
 const profileRouter = require('./routes/profile.router')
 const bannersRouter = require('./routes/banners.router')
 const moderatorRouter = require('./routes/moderator.router')
+const clientErrorsRouter = require('./routes/clientErrors.router')
 
 /**
  * 组装 Express 应用。不监听端口 —— 便于测试里用 supertest 直接挂载。
@@ -55,6 +56,8 @@ function createApp({ logger = true } = {}) {
   app.use('/api/me', meRouter)
   app.use('/api/banners', bannersRouter)
   app.use('/api/moderator', moderatorRouter)
+  // 客户端错误上报。不在 /api/me 下面 —— 出错时用户身份可能还没解析出来
+  app.use('/api/client-errors', clientErrorsRouter)
 
   app.use(notFoundHandler)
   app.use(errorHandler)

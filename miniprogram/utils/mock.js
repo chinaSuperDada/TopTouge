@@ -125,6 +125,21 @@ function getBanners({ province, city } = {}) {
   return api.get('/api/banners', { data: query }).then((res) => res.banners || [])
 }
 
+/**
+ * 跑山活动列表。
+ *
+ * 和 getBanners 的区别：只要人工活动（平台级 + 版主级），
+ * 不含「本周最热」这类算法位 —— 活动页混进去会让人分不清
+ * 哪些是真人组织的。
+ */
+function getActivities({ province, city } = {}) {
+  const query = {}
+  if (province && province !== 'all') query.province = province
+  if (city && city !== 'all') query.city = city
+
+  return api.get('/api/banners/activities', { data: query }).then((res) => res.activities || [])
+}
+
 /* ==================== 我的 ==================== */
 
 /** 我的跑山记录 */
@@ -258,6 +273,7 @@ module.exports = {
   checkDuplicate,
   submitRun,
   getBanners,
+  getActivities,
 
   // 用户资料
   getProfile,

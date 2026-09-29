@@ -1,5 +1,5 @@
 <view class="tabbar">
-  <!-- 左：首页 -->
+  <!-- 左：跑山路线 -->
   <view
     class="tab"
     style="color: {{selected === 0 ? colorActive : colorNormal}}"
@@ -7,7 +7,21 @@
     bindtap="onTabTap"
   >
     <view class="icon icon-home" style="border-color: {{selected === 0 ? colorActive : colorNormal}}"></view>
-    <text class="tab-label" style="color: {{selected === 0 ? colorActive : colorNormal}}">首页</text>
+    <text class="tab-label" style="color: {{selected === 0 ? colorActive : colorNormal}}">跑山路线</text>
+  </view>
+
+  <!-- 跑山活动 -->
+  <view
+    class="tab"
+    style="color: {{selected === 1 ? colorActive : colorNormal}}"
+    data-index="1"
+    bindtap="onTabTap"
+  >
+    <view class="icon icon-activity">
+      <view class="flag-pole" style="background: {{selected === 1 ? colorActive : colorNormal}}"></view>
+      <view class="flag-cloth" style="border-color: {{selected === 1 ? colorActive : colorNormal}}"></view>
+    </view>
+    <text class="tab-label" style="color: {{selected === 1 ? colorActive : colorNormal}}">跑山活动</text>
   </view>
 
   <!-- 中：凸起的制作按钮 -->

@@ -1,7 +1,7 @@
 <view class="page">
   <!-- 顶栏：标题 + 当前城市 -->
   <view class="topbar">
-    <text class="topbar-title">跑山路线</text>
+    <text class="topbar-title">TopTouge</text>
     <!-- 定位给不出省市，所以城市靠手选。picker 直接套在 view 上，
          比 bindtap 弹 ActionSheet 少一层交互，也能显示当前选中值 -->
     <picker

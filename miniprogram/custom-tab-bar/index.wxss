@@ -35,8 +35,10 @@
 }
 
 .tab-label {
-  font-size: 20rpx;
+  /* 四个 tab 后横向空间变紧，「跑山路线」四个字要缩一点才不挤 */
+  font-size: 19rpx;
   margin-top: 6rpx;
+  white-space: nowrap;
 }
 
 /* ---------- 图标：CSS 画，不引图片资源 ---------- */
@@ -76,6 +78,30 @@
   border: 4rpx solid #6e6e6e;
   border-bottom: none;
   border-radius: 16rpx 16rpx 0 0;
+  box-sizing: border-box;
+}
+
+/* 跑山活动：旗杆 + 旗面 */
+.icon-activity {
+  position: relative;
+}
+
+.flag-pole {
+  position: absolute;
+  left: 4rpx;
+  top: 0;
+  width: 4rpx;
+  height: 40rpx;
+}
+
+.flag-cloth {
+  position: absolute;
+  left: 8rpx;
+  top: 2rpx;
+  width: 26rpx;
+  height: 18rpx;
+  border: 4rpx solid #6e6e6e;
+  border-left: none;
   box-sizing: border-box;
 }
 

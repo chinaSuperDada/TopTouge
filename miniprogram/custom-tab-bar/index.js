@@ -21,8 +21,8 @@ Component({
     colorNormal: COLOR_NORMAL,
     colorBg: COLOR_BG,
     tabs: [
-      { key: 'home', label: '首页', path: '/pages/route-list/route-list' },
-      { key: 'create', label: '', path: '' },
+      { key: 'home', label: '跑山路线', path: '/pages/route-list/route-list' },
+      { key: 'activity', label: '跑山活动', path: '/pages/route-activity/route-activity' },
       { key: 'mine', label: '我的', path: '/pages/mine/mine' }
     ]
   },
