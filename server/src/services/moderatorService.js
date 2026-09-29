@@ -1,6 +1,9 @@
 const moderatorRepo = require('../repositories/moderatorRepo')
+const applicationRepo = require('../repositories/moderatorApplicationRepo')
 const routeRepo = require('../repositories/routeRepo')
+const runRepo = require('../repositories/runRepo')
 const favoriteRepo = require('../repositories/favoriteRepo')
+const config = require('../config')
 const { notFound, badRequest } = require('../errors')
 
 /**
@@ -8,23 +11,54 @@ const { notFound, badRequest } = require('../errors')
  *
  * 权限的核心约束：**只能管自己的辖区**。每个方法都要传 region 进来，
  * 不能靠前端传的 id 就信任 —— 版主 A 不能审版主 B 城市的路线。
+ *
+ * 平台管理员比版主高一层：不受辖区限制，负责审批版主申请，
+ * 以及审核「本地还没有版主」的区域的公开路线。
  */
+
+/** 是不是平台管理员 */
+function isAdmin(userId) {
+  return config.adminUserIds.includes(userId)
+}
+
+/**
+ * 申请版主的门槛。
+ *
+ * 定这两个数是想确保申请人真的用过这个产品，而不是来占坑的。
+ */
+const APPLY_MIN_ROUTES = 1
+const APPLY_MIN_RUNS = 1
 
 /** 我的版主身份。不是版主时 regions 为空 */
 async function getMyModeratorInfo(userId) {
   const rows = await moderatorRepo.listByUser(userId)
   return {
     isModerator: rows.length > 0,
+    isAdmin: isAdmin(userId),
     regions: rows.map((r) => ({ province: r.province, city: r.city })),
     permissions: rows.length ? rows[0].permissions : [],
     since: rows.length ? rows[0].createdAt : null
   }
 }
 
-/** 待审核的路线（只返回自己辖区的） */
+/**
+ * 待审核的路线。
+ *
+ * 版主只看自己辖区的；**平台管理员看全部** —— 包括那些还没有版主的区域，
+ * 否则那些地方的路线传上来就永远没人审。
+ */
 async function listPendingRoutes(userId, limit) {
+  const admin = isAdmin(userId)
   const info = await getMyModeratorInfo(userId)
-  if (!info.isModerator) throw badRequest('没有版主权限', 'NOT_MODERATOR')
+
+  if (!admin && !info.isModerator) {
+    throw badRequest('没有版主权限', 'NOT_MODERATOR')
+  }
+
+  // 管理员：不按区域过滤，一次拿全
+  if (admin) {
+    return routeRepo.listPending({ limit })
+  }
 
   // 一个版主可能管多个城市，逐个查再合并
   const all = []
@@ -149,13 +183,125 @@ async function deleteRoute(userId, routeId) {
   return { id: routeId, deleted: true }
 }
 
+/**
+ * 申请版主的资格检查。
+ *
+ * 两个条件：贡献过路线 + 跑过山。返回进度而不是布尔值 ——
+ * 前端要据此告诉用户「还差什么」，光说「不符合条件」没有指导意义。
+ */
+async function checkApplyEligibility(userId) {
+  const [routeCount, runCount] = await Promise.all([
+    routeRepo.countByUploadedBy(userId),
+    runRepo.countByUser(userId)
+  ])
+
+  return {
+    routeCount,
+    runCount,
+    minRoutes: APPLY_MIN_ROUTES,
+    minRuns: APPLY_MIN_RUNS,
+    eligible: routeCount >= APPLY_MIN_ROUTES && runCount >= APPLY_MIN_RUNS
+  }
+}
+
+/**
+ * 提交版主申请。
+ *
+ * 提交时把条件快照进申请表 —— 之后用户删了路线，已提交的申请
+ * 依据不变。否则管理员审批时看到的数字会在脚下变。
+ */
+async function applyForModerator(userId, { province, city, reason }) {
+  if (!province || !city) {
+    throw badRequest('请选择要负责的区域', 'REGION_REQUIRED')
+  }
+
+  const existing = await applicationRepo.findPendingByUser(userId)
+  if (existing) {
+    throw badRequest('你已经有一份待审的申请了', 'APPLICATION_PENDING')
+  }
+
+  const eligibility = await checkApplyEligibility(userId)
+  if (!eligibility.eligible) {
+    throw badRequest('还不满足申请条件', 'NOT_ELIGIBLE')
+  }
+
+  const info = await getMyModeratorInfo(userId)
+  if (info.regions.some((r) => r.province === province && r.city === city)) {
+    throw badRequest('你已经是该区域的版主了', 'ALREADY_MODERATOR')
+  }
+
+  return applicationRepo.create({
+    userId,
+    province,
+    city,
+    reason,
+    routeCount: eligibility.routeCount,
+    runCount: eligibility.runCount,
+    createdAt: new Date().toISOString()
+  })
+}
+
+/** 我的申请记录 */
+async function listMyApplications(userId) {
+  return applicationRepo.listByUser(userId)
+}
+
+/** 待审的版主申请（仅平台管理员） */
+async function listApplications(userId, limit) {
+  if (!isAdmin(userId)) throw badRequest('需要平台管理员权限', 'NOT_ADMIN')
+  return applicationRepo.listPending(limit)
+}
+
+/**
+ * 审批版主申请（仅平台管理员）。
+ *
+ * 通过时**直接授予版主身份** —— 让管理员再点一次「授予」是多余的一步，
+ * 审批通过的含义本来就是要给他权限。
+ */
+async function reviewApplication(userId, applicationId, { status, reason }) {
+  if (!isAdmin(userId)) throw badRequest('需要平台管理员权限', 'NOT_ADMIN')
+  if (!['approved', 'rejected'].includes(status)) {
+    throw badRequest('status 只能是 approved 或 rejected')
+  }
+
+  const app = await applicationRepo.getById(applicationId)
+  if (!app) throw notFound(`申请 ${applicationId} 不存在`)
+  if (app.status !== 'pending') {
+    throw badRequest('这份申请已经处理过了', 'ALREADY_REVIEWED')
+  }
+
+  const updated = await applicationRepo.updateStatus(applicationId, {
+    status,
+    reason,
+    reviewedBy: userId
+  })
+
+  if (status === 'approved') {
+    await moderatorRepo.create({
+      userId: app.userId,
+      province: app.province,
+      city: app.city
+    })
+  }
+
+  return updated
+}
+
 module.exports = {
   getMyModeratorInfo,
+  isAdmin,
+  checkApplyEligibility,
+  applyForModerator,
+  listMyApplications,
+  listApplications,
+  reviewApplication,
   deleteRoute,
   listPendingRoutes,
   reviewRoute,
   listManagedRoutes,
   togglePin,
   takeDownRoute,
-  getModeratorStats
+  getModeratorStats,
+  APPLY_MIN_ROUTES,
+  APPLY_MIN_RUNS
 }

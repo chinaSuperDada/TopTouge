@@ -232,6 +232,28 @@
     </view>
 
     <view class="field">
+      <text class="field-label">谁可以看到</text>
+      <view class="vis-row">
+        <view
+          class="vis-opt {{visibility === 'public' ? 'vis-on' : ''}}"
+          data-value="public"
+          bindtap="onVisibilityTap"
+        >
+          <text class="vis-title">公开</text>
+          <text class="vis-desc">进入路线库，需要审核</text>
+        </view>
+        <view
+          class="vis-opt {{visibility === 'private' ? 'vis-on' : ''}}"
+          data-value="private"
+          bindtap="onVisibilityTap"
+        >
+          <text class="vis-title">私有</text>
+          <text class="vis-desc">只有自己可见，无需审核</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="field">
       <text class="field-label">所在地区</text>
       <view class="picker picker-static">
         <text class="{{regionText ? '' : 'picker-placeholder'}}">{{regionText || '提交时自动识别'}}</text>
@@ -244,4 +266,72 @@
   </view>
 
   <view class="btn btn-primary {{submitting ? 'btn-disabled' : ''}}" bindtap="onSubmit">提交路线</view>
+
+  <!--
+    提交确认浮层。
+    用自定义浮层而不是 wx.showModal —— 后者只支持纯文本，
+    排不出「距离 / 弯道 / 爬升 / 星级」这种要一眼看清的表格。
+  -->
+  <view class="confirm-mask" wx:if="{{confirming}}" bindtap="onCancelConfirm">
+    <view class="confirm-sheet" catchtap="onNoop">
+      <text class="confirm-title">确认路线信息</text>
+
+      <view class="confirm-name">{{confirmData.name}}</view>
+
+      <view class="confirm-stats">
+        <view class="cstat">
+          <text class="cstat-num t-num">{{confirmData.distanceText}}</text>
+          <text class="cstat-label">里程</text>
+        </view>
+        <view class="cstat">
+          <text class="cstat-num t-num">{{confirmData.curveCount}}</text>
+          <text class="cstat-label">弯道</text>
+        </view>
+        <view class="cstat">
+          <text class="cstat-num t-num">{{confirmData.gainText}}</text>
+          <text class="cstat-label">爬升</text>
+        </view>
+        <view class="cstat">
+          <text class="cstat-num t-num">{{confirmData.difficultyStars}}</text>
+          <text class="cstat-label">难度星</text>
+        </view>
+      </view>
+
+      <view class="confirm-rows">
+        <view class="crow">
+          <text class="crow-key">路型</text>
+          <text class="crow-val">{{confirmData.roadTypeText}}</text>
+        </view>
+        <view class="crow">
+          <text class="crow-key">路宽</text>
+          <text class="crow-val">{{confirmData.roadWidthText}}</text>
+        </view>
+        <view class="crow">
+          <text class="crow-key">地区</text>
+          <text class="crow-val">{{confirmData.regionText || '未识别'}}</text>
+        </view>
+        <view class="crow">
+          <text class="crow-key">可见性</text>
+          <text class="crow-val {{confirmData.visibility === 'public' ? 'crow-public' : ''}}">
+            {{confirmData.visibility === 'public' ? '公开（需审核）' : '私有（仅自己可见）'}}
+          </text>
+        </view>
+      </view>
+
+      <!-- 查重命中时给个提醒，但不拦着不让传 -->
+      <view class="confirm-warn" wx:if="{{confirmData.duplicateName}}">
+        发现相似路线「{{confirmData.duplicateName}}」，重合度 {{confirmData.duplicateRatio}}%
+      </view>
+
+      <view class="confirm-note">统计指标由轨迹自动计算，提交后以服务端结果为准</view>
+
+      <view class="confirm-actions">
+        <view class="btn btn-ghost confirm-btn" bindtap="onCancelConfirm">再看看</view>
+        <view
+          class="btn btn-primary confirm-btn {{submitting ? 'btn-disabled' : ''}}"
+          bindtap="onConfirmSubmit"
+        >确认提交</view>
+      </view>
+    </view>
+  </view>
 </view>

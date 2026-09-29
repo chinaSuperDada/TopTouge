@@ -1,0 +1,95 @@
+.page {
+  min-height: 100vh;
+  padding: var(--space-3);
+  box-sizing: border-box;
+  background: var(--bg-base);
+}
+
+.loading {
+  text-align: center;
+  padding: var(--space-6) 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-label);
+}
+
+.tip {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+  padding-left: var(--space-1);
+}
+
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.app-region {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--text-emphasis);
+}
+
+/* 条件快照 */
+.app-stats {
+  display: flex;
+  align-items: center;
+  margin: var(--space-2) 0 12rpx;
+}
+
+.stat {
+  font-size: var(--fs-label);
+  color: var(--accent);
+}
+
+.stat-dot {
+  margin: 0 12rpx;
+  color: var(--text-tertiary);
+}
+
+.app-user,
+.app-time {
+  display: block;
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  line-height: 1.6;
+}
+
+.app-reason {
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-label);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.act {
+  flex: 1;
+  height: 76rpx;
+  line-height: 72rpx;
+  font-size: var(--fs-body);
+}
+
+.empty {
+  text-align: center;
+  padding: var(--space-6) 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-label);
+}
+
+.empty-hint {
+  display: block;
+  font-size: var(--fs-caption);
+  margin-top: 12rpx;
+  opacity: 0.7;
+}

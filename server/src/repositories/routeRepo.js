@@ -28,15 +28,21 @@ const memoryImpl = {
     const {
       province = 'all', city = 'all', difficulty = 'all',
       roadType = 'all', sort = 'hot', reviewStatus = 'approved',
-      limit = 50, uploadedBy, anyReviewStatus = false
+      limit = 50, uploadedBy, anyReviewStatus = false, visibility
     } = filters
 
     let list = memory.routes.all()
+
+    // 显式可见性过滤。私有路线默认不出现 —— 和 mysql 实现保持一致
+    if (visibility) {
+      list = list.filter((r) => (r.visibility || 'public') === visibility)
+    }
 
     // 内存模式下没有 review_status 字段，用默认值兜底
     if (anyReviewStatus) {
       if (uploadedBy) list = list.filter((r) => r.uploadedBy === uploadedBy)
     } else {
+      if (!visibility) list = list.filter((r) => (r.visibility || 'public') === 'public')
       list = list.filter((r) => (r.reviewStatus || 'approved') === reviewStatus)
     }
     if (province !== 'all') list = list.filter((r) => r.province === province)
@@ -120,6 +126,8 @@ function rowToRoute(row) {
     city: row.city || '',
     roadType: row.road_type || 'mountain',
     heat: row.heat || 0,
+    // public 进公开列表；private 只有作者自己看得到
+    visibility: row.visibility || 'public',
     reviewStatus: row.review_status || 'approved',
     reviewReason: row.review_reason || '',
     pinned: Boolean(row.pinned),
@@ -150,7 +158,7 @@ const ROUTE_COLUMNS = `
   reference_track, display_track,
   uploaded_by, curve_count, sharp_curve_ratio, elevation_gain_meters,
   road_width, difficulty_stars,
-  province, city, road_type, heat, review_status, review_reason, pinned,
+  province, city, road_type, heat, visibility, review_status, review_reason, pinned,
   created_at
 `
 
@@ -161,18 +169,26 @@ const mysqlImpl = {
    * 「离我最近」用经纬度算距离 —— 数据量小（几千条）时 MySQL 直接算
    * 足够快。真到几万条再考虑加 geometry 列 + GiST 索引（那时才需要 PostGIS）。
    *
-   * @param {{province, city, difficulty, roadType, sort, reviewStatus, limit, lat, lng}} filters
+   * @param {{province, city, difficulty, roadType, sort, reviewStatus, limit, lat, lng,
+   *          uploadedBy, anyReviewStatus, visibility}} filters
    */
   async list(filters = {}) {
     const { getPool } = require('../db/pool')
     const {
       province = 'all', city = 'all', difficulty = 'all',
       roadType = 'all', sort = 'hot', reviewStatus = 'approved',
-      limit = 50, lat, lng, uploadedBy, anyReviewStatus = false
+      limit = 50, lat, lng, uploadedBy, anyReviewStatus = false, visibility
     } = filters
 
     const where = []
     const params = []
+
+    // 显式的可见性过滤。
+    // 传了 visibility 就按它筛；没传时按下面的规则走
+    if (visibility) {
+      where.push('visibility = ?')
+      params.push(visibility)
+    }
 
     // 作者查自己的路线时要能看到待审和被驳回的 ——
     // 否则用户传完看不到，以为上传失败了
@@ -182,6 +198,10 @@ const mysqlImpl = {
         params.push(uploadedBy)
       }
     } else {
+      // 公开列表：只出现公开且已通过的路线。
+      // 私有路线是作者的私人收藏，不能因为「审核通过」就漏进公开列表 ——
+      // 私有路线本来就是 approved，不加这个条件会被所有人看到
+      if (!visibility) where.push("visibility = 'public'")
       where.push('review_status = ?')
       params.push(reviewStatus)
     }
@@ -266,8 +286,8 @@ const mysqlImpl = {
          reference_track, display_track,
          uploaded_by, curve_count, sharp_curve_ratio, elevation_gain_meters,
          road_width, difficulty_stars,
-         province, city, road_type, heat, review_status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         province, city, road_type, heat, visibility, review_status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         route.name,
         route.vehicleType,
@@ -287,6 +307,7 @@ const mysqlImpl = {
         route.city || '',
         route.roadType || 'mountain',
         route.heat || 0,
+        route.visibility || 'public',
         route.reviewStatus || 'approved',
         // 内存实现里 createdAt 是 ISO 字符串，MySQL 要 Date 对象
         new Date(route.createdAt)

@@ -69,6 +69,10 @@ const memoryImpl = {
   async listByUser() {
     return []
   },
+  async countByUser() {
+    // 内存模式不落库，没有成绩记录
+    return 0
+  },
   async clearExpiredTracks() {
     return 0
   }
@@ -244,6 +248,22 @@ const mysqlImpl = {
           AND raw_track_points IS NOT NULL`
     )
     return res.affectedRows
+  },
+
+  /**
+   * 某人的有效成绩条数。
+   *
+   * 版主申请资格要用（「完成一次跑山」）。只算 completed 的 ——
+   * 中途放弃的记录不该算数。
+   */
+  async countByUser(userId) {
+    const { getPool } = require('../db/pool')
+    const [rows] = await getPool().execute(
+      `SELECT COUNT(*) AS n FROM run_records
+        WHERE user_id = ? AND status = 'completed'`,
+      [userId]
+    )
+    return rows[0].n
   }
 }
 
@@ -252,6 +272,7 @@ const impl = {
   getById: (...a) => (useMysql() ? mysqlImpl : memoryImpl).getById(...a),
   listByRoute: (...a) => (useMysql() ? mysqlImpl : memoryImpl).listByRoute(...a),
   listByUser: (...a) => (useMysql() ? mysqlImpl : memoryImpl).listByUser(...a),
+  countByUser: (...a) => (useMysql() ? mysqlImpl : memoryImpl).countByUser(...a),
   scorePercentile: (...a) => (useMysql() ? mysqlImpl : memoryImpl).scorePercentile(...a),
   rankOf: (...a) => (useMysql() ? mysqlImpl : memoryImpl).rankOf(...a),
   countByRoute: (...a) => (useMysql() ? mysqlImpl : memoryImpl).countByRoute(...a),

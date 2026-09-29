@@ -151,3 +151,7 @@
   color: var(--text-tertiary);
   margin-top: var(--space-5);
 }
+
+/* 申请版主 / 管理员入口的图标色 */
+.icon-apply { background: var(--accent); }
+.icon-admin { background: var(--warn); }

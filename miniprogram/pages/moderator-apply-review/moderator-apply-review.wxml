@@ -1,0 +1,43 @@
+<view class="page">
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+
+  <block wx:else>
+    <block wx:if="{{items.length > 0}}">
+      <view class="tip">共 {{items.length}} 份待审申请</view>
+
+      <view class="card app-item" wx:for="{{items}}" wx:key="id">
+        <view class="app-region">{{item.province}} {{item.city}}</view>
+
+        <!-- 申请时的条件快照 —— 管理员据此判断，数字不会因为用户后续操作而变 -->
+        <view class="app-stats">
+          <text class="stat">贡献路线 {{item.routeCount}} 条</text>
+          <text class="stat-dot">·</text>
+          <text class="stat">跑山 {{item.runCount}} 次</text>
+        </view>
+
+        <text class="app-user">申请人 {{item.userId}}</text>
+        <text class="app-time">提交于 {{item.createdAtText}}</text>
+
+        <view class="app-reason" wx:if="{{item.reason}}">「{{item.reason}}」</view>
+
+        <view class="actions">
+          <view
+            class="btn btn-ghost act"
+            data-id="{{item.id}}"
+            bindtap="onReject"
+          >驳回</view>
+          <view
+            class="btn btn-primary act"
+            data-id="{{item.id}}"
+            bindtap="onApprove"
+          >通过</view>
+        </view>
+      </view>
+    </block>
+
+    <view class="empty" wx:else>
+      <text>没有待审的申请</text>
+      <text class="empty-hint">有人申请版主时会出现在这里</text>
+    </view>
+  </block>
+</view>

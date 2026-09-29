@@ -14,6 +14,54 @@ router.get(
   })
 )
 
+/* ==================== 版主申请 ==================== */
+
+/** GET /api/moderator/apply/eligibility — 我够不够格申请 */
+router.get(
+  '/apply/eligibility',
+  asyncHandler(async (req, res) => {
+    const [eligibility, applications] = await Promise.all([
+      moderatorService.checkApplyEligibility(req.userId),
+      moderatorService.listMyApplications(req.userId)
+    ])
+    res.json({ ...eligibility, applications })
+  })
+)
+
+/** POST /api/moderator/apply — 提交申请 */
+router.post(
+  '/apply',
+  asyncHandler(async (req, res) => {
+    const { province, city, reason } = req.body || {}
+    const application = await moderatorService.applyForModerator(req.userId, {
+      province, city, reason
+    })
+    res.status(201).json(application)
+  })
+)
+
+/**
+ * GET /api/moderator/applications — 待审的申请
+ *
+ * 只有平台管理员能调，同时看全部（含没有版主的区域）。
+ */
+router.get(
+  '/applications',
+  asyncHandler(async (req, res) => {
+    res.json({ applications: await moderatorService.listApplications(req.userId, 100) })
+  })
+)
+
+/** POST /api/moderator/applications/:id/review — 审批申请 */
+router.post(
+  '/applications/:id/review',
+  asyncHandler(async (req, res) => {
+    const id = parseId(req.params.id)
+    const { status, reason } = req.body || {}
+    res.json(await moderatorService.reviewApplication(req.userId, id, { status, reason }))
+  })
+)
+
 /** GET /api/moderator/pending — 待审核路线 */
 router.get(
   '/pending',

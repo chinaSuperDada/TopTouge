@@ -21,6 +21,22 @@ const config = {
   testUserId: process.env.TEST_USER_ID || 'test-user-001',
 
   /**
+   * 平台管理员。
+   *
+   * 权限比版主高一层，负责：
+   *   - 审批版主申请
+   *   - 审核「本地没有版主」的区域的公开路线
+   *
+   * 用逗号分隔的 user_id 列表，支持配多个。
+   * 不配就没有管理员 —— 此时版主申请和无人区域的路线会一直挂在待审，
+   * 但不会报错（生产环境必须配上）。
+   */
+  adminUserIds: (process.env.ADMIN_USER_IDS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
+
+  /**
    * 数据源：
    *   memory —— 内存 mock，本地开发默认。重启即重置，不用起数据库。
    *   mysql  —— 真实数据库，线上部署用。

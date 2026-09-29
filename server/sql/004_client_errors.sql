@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS client_errors (
   platform VARCHAR(32) NOT NULL DEFAULT '',
   brand VARCHAR(64) NOT NULL DEFAULT '',
   model VARCHAR(64) NOT NULL DEFAULT '',
-  system VARCHAR(64) NOT NULL DEFAULT '',
+  -- ⚠️ 不要叫 system —— 那是 MySQL 保留字，不加反引号会直接语法错误
+  os_version VARCHAR(64) NOT NULL DEFAULT '',
   sdk_version VARCHAR(32) NOT NULL DEFAULT '',
 
   -- 兜底的附加信息，JSON 字符串

@@ -6,7 +6,8 @@ const useMysql = () => config.dataSource === 'mysql'
 
 const memoryImpl = {
   async listByUser() { return [] },
-  async countInCity() { return 0 }
+  async countInCity() { return 0 },
+  async create(m) { return { ...m, id: Date.now() } }
 }
 
 const mysqlImpl = {
@@ -35,12 +36,33 @@ const mysqlImpl = {
       [province, city]
     )
     return rows[0].n
+  },
+
+  /**
+   * 授予版主身份。
+   *
+   * 用 ON DUPLICATE KEY UPDATE 而不是先查再插 ——
+   * 表上有 uk_user_city 唯一索引，同一区域的重复授予（管理员手抖点两次、
+   * 或申请被重复审批）应该幂等，而不是抛唯一键冲突。
+   */
+  async create({ userId, province, city, permissions = ['review', 'pin', 'activity'] }) {
+    const { getPool } = require('../db/pool')
+    await getPool().execute(
+      `INSERT INTO moderators (user_id, province, city, permissions, created_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE permissions = VALUES(permissions)`,
+      [userId, province, city, JSON.stringify(permissions), new Date()]
+    )
+
+    const rows = await this.listByUser(userId)
+    return rows.find((r) => r.province === province && r.city === city) || null
   }
 }
 
 const impl = {
   listByUser: (...a) => (useMysql() ? mysqlImpl : memoryImpl).listByUser(...a),
-  countInCity: (...a) => (useMysql() ? mysqlImpl : memoryImpl).countInCity(...a)
+  countInCity: (...a) => (useMysql() ? mysqlImpl : memoryImpl).countInCity(...a),
+  create: (...a) => (useMysql() ? mysqlImpl : memoryImpl).create(...a)
 }
 
 module.exports = impl

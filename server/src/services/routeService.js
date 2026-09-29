@@ -73,7 +73,10 @@ async function getRouteDetail(id, options = {}) {
  * @param {string} uploadedBy
  */
 async function createRoute(input, uploadedBy) {
-  const { name, roadWidth, vehicleType, trackPoints, province, city, roadType, waypoints } = input
+  const {
+    name, roadWidth, vehicleType, trackPoints,
+    province, city, roadType, waypoints, visibility
+  } = input
 
   const stats = computeStats(trackPoints)
   const first = trackPoints[0]
@@ -101,9 +104,10 @@ async function createRoute(input, uploadedBy) {
     province: province || '',
     city: city || '',
     roadType: roadType || 'mountain',
-    // 审核状态：有版主的城市应该走 pending，
-    // 但前端拿不到「这个城市有没有版主」，所以在这里查一次
-    reviewStatus: await resolveReviewStatus(province, city),
+    // 公开 / 私有。私有只有作者可见，且不进审核流程
+    visibility: visibility || 'public',
+    // 审核状态：私有直接通过；公开一律待审，由版主或平台管理员处理
+    reviewStatus: await resolveReviewStatus(province, city, visibility),
     heat: 0,
     createdAt: new Date().toISOString()
   })
@@ -127,6 +131,9 @@ function toSummary(route) {
     heat: route.heat,
     pinned: route.pinned,
     vehicleType: route.vehicleType,
+    // 列表要能区分公开/私有（「我的路线」里两者混在一起）
+    visibility: route.visibility,
+    reviewStatus: route.reviewStatus,
     createdAt: route.createdAt
   }
 }
@@ -134,15 +141,21 @@ function toSummary(route) {
 /**
  * 判断新上传的路线要不要审核。
  *
- * 有版主的城市走 pending（等版主审），没版主的直接 approved ——
- * 否则没人审的城市，用户传完永远看不到自己的路线。
+ * **私有路线不审核** —— 它不进公开列表，审核没有意义，只会让用户白等。
+ *
+ * 公开路线一律 pending：
+ *   本地有版主 → 版主审
+ *   本地无版主 → 平台管理员审（见 moderatorService.listPendingRoutes）
+ *
+ * 注意「没有省市信息」也走 pending。之前这里返回 approved，
+ * 结果定位失败反而成了绕过审核的后门 —— 拿不到区域就没人管了。
  */
-async function resolveReviewStatus(province, city) {
-  if (!province || !city) return 'approved'
+async function resolveReviewStatus(province, city, visibility) {
+  if (visibility === 'private') return 'approved'
 
-  const moderatorRepo = require('../repositories/moderatorRepo')
-  const count = await moderatorRepo.countInCity(province, city)
-  return count > 0 ? 'pending' : 'approved'
+  // 公开路线一律待审。审核人是谁由 listPendingRoutes 按辖区算，
+  // 这里不需要区分「版主审」还是「平台审」
+  return 'pending'
 }
 
 /**
@@ -194,14 +207,22 @@ async function findSimilarRoutes(track, options = {}) {
   const origin = track[0]
 
   // 粗筛。按起点距离排序取前 50 —— 比按热度靠谱，
-  // 因为精算只关心几何上可能重合的
+  // 因为精算只关心几何上可能重合的。
+  //
+  // 两个关键点：
+  //   1. anyReviewStatus —— 待审的也要参与查重。否则两个人前后脚传同一条路，
+  //      谁都不会收到提醒，审核通过后才发现重复
+  //   2. visibility='public' —— 私有路线绝不能被别人查到。查重返回了它，
+  //      等于把用户的私人路线泄露出去
   const candidates = await routeRepo.list({
     province: province || 'all',
     city: city || 'all',
     sort: 'nearby',
     lat: origin.lat,
     lng: origin.lng,
-    limit: 50
+    limit: 50,
+    anyReviewStatus: true,
+    visibility: 'public'
   })
 
   const scored = []

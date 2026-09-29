@@ -208,6 +208,28 @@ function getModeratorInfo() {
   return api.get('/api/me/moderator', { showError: false })
 }
 
+/* ==================== 版主申请 ==================== */
+
+/** 我还差多少才够申请版主。同时带回我的申请记录 */
+function getApplyEligibility() {
+  return api.get('/api/moderator/apply/eligibility')
+}
+
+/** 提交版主申请 */
+function applyModerator({ province, city, reason }) {
+  return api.post('/api/moderator/apply', { province, city, reason })
+}
+
+/** 待审的版主申请（仅平台管理员） */
+function getPendingApplications() {
+  return api.get('/api/moderator/applications').then((res) => res.applications || [])
+}
+
+/** 审批版主申请 */
+function reviewApplication(id, status, reason) {
+  return api.post(`/api/moderator/applications/${id}/review`, { status, reason })
+}
+
 /** 待审核路线 */
 function getPendingRoutes() {
   return api.get('/api/moderator/pending').then((res) => res.routes || [])
@@ -292,6 +314,10 @@ module.exports = {
 
   // 版主
   getModeratorInfo,
+  getApplyEligibility,
+  applyModerator,
+  getPendingApplications,
+  reviewApplication,
   getPendingRoutes,
   getManagedRoutes,
   reviewRoute,

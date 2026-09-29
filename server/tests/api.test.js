@@ -150,14 +150,46 @@ test('POST /api/routes 上传路线', async (t) => {
     assert.strictEqual(res.body.elevationGainMeters, 0)
   })
 
-  await t.test('创建后能从列表查到', async () => {
-    await request(app)
+  await t.test('公开路线待审，不进公开列表；私有路线才直接可见', async () => {
+    // 公开：一律 pending，审核通过前不出现在列表
+    const publicRoute = await request(app)
       .post('/api/routes')
-      .send({ name: '新路线', roadWidth: 'wide', trackPoints: sampleTrack() })
+      .send({ name: '公开路线', roadWidth: 'wide', trackPoints: sampleTrack() })
       .expect(201)
 
-    const list = await request(app).get('/api/routes').expect(200)
-    assert.strictEqual(list.body.routes.length, 4)
+    assert.strictEqual(publicRoute.body.reviewStatus, 'pending')
+    assert.strictEqual(publicRoute.body.visibility, 'public')
+
+    let list = await request(app).get('/api/routes').expect(200)
+    assert.strictEqual(list.body.routes.length, 3, '待审的公开路线不该出现在列表里')
+
+    // 私有：不审核，直接 approved，但同样不进公开列表
+    const privateRoute = await request(app)
+      .post('/api/routes')
+      .send({
+        name: '我的私藏路线',
+        roadWidth: 'wide',
+        visibility: 'private',
+        trackPoints: sampleTrack()
+      })
+      .expect(201)
+
+    assert.strictEqual(privateRoute.body.reviewStatus, 'approved', '私有路线不审核')
+    assert.strictEqual(privateRoute.body.visibility, 'private')
+
+    list = await request(app).get('/api/routes').expect(200)
+    assert.strictEqual(list.body.routes.length, 3, '私有路线不该出现在公开列表里')
+
+    // 但作者在「我的路线」能看到自己那条私有路线
+    const mine = await request(app)
+      .get('/api/me/routes')
+      .set('x-user-id', 'test-user-001')
+      .expect(200)
+
+    assert.ok(
+      mine.body.routes.some((r) => r.name === '我的私藏路线'),
+      '作者应能在「我的路线」看到自己上传的'
+    )
   })
 
   await t.test('可用 x-user-id 覆盖上传者', async () => {
@@ -433,6 +465,63 @@ test('POST /api/client-errors 客户端错误上报', async (t) => {
     // 空对象没有 message，全部被过滤，但接口仍应正常返回
     const res = await request(app).post('/api/client-errors').send({}).expect(200)
     assert.strictEqual(res.body.received, 0)
+  })
+})
+
+test('版主申请', async (t) => {
+  t.beforeEach(resetWithSeed)
+
+  await t.test('条件不满足时返回进度，eligible 为 false', async () => {
+    const res = await request(app)
+      .get('/api/moderator/apply/eligibility')
+      .set('x-user-id', 'newbie')
+      .expect(200)
+
+    // 新用户没传过路线也没跑过山
+    assert.strictEqual(res.body.eligible, false)
+    assert.strictEqual(res.body.routeCount, 0)
+    assert.strictEqual(res.body.runCount, 0)
+    assert.ok(res.body.minRoutes > 0)
+    assert.ok(res.body.minRuns > 0)
+  })
+
+  await t.test('条件不满足时不能提交申请', async () => {
+    const res = await request(app)
+      .post('/api/moderator/apply')
+      .set('x-user-id', 'newbie')
+      .send({ province: '浙江省', city: '杭州市' })
+      .expect(400)
+
+    assert.strictEqual(res.body.error.code, 'NOT_ELIGIBLE')
+  })
+
+  await t.test('不选区域返回 400', async () => {
+    const res = await request(app)
+      .post('/api/moderator/apply')
+      .set('x-user-id', 'newbie')
+      .send({ province: '', city: '' })
+      .expect(400)
+
+    assert.strictEqual(res.body.error.code, 'REGION_REQUIRED')
+  })
+
+  await t.test('非管理员不能看待审申请列表', async () => {
+    const res = await request(app)
+      .get('/api/moderator/applications')
+      .set('x-user-id', 'random-user')
+      .expect(400)
+
+    assert.strictEqual(res.body.error.code, 'NOT_ADMIN')
+  })
+
+  await t.test('非管理员不能审批', async () => {
+    const res = await request(app)
+      .post('/api/moderator/applications/1/review')
+      .set('x-user-id', 'random-user')
+      .send({ status: 'approved' })
+      .expect(400)
+
+    assert.strictEqual(res.body.error.code, 'NOT_ADMIN')
   })
 })
 

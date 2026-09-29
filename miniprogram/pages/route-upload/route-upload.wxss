@@ -172,6 +172,48 @@
   color: var(--text-secondary);
 }
 
+/* ---------- 公开 / 私有 ---------- */
+
+.vis-row {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: 8rpx;
+}
+
+.vis-opt {
+  flex: 1;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  border: 2rpx solid var(--border);
+  background: var(--bg-inset);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+/* 选中：强调色描边 + 淡背景，和未选中拉开明显差别 */
+.vis-on {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.vis-title {
+  display: block;
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-bottom: 4rpx;
+}
+
+.vis-on .vis-title {
+  color: var(--accent);
+}
+
+.vis-desc {
+  display: block;
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
 /* ---------- 候选地点浮层 ---------- */
 
 /*
@@ -432,4 +474,132 @@
   line-height: 1.6;
   padding-top: var(--space-2);
   border-top: 2rpx solid var(--divider);
+}
+
+/* ---------- 提交确认浮层 ---------- */
+
+.confirm-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: flex-end;
+}
+
+/* 从底部升起的面板。底部弹出比居中弹窗更好按 —— 拇指在下面 */
+.confirm-sheet {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--space-4) var(--space-3);
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.confirm-title {
+  display: block;
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+.confirm-name {
+  font-size: 42rpx;
+  font-weight: 700;
+  color: var(--text-emphasis);
+  text-align: center;
+  margin-bottom: var(--space-3);
+  line-height: 1.3;
+}
+
+/* 四个统计数字一排 —— 这是用户最需要核对的信息，给最大的字 */
+.confirm-stats {
+  display: flex;
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) 0;
+  margin-bottom: var(--space-3);
+}
+
+.cstat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cstat-num {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.cstat-label {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  margin-top: 8rpx;
+}
+
+.confirm-rows {
+  margin-bottom: var(--space-3);
+}
+
+.crow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 2rpx solid var(--divider);
+}
+
+.crow:last-child {
+  border-bottom: none;
+}
+
+.crow-key {
+  font-size: var(--fs-label);
+  color: var(--text-tertiary);
+}
+
+.crow-val {
+  font-size: var(--fs-label);
+  color: var(--text-primary);
+}
+
+/* 公开要审核，用强调色提醒一下 */
+.crow-public {
+  color: var(--warn);
+}
+
+.confirm-warn {
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: rgba(217, 119, 6, 0.14);
+  border: 2rpx solid rgba(217, 119, 6, 0.4);
+  font-size: var(--fs-caption);
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: var(--space-2);
+}
+
+.confirm-note {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  text-align: center;
+  margin-bottom: var(--space-3);
+  opacity: 0.75;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.confirm-btn {
+  flex: 1;
 }

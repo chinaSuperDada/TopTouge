@@ -1,0 +1,250 @@
+.page {
+  min-height: 100vh;
+  padding: var(--space-3);
+  box-sizing: border-box;
+  background: var(--bg-base);
+}
+
+.loading {
+  text-align: center;
+  padding: var(--space-6) 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-label);
+}
+
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.section-title {
+  display: block;
+  font-size: var(--fs-title);
+  font-weight: 700;
+  color: var(--text-emphasis);
+  margin-bottom: var(--space-3);
+}
+
+/* ---------- 已是版主 ---------- */
+
+.done-card {
+  text-align: center;
+  padding: var(--space-5) var(--space-3);
+}
+
+.done-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: var(--space-2);
+}
+
+.done-sub {
+  font-size: var(--fs-label);
+  color: var(--text-secondary);
+}
+
+/* ---------- 条件进度 ---------- */
+
+.cond {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 2rpx solid var(--divider);
+}
+
+.cond:last-of-type {
+  border-bottom: none;
+}
+
+/* 条件标识：达成打勾变强调色，未达成是空心圈 */
+.cond-mark {
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 44rpx;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 26rpx;
+  background: var(--bg-elevated);
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  margin-right: var(--space-2);
+}
+
+.cond-ok {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.cond-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.cond-label {
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+}
+
+.cond-desc {
+  font-size: var(--fs-label);
+  color: var(--text-tertiary);
+}
+
+.cond-note {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  line-height: 1.5;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 2rpx solid var(--divider);
+}
+
+/* ---------- 表单 ---------- */
+
+.field {
+  margin-bottom: var(--space-3);
+}
+
+.field-label {
+  display: block;
+  font-size: var(--fs-label);
+  color: var(--text-secondary);
+  margin-bottom: 12rpx;
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 84rpx;
+  padding: 0 var(--space-3);
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+}
+
+.picker-arrow {
+  font-size: 32rpx;
+  color: var(--text-tertiary);
+  line-height: 1;
+}
+
+.textarea {
+  width: 100%;
+  height: 160rpx;
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+}
+
+.input-placeholder {
+  color: var(--text-tertiary);
+}
+
+/* ---------- 申请记录 ---------- */
+
+.app-item {
+  padding: var(--space-2) 0;
+  border-bottom: 2rpx solid var(--divider);
+}
+
+.app-item:last-child {
+  border-bottom: none;
+}
+
+.app-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.app-region {
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+}
+
+.app-status {
+  font-size: var(--fs-caption);
+  padding: 4rpx 16rpx;
+  border-radius: var(--radius-pill);
+}
+
+.app-pending {
+  background: rgba(212, 167, 44, 0.16);
+  color: var(--warn);
+}
+
+.app-approved {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.app-rejected {
+  background: rgba(229, 72, 77, 0.16);
+  color: var(--danger);
+}
+
+.app-time {
+  display: block;
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+}
+
+.app-reason {
+  display: block;
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+  margin-top: 8rpx;
+}
+
+/* ---------- 管理员入口 ---------- */
+
+.menu {
+  padding: 0;
+  overflow: hidden;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-3);
+}
+
+.menu-item:active {
+  background: var(--bg-elevated);
+}
+
+.menu-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-label {
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+}
+
+.menu-desc {
+  display: block;
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  margin-top: 4rpx;
+}
+
+.menu-arrow {
+  font-size: 36rpx;
+  color: var(--text-tertiary);
+  line-height: 1;
+}

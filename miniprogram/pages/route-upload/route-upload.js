@@ -4,6 +4,7 @@ const reporter = require('../../utils/errorReporter')
 const amap = require('../../utils/amap')
 const location = require('../../utils/location')
 const placeHistory = require('../../utils/placeHistory')
+const trackStats = require('../../utils/trackStats')
 const { ROAD_WIDTH_OPTIONS, ROAD_WIDTH_LABELS } = require('../../utils/roadWidth')
 
 /** 路型选项。value 必须与后端 constants / validator 里的枚举一致 */
@@ -41,6 +42,8 @@ Page({
     roadWidthLabels: ROAD_WIDTH_LABELS,
     roadTypeIndex: 0,
     roadTypeLabels: ROAD_TYPE_LABELS,
+    // 公开：进路线库，需要审核；私有：只有自己可见，无需审核
+    visibility: 'public',
     // 提交时由逆地理编码填上，只用于展示
     regionText: '',
 
@@ -70,7 +73,10 @@ Page({
     planning: false,
     planError: '',
 
-    submitting: false
+    submitting: false,
+    // 提交确认浮层
+    confirming: false,
+    confirmData: {}
   },
 
   onLoad() {
@@ -463,6 +469,10 @@ Page({
     this.setData({ roadTypeIndex: Number(e.detail.value) })
   },
 
+  onVisibilityTap(e) {
+    this.setData({ visibility: e.currentTarget.dataset.value })
+  },
+
   /**
    * 解析路线所在的省市。
    *
@@ -514,6 +524,7 @@ Page({
         name,
         roadWidth: ROAD_WIDTH_OPTIONS[this.data.roadWidthIndex].value,
         roadType: ROAD_TYPE_OPTIONS[this.data.roadTypeIndex].value,
+        visibility: this.data.visibility,
         // 途经点只用于导航与分享，按采集顺序传
         waypoints: this.data.waypoints.map((w) => ({
           lat: w.place.lat,
@@ -527,12 +538,12 @@ Page({
       .then((route) => {
         wx.hideLoading()
 
-        // 说清楚到底发生了什么。有版主的城市会先走审核，
-        // 这时候只说「上传成功」会让用户回首页找不到自己的路线，以为没保存
+        // 说清楚到底发生了什么。公开路线都要审核，
+        // 只说「上传成功」会让用户回首页找不到自己的路线，以为没保存
         if (route.reviewStatus === 'pending') {
           wx.showModal({
             title: '已提交审核',
-            content: '本地区有版主，路线通过审核后才会出现在公开列表。你可以在「我的 - 我的路线」里查看进度。',
+            content: '公开路线需要审核，通过后才会出现在路线库。你可以在「我的 - 我的路线」里查看进度。',
             showCancel: false,
             confirmText: '知道了',
             success: () => {
@@ -542,18 +553,39 @@ Page({
           return
         }
 
-        wx.showToast({ title: '上传成功', icon: 'success' })
+        wx.showToast({
+          title: route.visibility === 'private' ? '已保存为私有路线' : '上传成功',
+          icon: 'success'
+        })
         setTimeout(() => {
           wx.redirectTo({ url: `/pages/route-detail/route-detail?id=${route.id}` })
         }, 600)
       })
-      .catch((err) => {
+      .catch(() => {
         // 错误已由 request 层上报并转成白话文案，这里只需恢复按钮状态
         wx.hideLoading()
         this.setData({ submitting: false })
       })
   },
 
+  /** 弹出确认浮层时用，挡掉浮层内部的点击穿透 */
+  onNoop() {},
+
+  onCancelConfirm() {
+    if (this.data.submitting) return
+    this.setData({ confirming: false })
+  },
+
+  /**
+   * 点「提交路线」。
+   *
+   * 不直接发请求，而是**先算统计再弹确认框**。用户能核对里程、弯道数、
+   * 爬升、星级和可见性，确认无误才真正提交 —— 传上去的路线要给别人用，
+   * 值得多这一步。
+   *
+   * 统计在本地算（utils/trackStats.js，与后端同一套算法），
+   * 所以弹窗立刻出现，不用等网络。
+   */
   onSubmit() {
     const name = this.data.name.trim()
     if (!name) {
@@ -567,50 +599,72 @@ Page({
       })
       return
     }
-    if (this.data.submitting) return
-
-    this.setData({ submitting: true })
-    wx.showLoading({ title: '检查中…', mask: true })
+    if (this.data.submitting || this.data.confirming) return
 
     const points = this.data.points
+    const stats = trackStats.computeTrackStats(points)
+
+    const km = stats.distanceMeters / 1000
+    const distanceText = km < 1
+      ? `${stats.distanceMeters}m`
+      : `${km.toFixed(1)}km`
+
+    this._pending = { name, points }
+    this._similar = []
+
+    this.setData({
+      confirming: true,
+      confirmData: {
+        name,
+        distanceText,
+        curveCount: stats.curveCount,
+        gainText: `${stats.elevationGainMeters}m`,
+        difficultyStars: stats.difficultyStars,
+        roadTypeText: ROAD_TYPE_OPTIONS[this.data.roadTypeIndex].label,
+        roadWidthText: ROAD_WIDTH_OPTIONS[this.data.roadWidthIndex].label,
+        regionText: this.data.regionText,
+        visibility: this.data.visibility,
+        duplicateName: '',
+        duplicateRatio: 0
+      }
+    })
+
+    // 确认框先弹出来，后台再补两件事：解析省市、查重。
+    // 都拿到后把结果填进同一份 confirmData，用 setData 局部更新，
+    // 不会打断用户看统计
     const first = points[0]
 
     this.resolveRegion(first).then((region) => {
-      this.setData({ regionText: region.city || region.province || '' })
+      this._pending.region = region
+      this.setData({
+        'confirmData.regionText': region.city || region.province || '',
+        regionText: region.city || region.province || ''
+      })
 
       this.checkDuplicate(points, region).then(({ duplicate, similar }) => {
-        // 没查到重复，直接传
-        if (!duplicate) {
-          wx.showLoading({ title: '提交中…', mask: true })
-          this.doSubmit(name, points, region, similar)
-          return
+        this._similar = similar
+        if (duplicate) {
+          this.setData({
+            'confirmData.duplicateName': duplicate.name,
+            'confirmData.duplicateRatio': Math.round(duplicate.overlapRatio * 100)
+          })
         }
-
-        wx.hideLoading()
-
-        // 查到高度重合的路线 —— 让用户自己决定
-        wx.showModal({
-          title: '发现相似路线',
-          content: `「${duplicate.name}」与这条路线重合度 ${Math.round(
-            duplicate.overlapRatio * 100
-          )}%，可能走的是同一条路。仍要上传吗？`,
-          confirmText: '仍要上传',
-          cancelText: '先看看',
-          success: (res) => {
-            if (res.confirm) {
-              wx.showLoading({ title: '提交中…', mask: true })
-              this.doSubmit(name, points, region, similar)
-              return
-            }
-
-            // 「先看看」跳去已有那条 —— 多半用户就是想去看看
-            this.setData({ submitting: false })
-            wx.navigateTo({
-              url: `/pages/route-detail/route-detail?id=${duplicate.id}`
-            })
-          }
-        })
       })
     })
+  },
+
+  /** 确认框里点「确认提交」 */
+  onConfirmSubmit() {
+    if (this.data.submitting) return
+
+    const { name, points, region } = this._pending || {}
+    if (!name || !region) {
+      wx.showToast({ title: '还没准备好，请稍候', icon: 'none' })
+      return
+    }
+
+    this.setData({ submitting: true, confirming: false })
+    wx.showLoading({ title: '提交中…', mask: true })
+    this.doSubmit(name, points, region, this._similar)
   }
 })

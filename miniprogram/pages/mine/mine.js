@@ -12,6 +12,7 @@ Page({
       favoriteCount: 0
     },
     isModerator: false,
+    isAdmin: false,
     moderatorRegion: ''
   },
 
@@ -52,6 +53,7 @@ Page({
           favoriteCount: favorites.length
         },
         isModerator: Boolean(modInfo.isModerator),
+        isAdmin: Boolean(modInfo.isAdmin),
         moderatorRegion: (modInfo.regions || []).map((r) => r.city).join(' · ')
       })
     })
@@ -79,5 +81,13 @@ Page({
 
   onOpenSettings() {
     wx.navigateTo({ url: '/pages/settings/settings' })
+  },
+
+  onOpenApply() {
+    wx.navigateTo({ url: '/pages/moderator-apply/moderator-apply' })
+  },
+
+  onOpenApplyReview() {
+    wx.navigateTo({ url: '/pages/moderator-apply-review/moderator-apply-review' })
   }
 })

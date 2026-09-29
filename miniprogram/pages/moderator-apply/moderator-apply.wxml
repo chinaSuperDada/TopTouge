@@ -1,0 +1,123 @@
+<view class="page">
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+
+  <block wx:else>
+    <!-- 已经是版主：不显示申请表单 -->
+    <view class="card done-card" wx:if="{{isModerator}}">
+      <text class="done-title">你已经是版主了</text>
+      <text class="done-sub">在「我的 - 版主工作台」里审核路线和管理活动</text>
+    </view>
+
+    <block wx:else>
+      <!-- 申请条件进度：告诉他差什么，而不是只说"不符合条件" -->
+      <view class="card">
+        <text class="section-title">申请条件</text>
+
+        <view class="cond">
+          <view class="cond-mark {{routeCount >= minRoutes ? 'cond-ok' : ''}}">
+            {{routeCount >= minRoutes ? '✓' : '○'}}
+          </view>
+          <view class="cond-main">
+            <text class="cond-label">贡献路线</text>
+            <text class="cond-desc">{{routeCount}} / {{minRoutes}} 条</text>
+          </view>
+        </view>
+
+        <view class="cond">
+          <view class="cond-mark {{runCount >= minRuns ? 'cond-ok' : ''}}">
+            {{runCount >= minRuns ? '✓' : '○'}}
+          </view>
+          <view class="cond-main">
+            <text class="cond-label">完成跑山</text>
+            <text class="cond-desc">{{runCount}} / {{minRuns}} 次</text>
+          </view>
+        </view>
+
+        <view class="cond-note" wx:if="{{!eligible}}">
+          满足条件后就能提交申请，由平台管理员审批。
+        </view>
+      </view>
+
+      <!-- 申请表单 -->
+      <view class="card">
+        <text class="section-title">申请成为版主</text>
+
+        <view class="field">
+          <text class="field-label">省份</text>
+          <picker
+            mode="selector"
+            range="{{provinceLabels}}"
+            value="{{provinceIndex}}"
+            bindchange="onProvinceChange"
+          >
+            <view class="picker">
+              <text>{{provinceLabels[provinceIndex]}}</text>
+              <text class="picker-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="field">
+          <text class="field-label">城市</text>
+          <picker
+            mode="selector"
+            range="{{cityLabels}}"
+            value="{{cityIndex}}"
+            bindchange="onCityChange"
+          >
+            <view class="picker">
+              <text>{{cityLabels[cityIndex] || '请先选省份'}}</text>
+              <text class="picker-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="field">
+          <text class="field-label">申请理由（选填）</text>
+          <textarea
+            class="textarea"
+            value="{{reason}}"
+            placeholder="说说你对这个区域的了解，比如常跑哪几条路"
+            placeholder-class="input-placeholder"
+            maxlength="200"
+            bindinput="onReasonInput"
+          />
+        </view>
+
+        <view
+          class="btn btn-primary {{(!eligible || submitting || hasPending) ? 'btn-disabled' : ''}}"
+          bindtap="onSubmit"
+        >{{hasPending ? '申请审核中' : '提交申请'}}</view>
+      </view>
+    </block>
+
+    <!-- 我的申请记录 -->
+    <view class="card" wx:if="{{applications.length > 0}}">
+      <text class="section-title">我的申请</text>
+
+      <view class="app-item" wx:for="{{applications}}" wx:key="id">
+        <view class="app-head">
+          <text class="app-region">{{item.province}} {{item.city}}</text>
+          <text class="app-status app-{{item.status}}">{{item.statusText}}</text>
+        </view>
+        <text class="app-time">{{item.createdAtText}}</text>
+        <text class="app-reason" wx:if="{{item.reviewReason}}">{{item.reviewReason}}</text>
+      </view>
+    </view>
+
+    <!--
+      平台管理员入口。
+      放在 wx:else 外面 —— 管理员通常自己也是版主，
+      关在里面的话反而看不到这个入口。
+    -->
+    <view class="card menu" wx:if="{{isAdmin}}">
+      <view class="menu-item" bindtap="onOpenAdminReview">
+        <view class="menu-main">
+          <text class="menu-label">审批版主申请</text>
+          <text class="menu-desc">你是平台管理员</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+  </block>
+</view>

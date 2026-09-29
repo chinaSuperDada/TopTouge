@@ -50,7 +50,7 @@ const mysqlImpl = {
     const columns = [
       'user_id', 'code', 'message', 'detail', 'page',
       'method', 'url', 'status_code',
-      'env_version', 'platform', 'brand', 'model', 'system', 'sdk_version',
+      'env_version', 'platform', 'brand', 'model', 'os_version', 'sdk_version',
       'extra', 'created_at'
     ]
 
