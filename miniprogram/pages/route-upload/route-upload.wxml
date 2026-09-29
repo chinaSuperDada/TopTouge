@@ -36,31 +36,85 @@
             bindfocus="onFocusField"
             bindinput="onKeywordInput"
           />
+          <!-- 每行右侧都有 ＋：在哪行点，新途经点就插在哪行的下面 -->
+          <view
+            class="add-btn {{canAddWaypoint ? '' : 'add-btn-off'}}"
+            data-after="-1"
+            catchtap="onAddWaypoint"
+          >＋</view>
         </view>
       </view>
 
-      <!-- 途经点：按「添加」按钮逐个出现，可用上下箭头调顺序 -->
-      <view class="field" wx:for="{{waypoints}}" wx:key="key">
+      <!-- 输入框插在起点下面（= 所有途经点之前） -->
+      <view class="field" wx:if="{{pickingWaypoint && pickingInsertIndex === 0}}">
         <view class="field-row">
           <text class="dot dot-via"></text>
-          <view class="via-box flex-1">
-            <text class="via-name">{{item.place.name}}</text>
-            <view class="via-tools">
-              <text
-                class="tool {{index === 0 ? 'tool-off' : ''}}"
-                data-index="{{index}}"
-                catchtap="onMoveWaypointUp"
-              >↑</text>
-              <text
-                class="tool {{index === waypoints.length - 1 ? 'tool-off' : ''}}"
-                data-index="{{index}}"
-                catchtap="onMoveWaypointDown"
-              >↓</text>
-              <text class="tool tool-del" data-index="{{index}}" catchtap="onRemoveWaypoint">✕</text>
-            </view>
-          </view>
+          <input
+            class="input flex-1"
+            value="{{waypointKeyword}}"
+            placeholder="搜索途经点"
+            placeholder-class="input-placeholder"
+            focus="{{pickingWaypoint}}"
+            data-field="waypoint"
+            adjust-position="{{true}}"
+            cursor-spacing="20"
+            bindinput="onKeywordInput"
+          />
+          <view class="add-btn add-btn-cancel" catchtap="onCloseCandidates">✕</view>
         </view>
       </view>
+
+      <!--
+        途经点。每行右侧的 ＋ 会在该行下面插入新的输入框 ——
+        想调整顺序不用先加到最后再用箭头挪
+      -->
+      <block wx:for="{{waypoints}}" wx:key="key">
+        <view class="field">
+          <view class="field-row">
+            <text class="dot dot-via"></text>
+            <view class="via-box flex-1">
+              <text class="via-name">{{item.place.name}}</text>
+              <view class="via-tools">
+                <text
+                  class="tool {{index === 0 ? 'tool-off' : ''}}"
+                  data-index="{{index}}"
+                  catchtap="onMoveWaypointUp"
+                >↑</text>
+                <text
+                  class="tool {{index === waypoints.length - 1 ? 'tool-off' : ''}}"
+                  data-index="{{index}}"
+                  catchtap="onMoveWaypointDown"
+                >↓</text>
+                <text class="tool tool-del" data-index="{{index}}" catchtap="onRemoveWaypoint">✕</text>
+              </view>
+            </view>
+            <view
+              class="add-btn {{canAddWaypoint ? '' : 'add-btn-off'}}"
+              data-after="{{index}}"
+              catchtap="onAddWaypoint"
+            >＋</view>
+          </view>
+        </view>
+
+        <!-- 输入框插在这一行下面 -->
+        <view class="field" wx:if="{{pickingWaypoint && pickingInsertIndex === index + 1}}">
+          <view class="field-row">
+            <text class="dot dot-via"></text>
+            <input
+              class="input flex-1"
+              value="{{waypointKeyword}}"
+              placeholder="搜索途经点"
+              placeholder-class="input-placeholder"
+              focus="{{pickingWaypoint}}"
+              data-field="waypoint"
+              adjust-position="{{true}}"
+              cursor-spacing="20"
+              bindinput="onKeywordInput"
+            />
+            <view class="add-btn add-btn-cancel" catchtap="onCloseCandidates">✕</view>
+          </view>
+        </view>
+      </block>
 
       <!-- 终点 -->
       <view class="field">
@@ -77,17 +131,15 @@
             bindfocus="onFocusField"
             bindinput="onKeywordInput"
           />
+          <view
+            class="add-btn {{canAddWaypoint ? '' : 'add-btn-off'}}"
+            catchtap="onAddWaypoint"
+          >＋</view>
         </view>
       </view>
 
-      <!-- 添加途经点：只在还没到上限时显示 -->
-      <view class="add-via" wx:if="{{canAddWaypoint}}" bindtap="onAddWaypoint">
-        ＋ 添加途经点
-      </view>
-      <view class="add-via add-via-maxed" wx:else>途经点最多 {{maxWaypoints}} 个</view>
-
-      <!-- 新加的空途经点输入框 -->
-      <view class="field" wx:if="{{pickingWaypoint}}">
+      <!-- 输入框插在最后（终点上面的位置） -->
+      <view class="field" wx:if="{{pickingWaypoint && pickingInsertIndex === waypoints.length}}">
         <view class="field-row">
           <text class="dot dot-via"></text>
           <input
@@ -101,7 +153,12 @@
             cursor-spacing="20"
             bindinput="onKeywordInput"
           />
+          <view class="add-btn add-btn-cancel" catchtap="onCloseCandidates">✕</view>
         </view>
+      </view>
+
+      <view class="via-count" wx:if="{{waypoints.length > 0}}">
+        已加 {{waypoints.length}} 个途经点{{canAddWaypoint ? '' : '（已达上限）'}}
       </view>
 
       <view class="search-actions">

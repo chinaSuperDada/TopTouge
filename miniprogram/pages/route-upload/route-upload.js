@@ -66,6 +66,11 @@ Page({
     maxWaypoints: MAX_WAYPOINTS,
     // 新加的途经点输入框是否展开
     pickingWaypoint: false,
+    // 展开的输入框要插到哪一行下面：0 = 起点之后，i+1 = 途经点 i 之后。
+    // -1 表示没在插入
+    pickingInsertIndex: -1,
+    // 上面那个减一，即「插到哪个途经点之后」。-1 = 起点之后
+    pickingWaypointAfter: null,
     candidates: [],
     // 候选列表是浮层，需要知道键盘高度才能贴在键盘上方
     keyboardHeight: 0,
@@ -233,11 +238,23 @@ Page({
     } else if (field === 'waypoint') {
       // 用自增序号当 key，而不是 name —— 两个途经点可能重名
       const seq = this.data.waypointSeq + 1
-      const waypoints = this.data.waypoints.concat([{ key: `w${seq}`, place }])
+      const waypoints = this.data.waypoints.slice()
+
+      // 插到点击的那个 ＋ 所在行的下面。
+      // 点起点右边的 ＋ 时「下面」就是第一个途经点之前
+      const at = this.data.pickingWaypointAfter
+      const insertAt = at === null || at === undefined
+        ? waypoints.length
+        : Math.min(at + 1, waypoints.length)
+
+      waypoints.splice(insertAt, 0, { key: `w${seq}`, place })
+
       patch.waypoints = waypoints
       patch.waypointSeq = seq
       patch.waypointKeyword = ''
       patch.pickingWaypoint = false
+      patch.pickingWaypointAfter = null
+      patch.pickingInsertIndex = -1
       patch.canAddWaypoint = waypoints.length < MAX_WAYPOINTS
     }
 
@@ -249,25 +266,72 @@ Page({
     this.afterPlaceChange()
   },
 
-  /** 展开一个新途经点的输入框 */
-  onAddWaypoint() {
+  /**
+   * 展开一个新的途经点输入框。
+   *
+   * 从哪一行点的 ＋，就在那行下面插入 —— 这样想调整顺序不用先加到最后
+   * 再用上下箭头挪。
+   *
+   * 三个来源换算成同一个「插入位置」（即输入框显示在第几行之后）：
+   *   起点右边的 ＋   data-after="-1" → 插到所有途经点之前，位置 0
+   *   途经点 i 的 ＋   data-after="i"  → 插到 i+1
+   *   终点右边的 ＋   无 data-after    → 插到最后，位置 = 途经点数
+   */
+  onAddWaypoint(e) {
     if (!this.data.canAddWaypoint) return
-    this.setData({ pickingWaypoint: true, picking: 'waypoint', candidates: [] })
+
+    const raw = e && e.currentTarget && e.currentTarget.dataset.after
+    const count = this.data.waypoints.length
+
+    let insertIndex
+    if (raw === undefined || raw === '') {
+      insertIndex = count
+    } else {
+      // -1（起点）→ 0；i → i+1
+      insertIndex = Number(raw) + 1
+    }
+
+    this.setData({
+      pickingWaypoint: true,
+      pickingWaypointAfter: insertIndex - 1,
+      pickingInsertIndex: insertIndex,
+      picking: 'waypoint',
+      candidates: []
+    })
   },
 
   /** 收起候选浮层，让用户能重新看地图 */
   onCloseCandidates() {
-    this.setData({ candidates: [], picking: '', pickingWaypoint: false })
+    this.setData({
+      candidates: [],
+      picking: '',
+      pickingWaypoint: false,
+      pickingWaypointAfter: null,
+      pickingInsertIndex: -1
+    })
   },
 
   onRemoveWaypoint(e) {
-    const index = e.currentTarget.dataset.index
+    const index = Number(e.currentTarget.dataset.index)
     const waypoints = this.data.waypoints.slice()
     waypoints.splice(index, 1)
-    this.setData({
+
+    const patch = {
       waypoints,
       canAddWaypoint: waypoints.length < MAX_WAYPOINTS
-    })
+    }
+
+    // 删掉一个后，正在展开的输入框可能落到「不存在的位置」——
+    // 那样它就不再渲染，但 pickingWaypoint 还是 true，状态对不上。
+    // 直接关掉，下次点 ＋ 重新展开，比留下一个错位的索引安全
+    if (this.data.pickingWaypoint && this.data.pickingInsertIndex > waypoints.length) {
+      patch.pickingWaypoint = false
+      patch.pickingInsertIndex = -1
+      patch.pickingWaypointAfter = null
+      patch.waypointKeyword = ''
+    }
+
+    this.setData(patch)
     this.afterPlaceChange()
   },
 
