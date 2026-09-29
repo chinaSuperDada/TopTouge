@@ -4,6 +4,11 @@
     "pages/route-activity/route-activity",
     "pages/message/message",
     "pages/mine/mine",
+    "pages/activity/index/index",
+    "pages/activity/detail/detail",
+    "pages/activity/create/create",
+    "pages/activity/join/join",
+    "pages/activity/room/room",
     "pages/route-detail/route-detail",
     "pages/route-upload/route-upload",
     "pages/route-record/route-record",
@@ -33,7 +38,7 @@
         "text": "跑山路线"
       },
       {
-        "pagePath": "pages/route-activity/route-activity",
+        "pagePath": "pages/activity/index/index",
         "text": "跑山活动"
       },
       {

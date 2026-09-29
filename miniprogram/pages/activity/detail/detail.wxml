@@ -1,0 +1,68 @@
+<view class="act-page with-bar">
+
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+
+  <view class="empty" wx:elif="{{error}}">
+    <text class="empty-t">{{error}}</text>
+  </view>
+
+  <block wx:else>
+    <view class="nav">
+      <text class="nav-back">‹</text>
+      <text class="nav-t">活动详情</text>
+      <text class="nav-act" bindtap="onShareTap">分享</text>
+    </view>
+
+    <!-- 活动信息 -->
+    <view class="card">
+      <view class="act-head">
+        <view class="avatar">{{activity.organizerInitial}}</view>
+        <view class="act-h-main">
+          <text class="act-name">{{activity.name}}</text>
+          <text class="act-org">{{activity.organizerName}} 发起</text>
+        </view>
+        <text class="tag {{activity.visibility==='private'?'mute':'ok'}}">{{activity.visibility==='private'?'私有':'公开'}}</text>
+      </view>
+
+      <view class="act-rows">
+        <view class="act-row"><text class="ar-k">集合时间</text><text class="ar-v">{{activity.meetText}}</text></view>
+        <view class="act-row"><text class="ar-k">集合地点</text><text class="ar-v">{{activity.meetPlace.name}}</text></view>
+        <view class="act-row">
+          <text class="ar-k">路线</text>
+          <text class="ar-v {{activity.routeName?'':'muted'}}">{{activity.routeName || '仅定位集合点'}}</text>
+        </view>
+        <view class="act-row" wx:if="{{activity.routeName}}"><text class="ar-k"></text><text class="ar-v sub">{{activity.routeMeta}}</text></view>
+        <view class="act-row"><text class="ar-k">难度</text><text class="ar-v">{{activity.difficulty}}</text></view>
+        <view class="act-row"><text class="ar-k">人数</text><text class="ar-v">{{activity.memberCount}} / {{activity.maxMembers}}</text></view>
+      </view>
+    </view>
+
+    <!-- 已加入成员 -->
+    <view class="sec-t">已加入（{{activity.memberCount}}）</view>
+    <view class="card">
+      <view class="avatars">
+        <view class="avatar" wx:for="{{activity.members}}" wx:key="userId">{{item.initial}}</view>
+        <view class="avatar empty" wx:if="{{activity.memberCount < activity.maxMembers}}">＋</view>
+      </view>
+    </view>
+
+    <!-- 全队阅读 -->
+    <view class="notice">
+      <text class="notice-t">全队阅读</text>
+      <text class="notice-s">{{activity.notice}}</text>
+    </view>
+
+    <view class="foot-note">各跑各的：到场集合后各自出发，跑步过程走「开始跑山」的记录流程。</view>
+  </block>
+
+  <!-- 底部主按钮 -->
+  <view class="bar" wx:if="{{!loading && !error}}">
+    <view class="btn primary big {{action==='full'||action==='pending'?'disabled':''}}" bindtap="onActionTap">
+      <text wx:if="{{action==='apply'}}">申请加入</text>
+      <text wx:elif="{{action==='pending'}}">已申请 · 等待组织者同意</text>
+      <text wx:elif="{{action==='joined'}}">已加入 · 进入活动房间</text>
+      <text wx:elif="{{action==='organizer'}}">我发起的 · 管理活动</text>
+      <text wx:elif="{{action==='full'}}">已满员</text>
+    </view>
+  </view>
+</view>

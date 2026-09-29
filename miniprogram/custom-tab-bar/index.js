@@ -31,7 +31,7 @@ Component({
      */
     tabs: [
       { key: 'home', label: '跑山路线', path: '/pages/route-list/route-list' },
-      { key: 'activity', label: '跑山活动', path: '/pages/route-activity/route-activity' },
+      { key: 'activity', label: '跑山活动', path: '/pages/activity/index/index' },
       { key: 'create', label: '', path: '' },
       { key: 'message', label: '消息', path: '/pages/message/message' },
       { key: 'mine', label: '我的', path: '/pages/mine/mine' }

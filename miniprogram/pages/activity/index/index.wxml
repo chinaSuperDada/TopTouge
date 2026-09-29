@@ -1,0 +1,79 @@
+<view class="act-page with-fab">
+
+  <view class="hdr">
+    <text class="hdr-t">跑山活动</text>
+    <text class="hdr-s">约上车友，一起跑山</text>
+  </view>
+
+  <!-- 全部 / 我的 -->
+  <view class="seg">
+    <view class="seg-i {{mode==='all'?'on':''}}" data-mode="all" bindtap="onModeTap">全部活动</view>
+    <view class="seg-i {{mode==='mine'?'on':''}}" data-mode="mine" bindtap="onModeTap">我的活动</view>
+  </view>
+
+  <!-- 筛选条（我的活动不需要筛选） -->
+  <scroll-view class="filters" scroll-x enable-flex wx:if="{{mode==='all'}}">
+    <view class="f-item {{filters.place.value!=='不限'?'on':''}}" data-key="place" bindtap="onFilterTap">
+      <text class="f-label">地点</text><text class="f-value">{{filters.place.value}}</text><text class="f-caret">▾</text>
+    </view>
+    <view class="f-item {{filters.time.value!=='不限'?'on':''}}" data-key="time" bindtap="onFilterTap">
+      <text class="f-label">时间</text><text class="f-value">{{filters.time.value}}</text><text class="f-caret">▾</text>
+    </view>
+    <view class="f-item {{filters.difficulty.value!=='不限'?'on':''}}" data-key="difficulty" bindtap="onFilterTap">
+      <text class="f-label">难度</text><text class="f-value">{{filters.difficulty.value}}</text><text class="f-caret">▾</text>
+    </view>
+    <view class="f-item on" data-key="sort" bindtap="onFilterTap">
+      <text class="f-value">{{filters.sort.value}}</text><text class="f-caret">▾</text>
+    </view>
+  </scroll-view>
+
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+
+  <view class="empty" wx:elif="{{error}}">
+    <text class="empty-t">加载失败</text>
+    <text class="empty-s">{{error}}</text>
+  </view>
+
+  <block wx:elif="{{activities.length > 0}}">
+    <view class="tip" wx:if="{{mode==='all'}}">共 {{activities.length}} 个活动</view>
+
+    <view class="act" wx:for="{{activities}}" wx:key="id" data-id="{{item.id}}" bindtap="onCardTap">
+      <view class="act-head">
+        <view class="avatar">{{item.organizerInitial}}</view>
+        <view class="act-h-main">
+          <text class="act-name">{{item.name}}</text>
+          <text class="act-org">{{item.organizerName}} 发起{{item.isOrganizer ? '（我）' : ''}}</text>
+        </view>
+        <text class="tag {{item.difficulty==='休闲'?'ok':(item.difficulty==='硬核'?'danger':'warn')}}">{{item.difficulty}}</text>
+      </view>
+
+      <view class="act-rows">
+        <view class="act-row"><text class="ar-k">集合</text><text class="ar-v">{{item.meetText}} · {{item.meetPlace.name}}</text></view>
+        <view class="act-row">
+          <text class="ar-k">路线</text>
+          <text class="ar-v {{item.routeName?'':'muted'}}">{{item.routeName || '仅定位集合点'}}</text>
+        </view>
+        <view class="act-row" wx:if="{{item.routeMeta && item.routeName}}">
+          <text class="ar-k"></text><text class="ar-v sub">{{item.routeMeta}}</text>
+        </view>
+      </view>
+
+      <view class="act-foot">
+        <text class="act-people">👥 {{item.memberCount}}/{{item.maxMembers}}{{item.distanceKm ? ' · 距我 ' + item.distanceKm + ' km' : ''}}</text>
+        <text class="act-join muted" wx:if="{{item.isOrganizer}}">我发起的 ›</text>
+        <text class="act-join muted" wx:elif="{{item.joined}}">已加入 ›</text>
+        <text class="act-join muted" wx:elif="{{item.applyStatus==='pending'}}">待同意 ›</text>
+        <text class="act-join muted" wx:elif="{{item.isFull}}">已满员</text>
+        <text class="act-join" wx:else>申请加入 ›</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="empty" wx:else>
+    <text class="empty-t">{{mode==='mine' ? '还没有参加任何活动' : '附近还没有跑山活动'}}</text>
+    <text class="empty-s">{{mode==='mine' ? '去「全部活动」看看，或点右下角创建一个' : '点右下角「＋」，发起第一个活动'}}</text>
+  </view>
+
+  <!-- 右下角：创建 / 加入 -->
+  <view class="fab" bindtap="onFabTap">＋</view>
+</view>

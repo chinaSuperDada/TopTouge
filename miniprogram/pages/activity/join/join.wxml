@@ -1,0 +1,39 @@
+<view class="act-page with-bar">
+
+  <view class="nav">
+    <text class="nav-back">‹</text>
+    <text class="nav-t">加入房间</text>
+  </view>
+
+  <view class="notice">
+    <text class="notice-t">私有活动</text>
+    <text class="notice-s">输入组织者给你的房间号和 4 位密码即可加入。公开活动请回列表申请。</text>
+  </view>
+
+  <view class="card">
+    <view class="row col">
+      <text class="k">房间号</text>
+      <input class="ipt code" value="{{roomNo}}" placeholder="6 位数字" type="number"
+             maxlength="6" bindinput="onRoomNo" />
+    </view>
+    <view class="row col">
+      <text class="k">密码</text>
+      <input class="ipt code" value="{{password}}" placeholder="4 位数字" type="number"
+             maxlength="4" password bindinput="onPassword" />
+    </view>
+  </view>
+
+  <view class="foot-note center">房间号或密码不对时会提示，不会告诉你是哪一个错了。</view>
+
+  <!-- 演示用：提示可用的测试房间 -->
+  <view class="notice" style="margin-top:20rpx">
+    <text class="notice-t">预览用测试数据</text>
+    <text class="notice-s">房间号 482913 · 密码 6628（这是 mock 数据，随便试）</text>
+  </view>
+
+  <view class="bar">
+    <view class="btn primary big {{submitting?'disabled':''}}" bindtap="onSubmit">
+      {{submitting ? '加入中…' : '加入'}}
+    </view>
+  </view>
+</view>

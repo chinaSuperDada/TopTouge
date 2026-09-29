@@ -1,0 +1,19 @@
+@import "../../../styles/activity.wxss";
+
+/* 全部 / 我的 分段控件 */
+.seg {
+  display: flex;
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: 6rpx;
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--border);
+}
+.seg-i {
+  flex: 1; text-align: center; padding: 16rpx 0;
+  font-size: var(--fs-label); color: var(--text-tertiary);
+  border-radius: var(--radius-sm);
+}
+.seg-i.on { background: var(--bg-elevated); color: var(--text-primary); font-weight: 600; }
+
+.tip { font-size: var(--fs-caption); color: var(--text-tertiary); margin-bottom: var(--space-2); padding-left: var(--space-1); }

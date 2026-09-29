@@ -1,0 +1,107 @@
+<view class="act-page with-bar">
+
+  <view class="nav">
+    <text class="nav-back">‹</text>
+    <text class="nav-t">创建跑山活动</text>
+  </view>
+
+  <view class="card">
+    <view class="row col">
+      <text class="k">活动名称</text>
+      <input class="ipt" value="{{form.name}}" placeholder="如「浙西天路 · 周末同行」"
+             data-field="name" bindinput="onInput" maxlength="40" />
+    </view>
+
+    <view class="row">
+      <text class="k">集合日期</text>
+      <picker mode="date" value="{{form.date}}" start="{{today}}" bindchange="onDateChange">
+        <view class="picker {{form.date?'':'ph'}}">{{form.date || '请选择'}}</view>
+      </picker>
+      <picker mode="time" value="{{form.time}}" bindchange="onTimeChange">
+        <view class="picker">{{form.time}}</view>
+      </picker>
+    </view>
+
+    <view class="row col">
+      <text class="k">集合地点</text>
+      <view class="place-row">
+        <input class="ipt grow" value="{{form.place}}" placeholder="输入或地图选点"
+               data-field="place" bindinput="onInput" maxlength="60" />
+        <view class="btn ghost sm" bindtap="onPickPlace">地图选点</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 路线信息 -->
+  <view class="sec-t">路线信息</view>
+  <view class="card">
+    <view class="chips">
+      <view class="chip {{form.routeMode==='route'?'on':''}}" data-v="route" bindtap="onRouteMode">选择已有路线</view>
+      <view class="chip {{form.routeMode==='locate'?'on':''}}" data-v="locate" bindtap="onRouteMode">仅发定位</view>
+    </view>
+
+    <block wx:if="{{form.routeMode==='route'}}">
+      <picker range="{{routeNames}}" value="{{form.routeIndex}}" bindchange="onRouteChange">
+        <view class="row">
+          <text class="k">路线</text>
+          <text class="v">{{routeNames[form.routeIndex]}}</text>
+          <text class="link">改 ›</text>
+        </view>
+      </picker>
+      <view class="foot-note">{{routeOptions[form.routeIndex].meta}}</view>
+    </block>
+    <view class="foot-note" wx:else>不指定路线，只发一个集合定位。到场后按大家商量走。</view>
+  </view>
+
+  <!-- 活动设置 -->
+  <view class="sec-t">活动设置</view>
+  <view class="card">
+    <view class="row">
+      <text class="k">难度</text>
+      <view class="chips inrow">
+        <view class="chip {{form.difficulty===item?'on':''}}" wx:for="{{difficultyOptions}}" wx:key="*this"
+              data-v="{{item}}" bindtap="onDifficulty">{{item}}</view>
+      </view>
+    </view>
+    <view class="row">
+      <text class="k">人数上限</text>
+      <view class="chips inrow">
+        <view class="chip {{form.maxMembers===item?'on':''}}" wx:for="{{sizeOptions}}" wx:key="*this"
+              data-v="{{item}}" bindtap="onSize">{{item}} 人</view>
+      </view>
+    </view>
+    <view class="row col">
+      <text class="k">我的车辆</text>
+      <input class="ipt" value="{{form.vehicle}}" data-field="vehicle" bindinput="onInput" maxlength="30" />
+    </view>
+  </view>
+
+  <!-- 全队阅读 -->
+  <view class="sec-t">全队阅读</view>
+  <view class="card">
+    <textarea class="ta" value="{{form.notice}}" data-field="notice" bindinput="onInput"
+              auto-height maxlength="500" placeholder="给参加的人一段说明" />
+    <view class="foot-note">已生成默认提示，你可以改成这次活动自己的要求。</view>
+  </view>
+
+  <!-- 可见范围 -->
+  <view class="sec-t">可见范围</view>
+  <view class="card">
+    <view class="chips">
+      <view class="chip {{form.visibility==='public'?'on':''}}" data-v="public" bindtap="onVisibility">公开 · 谁都能申请</view>
+      <view class="chip {{form.visibility==='private'?'on':''}}" data-v="private" bindtap="onVisibility">私有 · 房间号 + 密码</view>
+    </view>
+    <view class="foot-note" wx:if="{{form.visibility==='private'}}">
+      创建后会生成房间号和 4 位密码，凭它加入。适合只喊熟人，不在列表里公开。
+    </view>
+    <view class="foot-note" wx:else>
+      其他车友能在活动列表看到并申请，需要你同意才能加入。
+    </view>
+  </view>
+
+  <view class="bar">
+    <view class="btn primary big {{submitting?'disabled':''}}" bindtap="onSubmit">
+      {{submitting ? '创建中…' : '创建活动'}}
+    </view>
+  </view>
+</view>

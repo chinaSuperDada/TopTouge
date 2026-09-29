@@ -1,0 +1,24 @@
+@import "../../../styles/activity.wxss";
+
+.card.list { padding: 4rpx 14rpx; }
+
+/* 成员 */
+.mem { display: flex; align-items: center; padding: 20rpx 0; border-bottom: 1px solid var(--divider); }
+.mem:last-child { border-bottom: none; }
+.mem-body { flex: 1; min-width: 0; }
+.mem-t { display: block; font-size: var(--fs-body); font-weight: 600; }
+.mem-s { display: block; font-size: var(--fs-caption); color: var(--text-tertiary); margin-top: 4rpx; }
+
+/* 待审批 */
+.req { display: flex; align-items: center; padding: 20rpx 0; border-bottom: 1px solid var(--divider); }
+.req:last-child { border-bottom: none; }
+.req-body { flex: 1; min-width: 0; }
+.req-t { display: block; font-size: var(--fs-body); font-weight: 600; }
+.req-s { display: block; font-size: var(--fs-caption); color: var(--text-tertiary); margin-top: 4rpx; }
+.req-acts { display: flex; gap: 12rpx; flex-shrink: 0; }
+.req-btn {
+  padding: 10rpx 24rpx; border-radius: var(--radius-pill);
+  font-size: var(--fs-caption); font-weight: 600;
+}
+.req-btn.ok { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+.req-btn.no { background: var(--danger-dim); color: var(--danger); border: 1px solid var(--danger-border); }

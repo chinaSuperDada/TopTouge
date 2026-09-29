@@ -1,0 +1,13 @@
+@import "../../../styles/activity.wxss";
+
+.picker {
+  font-size: var(--fs-label); color: var(--text-primary);
+  padding: 6rpx 0 6rpx 20rpx; text-align: right;
+}
+.picker.ph { color: var(--text-tertiary); }
+/* 日期 + 时间两个 picker 并排 */
+.row .picker + picker .picker { margin-left: var(--space-2); }
+
+.place-row { display: flex; align-items: center; gap: var(--space-2); }
+.place-row .grow { flex: 1; }
+.btn.sm { padding: 18rpx 24rpx; font-size: var(--fs-caption); margin-bottom: 0; white-space: nowrap; }

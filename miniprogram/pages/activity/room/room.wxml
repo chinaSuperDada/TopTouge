@@ -1,0 +1,98 @@
+<view class="act-page with-bar">
+
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+
+  <view class="empty" wx:elif="{{error}}">
+    <text class="empty-t">{{error}}</text>
+  </view>
+
+  <block wx:else>
+    <view class="nav">
+      <text class="nav-back">‹</text>
+      <text class="nav-t">活动房间</text>
+      <text class="nav-act" bindtap="onOpenDetail">详情</text>
+    </view>
+
+    <view class="notice" wx:if="{{justCreated}}">
+      <text class="notice-t">活动已创建</text>
+      <text class="notice-s">把下面的房间号和密码发给朋友，他们在「加入房间」里填对就能进来。</text>
+    </view>
+
+    <!-- 活动信息 -->
+    <view class="card">
+      <view class="act-head">
+        <view class="avatar">{{room.activity.organizerInitial}}</view>
+        <view class="act-h-main">
+          <text class="act-name">{{room.activity.name}}</text>
+          <text class="act-org">{{room.activity.organizerName}} 发起{{room.isOrganizer ? '（我）' : ''}}</text>
+        </view>
+        <text class="tag {{room.isPrivate?'mute':'ok'}}">{{room.isPrivate?'私有':'公开'}}</text>
+      </view>
+      <view class="act-rows">
+        <view class="act-row"><text class="ar-k">集合</text><text class="ar-v">{{room.activity.meetText}}</text></view>
+        <view class="act-row"><text class="ar-k">地点</text><text class="ar-v">{{room.activity.meetPlace.name}}</text></view>
+        <view class="act-row">
+          <text class="ar-k">路线</text>
+          <text class="ar-v {{room.activity.routeName?'':'muted'}}">{{room.activity.routeName || '仅定位集合点'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 房间号 + 密码：只有组织者看得到 -->
+    <block wx:if="{{room.isOrganizer && room.roomNo}}">
+      <view class="sec-t">房间号 / 密码</view>
+      <view class="card">
+        <view class="room-box">
+          <text class="room-l">房间号</text>
+          <text class="room-v">{{room.roomNo}}</text>
+        </view>
+        <view class="room-box">
+          <text class="room-l">密码（4 位数字）</text>
+          <text class="room-v pwd">{{room.password}}</text>
+        </view>
+        <view class="btn-row">
+          <view class="btn ghost" bindtap="onCopyAll">复制全部</view>
+          <view class="btn ghost" bindtap="onShareLink">分享链接</view>
+        </view>
+        <view class="foot-note">房间号和密码只对发起人可见。</view>
+      </view>
+    </block>
+
+    <!-- 待审批（组织者） -->
+    <block wx:if="{{room.isOrganizer && room.requests.length > 0}}">
+      <view class="sec-t">待同意（{{room.requests.length}}）</view>
+      <view class="card list">
+        <view class="req" wx:for="{{room.requests}}" wx:key="id">
+          <view class="avatar">{{item.initial}}</view>
+          <view class="req-body">
+            <text class="req-t">{{item.nickName}}</text>
+            <text class="req-s">{{item.vehicle || '未填车辆'}}</text>
+          </view>
+          <view class="req-acts">
+            <view class="req-btn ok" data-id="{{item.id}}" bindtap="onApprove">同意</view>
+            <view class="req-btn no" data-id="{{item.id}}" bindtap="onReject">拒绝</view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 成员 -->
+    <view class="sec-t">成员（{{room.activity.memberCount}}/{{room.activity.maxMembers}}）</view>
+    <view class="card list">
+      <view class="mem" wx:for="{{room.members}}" wx:key="userId">
+        <view class="avatar">{{item.initial}}</view>
+        <view class="mem-body">
+          <text class="mem-t">{{item.nickName}}<text class="pill accent" wx:if="{{item.role==='organizer'}}">发起人</text></text>
+          <text class="mem-s">{{item.vehicle || '未填车辆'}}</text>
+        </view>
+        <text class="tag {{item.ready?'ok':'warn'}}">{{item.ready ? '已就绪' : '信息待补'}}</text>
+      </view>
+    </view>
+
+    <view class="foot-note">各跑各的：到场集合后各自出发，跑步过程走「开始跑山」的记录流程。</view>
+  </block>
+
+  <view class="bar" wx:if="{{!loading && !error}}">
+    <view class="btn primary big" bindtap="onStartRun">开始跑山</view>
+  </view>
+</view>
