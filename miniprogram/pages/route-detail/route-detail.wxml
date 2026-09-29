@@ -75,8 +75,12 @@
             {{item.rank}}
           </view>
           <view class="rank-main">
-            <text class="rank-user">{{item.userName}}</text>
-            <text class="rank-time">{{item.timeText}}</text>
+            <view class="rank-user-row">
+              <image class="avatar-sm" wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill" />
+              <view class="avatar-sm avatar-fallback" wx:else>{{item.avatarText}}</view>
+              <text class="rank-user">{{item.userName}}</text>
+            </view>
+            <text class="rank-time">{{item.totalTimeSeconds}} 秒</text>
           </view>
           <view class="rank-score">
             <text class="score-num">{{item.score}}</text>

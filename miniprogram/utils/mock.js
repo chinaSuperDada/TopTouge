@@ -141,6 +141,23 @@ function deleteMyRoute(routeId) {
   return api.request({ url: `/api/me/routes/${routeId}`, method: 'DELETE' })
 }
 
+/* ==================== 用户资料 ==================== */
+
+/** 我的资料。没填过时返回空的昵称和头像 */
+function getProfile() {
+  return api.get('/api/me/profile')
+}
+
+/**
+ * 更新资料。
+ *
+ * 只传要改的字段 —— nickName 和 avatar 都可选。
+ * 传 undefined 表示不改这个字段，传空串表示清除。
+ */
+function updateProfile(patch) {
+  return api.request({ url: '/api/me/profile', method: 'PUT', data: patch })
+}
+
 /* ==================== 跑山相关 ==================== */
 
 /** 当前位置。用真实定位，失败退回默认坐标 */
@@ -219,6 +236,10 @@ module.exports = {
   getRanking,
   submitRun,
   getBanners,
+
+  // 用户资料
+  getProfile,
+  updateProfile,
 
   // 我的
   getMyRuns,

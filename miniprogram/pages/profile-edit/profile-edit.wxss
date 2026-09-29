@@ -1,0 +1,106 @@
+.page {
+  min-height: 100vh;
+  padding: var(--space-3);
+  box-sizing: border-box;
+  background: var(--bg-base);
+}
+
+.section {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-3);
+  margin-bottom: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.section-label {
+  font-size: var(--fs-label);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+/* ---------- 头像 ---------- */
+
+/* 用 button 是因为 open-type="chooseAvatar" 只能挂在 button 上 */
+.avatar-btn {
+  width: 160rpx;
+  height: 160rpx;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-inset);
+  border: 2rpx solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: normal;
+}
+
+.avatar-btn::after {
+  border: none;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-empty {
+  font-size: 56rpx;
+  color: var(--text-tertiary);
+  line-height: 1;
+}
+
+/* ---------- 昵称 ---------- */
+
+.name-row {
+  width: 100%;
+}
+
+.name-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  padding: 20rpx var(--space-3);
+}
+
+.name-text {
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+}
+
+.name-edit {
+  font-size: var(--fs-label);
+  color: var(--accent);
+}
+
+.name-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  padding: 20rpx var(--space-3);
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+}
+
+.section-hint {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  margin-top: var(--space-2);
+  text-align: center;
+}
+
+/* 离屏 canvas：定位到屏幕外，不显示但可绘制 */
+.hidden-canvas {
+  position: fixed;
+  left: -9999rpx;
+  top: -9999rpx;
+  width: 132px;
+  height: 132px;
+}

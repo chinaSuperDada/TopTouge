@@ -7,7 +7,11 @@
   <block wx:if="{{rows.length > 0}}">
     <view class="item" wx:for="{{rows}}" wx:key="id">
       <view class="item-head">
-        <text class="user">{{item.userName}}</text>
+        <view class="user-row">
+          <image class="avatar-sm" wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill" />
+          <view class="avatar-sm avatar-fallback" wx:else>{{item.avatarText}}</view>
+          <text class="user">{{item.userName}}</text>
+        </view>
         <text class="time">{{item.timeText}}</text>
       </view>
       <text class="content">{{item.content}}</text>

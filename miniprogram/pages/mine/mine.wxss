@@ -16,6 +16,7 @@
   position: relative;
 }
 
+/* 头像：有真实头像时用 image，没有时用色块 */
 .avatar {
   width: 120rpx;
   height: 120rpx;
@@ -28,6 +29,17 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.avatar-img {
+  display: block;
+}
+
+/* 「编辑」提示，跟在名字后面 */
+.profile-edit {
+  font-size: var(--fs-label);
+  color: var(--accent);
+  margin-right: var(--space-2);
 }
 
 .profile-info {

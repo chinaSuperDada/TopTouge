@@ -13,7 +13,8 @@
     "pages/run-result/run-result",
     "pages/moderator-review/moderator-review",
     "pages/moderator-routes/moderator-routes",
-    "pages/moderator-activities/moderator-activities"
+    "pages/moderator-activities/moderator-activities",
+    "pages/profile-edit/profile-edit"
   ],
   "tabBar": {
     "custom": true,

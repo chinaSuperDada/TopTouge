@@ -1,12 +1,15 @@
 const commentRepo = require('../repositories/commentRepo')
 const routeRepo = require('../repositories/routeRepo')
+const userService = require('./userService')
 const { notFound } = require('../errors')
 
 /** 路线评论。 */
 
 async function listComments(routeId, limit) {
   await ensureRouteExists(routeId)
-  return commentRepo.listByRoute(routeId, limit)
+  const comments = await commentRepo.listByRoute(routeId, limit)
+  // 补上昵称头像 —— 前端直接能渲染，不用再查一次
+  return userService.attachUserInfo(comments)
 }
 
 async function createComment(routeId, userId, content) {

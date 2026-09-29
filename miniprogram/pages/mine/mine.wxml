@@ -1,11 +1,16 @@
 <view class="page">
   <!-- 个人信息 -->
-  <view class="profile card">
-    <view class="avatar">{{avatarText}}</view>
+  <view class="profile card" bindtap="onEditProfile">
+    <!-- 有头像用图，没有就用昵称末两字做色块 -->
+    <image class="avatar avatar-img" wx:if="{{avatar}}" src="{{avatar}}" mode="aspectFill" />
+    <view class="avatar" wx:else>{{avatarText}}</view>
+
     <view class="profile-info">
       <text class="profile-name">{{userName}}</text>
       <text class="profile-sub">跑了 {{stats.runCount}} 次 · 传了 {{stats.routeCount}} 条路线</text>
     </view>
+
+    <text class="profile-edit">编辑</text>
     <view class="mod-badge" wx:if="{{isModerator}}">版主</view>
   </view>
 

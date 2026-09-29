@@ -1,12 +1,14 @@
 const roadConditionRepo = require('../repositories/roadConditionRepo')
 const routeRepo = require('../repositories/routeRepo')
+const userService = require('./userService')
 const { notFound } = require('../errors')
 
 /** 路线路况提示。 */
 
 async function listRoadConditions(routeId, limit) {
   await ensureRouteExists(routeId)
-  return roadConditionRepo.listByRoute(routeId, limit)
+  const items = await roadConditionRepo.listByRoute(routeId, limit)
+  return userService.attachUserInfo(items)
 }
 
 async function createRoadCondition(routeId, userId, content) {

@@ -4,6 +4,7 @@ const location = require('../../utils/location')
 const amap = require('../../utils/amap')
 const navigation = require('../../utils/navigation')
 const { isLoopTrack } = require('../../utils/trackSimplify')
+const { displayName } = require('../../utils/user')
 
 const ROAD_TYPE_LABEL = { mountain: '山路', track: '赛道', gravel: '非铺装', highway: '公路' }
 
@@ -99,7 +100,14 @@ Page({
 
   loadRanking() {
     mock.getRanking(this.data.routeId).then((ranking) => {
-      this.setData({ ranking })
+      this.setData({
+        ranking: ranking.map((r) => ({
+          ...r,
+          // 没设昵称的用 openid 派生的短标识，别直接把 openid 显示出来
+          userName: r.nickName || displayName(r.userId),
+          avatarText: (r.nickName || displayName(r.userId)).slice(-2)
+        }))
+      })
     })
   },
 

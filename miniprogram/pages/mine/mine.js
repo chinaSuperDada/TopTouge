@@ -4,6 +4,7 @@ const { displayName } = require('../../utils/user')
 Page({
   data: {
     userName: '',
+    avatar: '',
     avatarText: '',
     stats: {
       runCount: 0,
@@ -29,20 +30,22 @@ Page({
    */
   loadProfile() {
     const app = getApp()
-    const name = displayName(app.globalData.userId)
-
-    this.setData({
-      userName: name,
-      avatarText: name.slice(-2)
-    })
 
     Promise.all([
+      mock.getProfile().catch(() => ({ nickName: '', avatar: '' })),
       mock.getMyRuns().catch(() => []),
       mock.getMyRoutes().catch(() => []),
       mock.getMyFavorites().catch(() => []),
       mock.getModeratorInfo().catch(() => ({ isModerator: false, regions: [] }))
-    ]).then(([runs, routes, favorites, modInfo]) => {
+    ]).then(([profile, runs, routes, favorites, modInfo]) => {
+      // 没设置昵称时回落成「车友 3072」这种由 openid 派生的短标识 ——
+      // 不能显示原始 openid，又长又难认
+      const name = profile.nickName || displayName(app.globalData.userId)
+
       this.setData({
+        userName: name,
+        avatar: profile.avatar || '',
+        avatarText: name.slice(-2),
         stats: {
           runCount: runs.length,
           routeCount: routes.length,
@@ -52,6 +55,10 @@ Page({
         moderatorRegion: (modInfo.regions || []).map((r) => r.city).join(' · ')
       })
     })
+  },
+
+  onEditProfile() {
+    wx.navigateTo({ url: '/pages/profile-edit/profile-edit' })
   },
 
   onOpenRuns() {

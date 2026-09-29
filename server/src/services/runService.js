@@ -2,6 +2,7 @@ const runRepo = require('../repositories/runRepo')
 const routeRepo = require('../repositories/routeRepo')
 const { inRadius } = require('../geo/radius')
 const { haversineMeters: distanceMeters } = require('../geo/haversine')
+const userService = require('./userService')
 const { notFound, badRequest } = require('../errors')
 
 // 原始轨迹保留时长。任务书要求 72 小时
@@ -210,9 +211,14 @@ async function computeScore(routeId, seconds, excludeId) {
 async function getRanking(routeId, limit = 50) {
   const records = await runRepo.listByRoute(routeId, limit)
 
-  return records.map((r, i) => ({
+  // 先补昵称头像，再算名次 —— 顺序无所谓，但结果要一起返回
+  const withUser = await userService.attachUserInfo(records)
+
+  return withUser.map((r, i) => ({
     rank: i + 1,
     userId: r.userId,
+    nickName: r.nickName,
+    avatar: r.avatar,
     score: r.score,
     totalTimeSeconds: r.totalTimeSeconds,
     createdAt: r.createdAt

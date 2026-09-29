@@ -19,11 +19,18 @@ Component({
   observers: {
     comments(comments) {
       this.setData({
-        rows: (comments || []).map((c) => ({
-          ...c,
-          timeText: formatTime(c.createdAt),
-          userName: displayName(c.userId)
-        }))
+        rows: (comments || []).map((c) => {
+          // 后端会带上用户自填的昵称头像；没填过就回落成
+          // 由 openid 派生的短标识 + 色块头像
+          const name = c.nickName || displayName(c.userId)
+          return {
+            ...c,
+            timeText: formatTime(c.createdAt),
+            userName: name,
+            avatar: c.avatar || '',
+            avatarText: name.slice(-2)
+          }
+        })
       })
     }
   },

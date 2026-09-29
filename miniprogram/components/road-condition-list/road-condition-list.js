@@ -19,11 +19,16 @@ Component({
   observers: {
     roadConditions(roadConditions) {
       this.setData({
-        rows: (roadConditions || []).map((c) => ({
-          ...c,
-          timeText: formatTime(c.createdAt),
-          userName: displayName(c.userId)
-        }))
+        rows: (roadConditions || []).map((c) => {
+          const name = c.nickName || displayName(c.userId)
+          return {
+            ...c,
+            timeText: formatTime(c.createdAt),
+            userName: name,
+            avatar: c.avatar || '',
+            avatarText: name.slice(-2)
+          }
+        })
       })
     }
   },

@@ -118,6 +118,8 @@ const get = (url, options = {}) => request({ url, method: 'GET', ...options })
 
 const post = (url, data, options = {}) => request({ url, method: 'POST', data, ...options })
 
+const put = (url, data, options = {}) => request({ url, method: 'PUT', data, ...options })
+
 const del = (url, options = {}) => request({ url, method: 'DELETE', ...options })
 
-module.exports = { request, get, post, del }
+module.exports = { request, get, post, put, del }

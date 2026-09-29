@@ -53,6 +53,29 @@
   margin-bottom: 8rpx;
 }
 
+.user-row {
+  display: flex;
+  align-items: center;
+}
+
+.avatar-sm {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+  background: var(--bg-elevated);
+}
+
+.avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18rpx;
+  color: var(--text-secondary);
+  background: var(--accent-alt-dim);
+}
+
 .user {
   font-size: var(--fs-label);
   font-weight: 600;
