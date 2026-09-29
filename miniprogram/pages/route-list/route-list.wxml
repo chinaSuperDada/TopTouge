@@ -133,10 +133,13 @@
       <view class="card-info">
         <text class="card-name">{{item.name}}</text>
 
-        <view class="card-meta">
+        <!-- 一行放不下六项，允许折行。overflow:hidden + nowrap 会把爬升裁掉 -->
+        <view class="card-meta card-meta-wrap">
           <text class="meta-item">{{item.distanceText}}</text>
           <text class="meta-dot">·</text>
           <text class="meta-item">{{item.curveCount}} 弯</text>
+          <text class="meta-dot">·</text>
+          <text class="meta-item">{{item.elevationGainMeters}}m 爬升</text>
           <text class="meta-dot">·</text>
           <text class="meta-item">{{item.city}}</text>
         </view>
