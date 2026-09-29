@@ -133,15 +133,16 @@
       <view class="card-info">
         <text class="card-name">{{item.name}}</text>
 
-        <!-- 一行放不下六项，允许折行。overflow:hidden + nowrap 会把爬升裁掉 -->
-        <view class="card-meta card-meta-wrap">
+        <!--
+          三指标一行。加入爬升后是 365rpx，信息区可用 430rpx，放得下。
+          城市挪到底部那行（那里字号更小、也有空位），否则这行要 477rpx 会折行
+        -->
+        <view class="card-meta">
           <text class="meta-item">{{item.distanceText}}</text>
           <text class="meta-dot">·</text>
           <text class="meta-item">{{item.curveCount}} 弯</text>
           <text class="meta-dot">·</text>
           <text class="meta-item">{{item.elevationGainMeters}}m 爬升</text>
-          <text class="meta-dot">·</text>
-          <text class="meta-item">{{item.city}}</text>
         </view>
 
         <view class="card-foot">
@@ -155,7 +156,7 @@
               wx:key="*this"
             ></view>
           </view>
-          <text class="heat">🔥 {{item.heat}}</text>
+          <text class="heat">{{item.city}} · 🔥 {{item.heat}}</text>
         </view>
       </view>
     </view>
