@@ -31,3 +31,6 @@ yarn-error.log*
 # ---- 数据源（阶段一为内存 mock，接入数据库后可能产生本地数据） ----
 pgdata/
 *.sqlite
+
+# worktree 工作目录（本地临时，不入库）
+.claude/worktrees/
