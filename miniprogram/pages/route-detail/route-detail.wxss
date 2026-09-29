@@ -176,11 +176,6 @@
   margin-bottom: 4rpx;
 }
 
-.rank-time {
-  font-size: var(--fs-caption);
-  color: var(--text-tertiary);
-}
-
 .rank-score {
   display: flex;
   align-items: baseline;
