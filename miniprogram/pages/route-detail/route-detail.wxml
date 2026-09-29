@@ -11,14 +11,25 @@
   </view>
 
   <block wx:else>
-    <!-- 顶部固定区：路线名 + 三个 tab -->
+    <!-- 顶部固定区：路线名 + 收藏星 + 三个 tab -->
     <view class="header">
       <!-- 只有作者看得到：这条路线还没上公开列表 -->
       <view class="review-strip review-{{route.reviewStatus}}" wx:if="{{reviewNotice}}">
         <text class="review-text">{{reviewNotice}}</text>
       </view>
 
-      <text class="hero-title">{{route.name}}</text>
+      <view class="hero-row">
+        <text class="hero-title">{{route.name}}</text>
+
+        <!-- 收藏用星标，放在标题右侧 —— 业界通用位置，比按钮更好找。
+             空心/实心表示状态，不用读文字就知道点没点过 -->
+        <view
+          class="fav-star {{favorited ? 'fav-on' : ''}} {{favoriting ? 'fav-busy' : ''}}"
+          bindtap="onToggleFavorite"
+        >
+          <text class="fav-glyph">{{favorited ? '★' : '☆'}}</text>
+        </view>
+      </view>
 
       <view class="tabs">
         <view
@@ -63,13 +74,7 @@
 
       <view class="start-area">
         <view class="btn btn-primary" bindtap="onStartRun">开始跑山</view>
-        <view class="sub-actions">
-          <view
-            class="btn btn-ghost action-btn {{favorited ? 'btn-fav-on' : ''}}"
-            bindtap="onToggleFavorite"
-          >{{favorited ? '已收藏' : '收藏'}}</view>
-          <view class="btn btn-ghost action-btn" bindtap="onNavigate">分享路线到微信</view>
-        </view>
+        <view class="btn btn-ghost action-btn" bindtap="onNavigate">分享路线到微信</view>
       </view>
 
       <!-- 相似路线。按轨迹重合度算 -->

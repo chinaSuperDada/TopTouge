@@ -18,10 +18,15 @@ const {
  *
  * 列表页只需要展示用的字段，不带 referenceTrack —— 一条轨迹几百个点，
  * 全量返回会让列表接口的响应体膨胀到几百 KB。详情页才需要轨迹。
+ *
+ * @param {object} filters 透传给 repo，其中 viewerId 决定「我的是否可见」
+ * @param {string} [viewerId] 当前用户。传了才会带上「是不是我的」标记
  */
-async function listRoutes(filters = {}) {
-  const routes = await routeRepo.list(filters)
-  return routes.map(toSummary)
+async function listRoutes(filters = {}, viewerId) {
+  // viewerId 要透传给 repo —— 它决定「自己传的（含私有、含待审）」
+  // 是否出现在结果里。只放在 toSummary 里是不够的，那样查不出来
+  const routes = await routeRepo.list({ ...filters, viewerId })
+  return routes.map((r) => toSummary(r, viewerId))
 }
 
 /**
@@ -37,6 +42,16 @@ async function getRouteDetail(id, options = {}) {
   if (!route) throw notFound(`路线 ${id} 不存在`)
 
   const { includeFullTrack = false, userId } = options
+
+  // 权限：私有路线和待审路线只对「作者本人 / 版主 / 平台管理员」可见。
+  //
+  // 这里必须挡，不能只靠列表接口过滤 —— 知道 id 就能直接调详情，
+  // 那等于私有路线公开。之所以放版主进来：版主工作台点「看详情」
+  // 跳的就是这个页面，待审路线正是他们要看的
+  if (!(await canViewRoute(route, userId))) {
+    throw notFound(`路线 ${id} 不存在`)
+  }
+
   const result = { ...route }
 
   result.track = route.displayTrack && route.displayTrack.length
@@ -115,8 +130,12 @@ async function createRoute(input, uploadedBy) {
 
 /**
  * 列表项：只保留展示需要的字段，去掉轨迹与途经点。
+ *
+ * @param {object} route
+ * @param {string} [viewerId] 传了才计算 isMine —— 首页要靠它给
+ *        自己的私有/待审路线打标记
  */
-function toSummary(route) {
+function toSummary(route, viewerId) {
   return {
     id: route.id,
     name: route.name,
@@ -134,8 +153,55 @@ function toSummary(route) {
     // 列表要能区分公开/私有（「我的路线」里两者混在一起）
     visibility: route.visibility,
     reviewStatus: route.reviewStatus,
+    isMine: Boolean(viewerId && route.uploadedBy === viewerId),
     createdAt: route.createdAt
   }
+}
+
+/**
+ * 判断某人能不能看某条路线。
+ *
+ * 规则：
+ *   - 公开且已通过 → 谁都能看
+ *   - 待审 / 已下架 → 只有作者、辖区版主、平台管理员能看
+ *   - 私有 → 只有作者、辖区版主、平台管理员能看
+ *
+ * 版主和管理员放行是有意的：版主工作台点「看详情」跳的就是详情页，
+ * 待审路线正是他们要看的东西；管理员要能处理所有区域。
+ *
+ * 注意用 notFound 而不是 forbidden 拒绝 —— 对外一律说「不存在」，
+ * 不暴露「这条路线存在但你没权限」这个信息
+ *
+ * @returns {Promise<boolean>}
+ */
+async function canViewRoute(route, userId) {
+  // 缺省视为「公开 + 已通过」—— 内存模式的 mock 路线不带这两个字段，
+  // 仓库层别处也是这么兜底的（见 routeRepo 的 `|| 'approved'`）
+  const visibility = route.visibility || 'public'
+  const reviewStatus = route.reviewStatus || 'approved'
+
+  // 公开且已通过，谁都能看
+  if (visibility !== 'private' && reviewStatus === 'approved') {
+    return true
+  }
+
+  if (!userId) return false
+
+  // 作者本人
+  if (route.uploadedBy === userId) return true
+
+  const moderatorService = require('./moderatorService')
+
+  // 平台管理员：不受辖区限制
+  if (moderatorService.isAdmin(userId)) return true
+
+  // 辖区版主：只管自己那片
+  const info = await moderatorService.getMyModeratorInfo(userId)
+  if (!info.isModerator) return false
+
+  return info.regions.some(
+    (r) => r.province === route.province && r.city === route.city
+  )
 }
 
 /**

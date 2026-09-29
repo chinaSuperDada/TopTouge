@@ -28,7 +28,7 @@ const memoryImpl = {
     const {
       province = 'all', city = 'all', difficulty = 'all',
       roadType = 'all', sort = 'hot', reviewStatus = 'approved',
-      limit = 50, uploadedBy, anyReviewStatus = false, visibility
+      limit = 50, uploadedBy, anyReviewStatus = false, visibility, viewerId
     } = filters
 
     let list = memory.routes.all()
@@ -41,6 +41,15 @@ const memoryImpl = {
     // 内存模式下没有 review_status 字段，用默认值兜底
     if (anyReviewStatus) {
       if (uploadedBy) list = list.filter((r) => r.uploadedBy === uploadedBy)
+    } else if (viewerId) {
+      // 公开且已通过的，加上「我自己的」（含私有、含待审）。
+      // 与 mysql 实现同一套语义
+      list = list.filter(
+        (r) =>
+          ((r.visibility || 'public') === 'public' &&
+            (r.reviewStatus || 'approved') === reviewStatus) ||
+          r.uploadedBy === viewerId
+      )
     } else {
       if (!visibility) list = list.filter((r) => (r.visibility || 'public') === 'public')
       list = list.filter((r) => (r.reviewStatus || 'approved') === reviewStatus)
@@ -170,14 +179,14 @@ const mysqlImpl = {
    * 足够快。真到几万条再考虑加 geometry 列 + GiST 索引（那时才需要 PostGIS）。
    *
    * @param {{province, city, difficulty, roadType, sort, reviewStatus, limit, lat, lng,
-   *          uploadedBy, anyReviewStatus, visibility}} filters
+   *          uploadedBy, anyReviewStatus, visibility, viewerId}} filters
    */
   async list(filters = {}) {
     const { getPool } = require('../db/pool')
     const {
       province = 'all', city = 'all', difficulty = 'all',
       roadType = 'all', sort = 'hot', reviewStatus = 'approved',
-      limit = 50, lat, lng, uploadedBy, anyReviewStatus = false, visibility
+      limit = 50, lat, lng, uploadedBy, anyReviewStatus = false, visibility, viewerId
     } = filters
 
     const where = []
@@ -197,10 +206,20 @@ const mysqlImpl = {
         where.push('uploaded_by = ?')
         params.push(uploadedBy)
       }
+    } else if (viewerId) {
+      // 公开列表 + 自己的路线。
+      //
+      // 自己传的（含私有、含待审）也要出现在首页 —— 制作完看不到，
+      // 用户会以为没保存。别人的私有路线依然看不到：条件里钉死了
+      // uploaded_by 必须是当前用户。
+      //
+      // 用括号包住 OR 的两边，否则会被后面的 AND 条件拆散优先级
+      where.push(
+        "((visibility = 'public' AND review_status = ?) OR uploaded_by = ?)"
+      )
+      params.push(reviewStatus, viewerId)
     } else {
-      // 公开列表：只出现公开且已通过的路线。
-      // 私有路线是作者的私人收藏，不能因为「审核通过」就漏进公开列表 ——
-      // 私有路线本来就是 approved，不加这个条件会被所有人看到
+      // 未登录 / 不带身份：只给公开且已通过的
       if (!visibility) where.push("visibility = 'public'")
       where.push('review_status = ?')
       params.push(reviewStatus)

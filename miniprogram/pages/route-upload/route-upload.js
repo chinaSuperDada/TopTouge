@@ -538,6 +538,15 @@ Page({
       .then((route) => {
         wx.hideLoading()
 
+        // 跳详情页，并把刚建的路线 id 带上 —— 详情页据此弹「分享给好友」。
+        // 放在详情页弹而不是这里，是因为分享要用 onShareAppMessage，
+        // 只有页面自己有这个钩子
+        const goDetail = (extra = '') => {
+          wx.redirectTo({
+            url: `/pages/route-detail/route-detail?id=${route.id}${extra}`
+          })
+        }
+
         // 说清楚到底发生了什么。公开路线都要审核，
         // 只说「上传成功」会让用户回首页找不到自己的路线，以为没保存
         if (route.reviewStatus === 'pending') {
@@ -546,9 +555,7 @@ Page({
             content: '公开路线需要审核，通过后才会出现在路线库。你可以在「我的 - 我的路线」里查看进度。',
             showCancel: false,
             confirmText: '知道了',
-            success: () => {
-              wx.redirectTo({ url: `/pages/route-detail/route-detail?id=${route.id}` })
-            }
+            success: () => goDetail('&justCreated=1')
           })
           return
         }
@@ -557,9 +564,7 @@ Page({
           title: route.visibility === 'private' ? '已保存为私有路线' : '上传成功',
           icon: 'success'
         })
-        setTimeout(() => {
-          wx.redirectTo({ url: `/pages/route-detail/route-detail?id=${route.id}` })
-        }, 600)
+        setTimeout(() => goDetail('&justCreated=1'), 600)
       })
       .catch(() => {
         // 错误已由 request 层上报并转成白话文案，这里只需恢复按钮状态

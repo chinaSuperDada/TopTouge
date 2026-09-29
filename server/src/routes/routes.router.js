@@ -15,18 +15,23 @@ const router = express.Router()
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    // 筛选与排序参数由前端传，service 层负责解释
+    // 筛选与排序参数由前端传，service 层负责解释。
+    // viewerId 让「自己传的（含私有、含待审）」也出现在列表里 ——
+    // 别人看不到，但作者自己制作完能看到，否则会以为没保存
     res.json({
-      routes: await routeService.listRoutes({
-        province: req.query.province || 'all',
-        city: req.query.city || 'all',
-        difficulty: req.query.difficulty || 'all',
-        roadType: req.query.roadType || 'all',
-        sort: req.query.sort || 'hot',
-        lat: Number(req.query.lat) || undefined,
-        lng: Number(req.query.lng) || undefined,
-        limit: parseLimit(req.query.limit, 50, 200)
-      })
+      routes: await routeService.listRoutes(
+        {
+          province: req.query.province || 'all',
+          city: req.query.city || 'all',
+          difficulty: req.query.difficulty || 'all',
+          roadType: req.query.roadType || 'all',
+          sort: req.query.sort || 'hot',
+          lat: Number(req.query.lat) || undefined,
+          lng: Number(req.query.lng) || undefined,
+          limit: parseLimit(req.query.limit, 50, 200)
+        },
+        req.userId
+      )
     })
   })
 )

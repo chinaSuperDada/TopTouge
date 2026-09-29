@@ -150,22 +150,32 @@ test('POST /api/routes 上传路线', async (t) => {
     assert.strictEqual(res.body.elevationGainMeters, 0)
   })
 
-  await t.test('公开路线待审，不进公开列表；私有路线才直接可见', async () => {
-    // 公开：一律 pending，审核通过前不出现在列表
+  await t.test('作者能在首页看到自己传的路线，别人看不到', async () => {
+    // 公开：一律 pending，审核通过前不进**别人的**列表
     const publicRoute = await request(app)
       .post('/api/routes')
+      .set('x-user-id', 'alice')
       .send({ name: '公开路线', roadWidth: 'wide', trackPoints: sampleTrack() })
       .expect(201)
 
     assert.strictEqual(publicRoute.body.reviewStatus, 'pending')
     assert.strictEqual(publicRoute.body.visibility, 'public')
 
-    let list = await request(app).get('/api/routes').expect(200)
-    assert.strictEqual(list.body.routes.length, 3, '待审的公开路线不该出现在列表里')
+    // 别人看：只有 3 条 mock，自己传的待审路线不该出现
+    const others = await request(app).get('/api/routes').set('x-user-id', 'bob').expect(200)
+    assert.strictEqual(others.body.routes.length, 3, '别人的待审路线不该出现')
+    assert.ok(!others.body.routes.some((r) => r.name === '公开路线'))
 
-    // 私有：不审核，直接 approved，但同样不进公开列表
+    // 作者自己看：能看到，且带 isMine 标记 —— 否则制作完看不到会以为没保存
+    const own = await request(app).get('/api/routes').set('x-user-id', 'alice').expect(200)
+    const hit = own.body.routes.find((r) => r.name === '公开路线')
+    assert.ok(hit, '作者应能在首页看到自己传的待审路线')
+    assert.strictEqual(hit.isMine, true)
+
+    // 私有：不审核，直接 approved
     const privateRoute = await request(app)
       .post('/api/routes')
+      .set('x-user-id', 'alice')
       .send({
         name: '我的私藏路线',
         roadWidth: 'wide',
@@ -177,13 +187,17 @@ test('POST /api/routes 上传路线', async (t) => {
     assert.strictEqual(privateRoute.body.reviewStatus, 'approved', '私有路线不审核')
     assert.strictEqual(privateRoute.body.visibility, 'private')
 
-    list = await request(app).get('/api/routes').expect(200)
-    assert.strictEqual(list.body.routes.length, 3, '私有路线不该出现在公开列表里')
+    // 别人依然看不到私有路线
+    const others2 = await request(app).get('/api/routes').set('x-user-id', 'bob').expect(200)
+    assert.ok(!others2.body.routes.some((r) => r.name === '我的私藏路线'))
 
-    // 但作者在「我的路线」能看到自己那条私有路线
+    // 作者在首页和「我的路线」都看得到
+    const own2 = await request(app).get('/api/routes').set('x-user-id', 'alice').expect(200)
+    assert.ok(own2.body.routes.some((r) => r.name === '我的私藏路线'))
+
     const mine = await request(app)
       .get('/api/me/routes')
-      .set('x-user-id', 'test-user-001')
+      .set('x-user-id', 'alice')
       .expect(200)
 
     assert.ok(
@@ -315,6 +329,128 @@ test('POST /api/routes 上传路线', async (t) => {
       .send({ name: 'x', roadWidth: 'wide', vehicleType: 'motorcycle', trackPoints: sampleTrack() })
       .expect(400)
     assert.match(res.body.error.message, /车型/)
+  })
+})
+
+test('详情接口的可见性校验', async (t) => {
+  t.beforeEach(resetWithSeed)
+
+  await t.test('别人的私有路线，知道 id 也打不开', async () => {
+    const created = await request(app)
+      .post('/api/routes')
+      .set('x-user-id', 'alice')
+      .send({
+        name: '爱丽丝的私藏',
+        roadWidth: 'wide',
+        visibility: 'private',
+        trackPoints: sampleTrack()
+      })
+      .expect(201)
+
+    // 作者本人能打开
+    await request(app)
+      .get(`/api/routes/${created.body.id}`)
+      .set('x-user-id', 'alice')
+      .expect(200)
+
+    // 别人打不开 —— 而且要给 404 不是 403，不暴露「这条存在但你没权限」
+    await request(app)
+      .get(`/api/routes/${created.body.id}`)
+      .set('x-user-id', 'bob')
+      .expect(404)
+
+    // 不带身份也打不开
+    await request(app).get(`/api/routes/${created.body.id}`).expect(404)
+  })
+
+  await t.test('别人的待审路线，别人打不开，作者能打开', async () => {
+    const created = await request(app)
+      .post('/api/routes')
+      .set('x-user-id', 'alice')
+      .send({ name: '待审中', roadWidth: 'wide', trackPoints: sampleTrack() })
+      .expect(201)
+
+    assert.strictEqual(created.body.reviewStatus, 'pending')
+
+    await request(app)
+      .get(`/api/routes/${created.body.id}`)
+      .set('x-user-id', 'bob')
+      .expect(404)
+
+    await request(app)
+      .get(`/api/routes/${created.body.id}`)
+      .set('x-user-id', 'alice')
+      .expect(200)
+  })
+
+  await t.test('公开且已通过的路线，谁都能看', async () => {
+    // mock 路线是公开已通过的，不带身份也能看
+    await request(app).get('/api/routes/1').expect(200)
+    await request(app).get('/api/routes/1').set('x-user-id', 'anyone').expect(200)
+  })
+})
+
+test('列表里「自己的路线」的可见性', async (t) => {
+  t.beforeEach(resetWithSeed)
+
+  await t.test('自己传的私有路线出现在列表里，别人看不到', async () => {
+    const track = sampleTrack()
+
+    const created = await request(app)
+      .post('/api/routes')
+      .set('x-user-id', 'alice')
+      .send({
+        name: '爱丽丝的私藏',
+        roadWidth: 'wide',
+        visibility: 'private',
+        trackPoints: track
+      })
+      .expect(201)
+
+    // 作者自己看得到
+    const mine = await request(app).get('/api/routes').set('x-user-id', 'alice').expect(200)
+    assert.ok(
+      mine.body.routes.some((r) => r.id === created.body.id),
+      '作者应能在首页看到自己传的私有路线'
+    )
+
+    // 别人看不到
+    const other = await request(app).get('/api/routes').set('x-user-id', 'bob').expect(200)
+    assert.ok(
+      !other.body.routes.some((r) => r.id === created.body.id),
+      '别人的私有路线绝不能被看到'
+    )
+
+    // 不带身份也看不到
+    const anon = await request(app).get('/api/routes').expect(200)
+    assert.ok(!anon.body.routes.some((r) => r.id === created.body.id))
+  })
+
+  await t.test('自己传的待审路线也出现在列表里', async () => {
+    const created = await request(app)
+      .post('/api/routes')
+      .set('x-user-id', 'alice')
+      .send({ name: '待审的路线', roadWidth: 'wide', trackPoints: sampleTrack() })
+      .expect(201)
+
+    assert.strictEqual(created.body.reviewStatus, 'pending')
+
+    const mine = await request(app).get('/api/routes').set('x-user-id', 'alice').expect(200)
+    const hit = mine.body.routes.find((r) => r.id === created.body.id)
+
+    assert.ok(hit, '作者应能看到自己待审的路线')
+    assert.strictEqual(hit.isMine, true, '要标记出来，前端才好提示')
+
+    // 别人看不到待审的
+    const other = await request(app).get('/api/routes').set('x-user-id', 'bob').expect(200)
+    assert.ok(!other.body.routes.some((r) => r.id === created.body.id))
+  })
+
+  await t.test('别人的公开路线 isMine 为 false', async () => {
+    const res = await request(app).get('/api/routes').set('x-user-id', 'bob').expect(200)
+    res.body.routes.forEach((r) => {
+      assert.strictEqual(r.isMine, false)
+    })
   })
 })
 

@@ -131,7 +131,14 @@
 
       <!-- 右：信息 -->
       <view class="card-info">
-        <text class="card-name">{{item.name}}</text>
+        <view class="card-name-row">
+          <text class="card-name">{{item.name}}</text>
+          <!-- 自己传的私有/待审路线必须标出来，否则用户看到自己的私有
+               路线出现在首页，会以为「私有」没生效 -->
+          <text class="my-badge {{item.myBadge.cls}}" wx:if="{{item.myBadge}}">
+            {{item.myBadge.text}}
+          </text>
+        </view>
 
         <!--
           三指标一行。加入爬升后是 365rpx，信息区可用 430rpx，放得下。

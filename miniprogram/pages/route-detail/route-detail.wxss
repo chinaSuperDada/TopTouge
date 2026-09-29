@@ -84,6 +84,51 @@
   margin-top: var(--space-2);
 }
 
+/* 标题 + 收藏星。星标固定在右侧，标题过长时省略 */
+.hero-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.hero-row .hero-title {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 收藏星标：点击区比字形大，好点中 */
+.fav-star {
+  flex-shrink: 0;
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--space-2);
+}
+
+.fav-glyph {
+  font-size: 64rpx;
+  line-height: 1;
+  /* 未收藏是空心线框，用次级文字色 */
+  color: var(--text-tertiary);
+  transition: color 0.15s;
+}
+
+/* 已收藏：实心 + 强调色 */
+.fav-on .fav-glyph {
+  color: var(--accent);
+}
+
+/* 请求进行中压暗，防连点 */
+.fav-busy {
+  opacity: 0.5;
+}
+
+.fav-star:active {
+  opacity: 0.7;
+}
+
 .card {
   background: var(--bg-surface);
   border-radius: var(--radius-lg);
@@ -325,24 +370,6 @@
 /* 次要操作按钮：两个并排，和主按钮拉开间距 */
 .start-area {
   margin-top: var(--space-4);
-}
-
-.sub-actions {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-}
-
-/* 撑满可用宽度，两个按钮等分 */
-.sub-actions .action-btn {
-  flex: 1;
-  margin-top: 0;
-}
-
-/* 已收藏：描边和文字换成强调色，一眼能看出状态 */
-.btn-fav-on {
-  color: var(--accent);
-  border-color: var(--accent);
 }
 
 

@@ -77,6 +77,38 @@ Page({
     this.setData({ routeId })
     this.loadDetail()
     this.requestLocation()
+
+    // 刚制作完跳过来的：提示可以分享给好友
+    this._justCreated = query.justCreated === '1'
+  },
+
+  /**
+   * 刚创建完，问用户要不要分享。
+   *
+   * 用 wx.showModal 而不是直接弹分享面板 —— 微信不允许主动调起分享，
+   * 必须用户点按钮触发。所以先问一句，他点了才走 onShareAppMessage。
+   *
+   * 只弹一次：_justCreated 消费掉就清空，之后返回本页不再打扰。
+   */
+  offerShareIfJustCreated() {
+    if (!this._justCreated) return
+    this._justCreated = false
+
+    wx.showModal({
+      title: '路线已保存',
+      content: '分享给微信好友，他们点开就能看到这条路线并直接开跑。',
+      confirmText: '分享给好友',
+      cancelText: '暂不',
+      success: (res) => {
+        if (!res.confirm) return
+        // 这个按钮点了才会触发 onShareAppMessage（微信的限制）
+        wx.showShareMenu({
+          withShareTicket: true,
+          menus: ['shareAppMessage']
+        })
+        wx.showToast({ title: '点右上角「···」分享', icon: 'none', duration: 2500 })
+      }
+    })
   },
 
   /**
@@ -221,6 +253,8 @@ Page({
         // 主内容渲染完再拉相似路线 —— 它要做几何计算，比详情慢，
         // 并联会让首屏等更久
         this.loadSimilar()
+        // 刚制作完的话，问一句要不要分享
+        this.offerShareIfJustCreated()
       })
       .catch((err) => {
         // err.message 已经是给人看的白话（见 utils/request.js），

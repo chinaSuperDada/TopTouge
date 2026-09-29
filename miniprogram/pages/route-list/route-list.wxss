@@ -276,6 +276,13 @@
   justify-content: space-between;
 }
 
+/* 名称 + 「我的」标记。标记不换行也不被压缩，名称超长时省略 */
+.card-name-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
 .card-name {
   font-size: 34rpx;
   font-weight: 700;
@@ -283,6 +290,36 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+}
+
+/* 自己传的私有/待审路线的标记 */
+.my-badge {
+  flex-shrink: 0;
+  margin-left: 12rpx;
+  padding: 2rpx 12rpx;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-caption);
+  white-space: nowrap;
+}
+
+/* 私有：中性色，表示「这是你的私人物品」，不是警告 */
+.badge-private {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  border: 2rpx solid var(--border);
+}
+
+/* 审核中：黄色，表示「还在处理」 */
+.badge-pending {
+  background: rgba(212, 167, 44, 0.16);
+  color: var(--warn);
+}
+
+/* 已下架：红色 */
+.badge-rejected {
+  background: rgba(229, 72, 77, 0.16);
+  color: var(--danger);
 }
 
 .card-meta {

@@ -1,5 +1,30 @@
 const mock = require('../../utils/mock')
 
+/**
+ * 自己传的路线，卡片上要给的标记。
+ *
+ * 首页会列出自己的私有路线和待审路线（别人看不到）。不标出来的话
+ * 用户会以为「私有」没生效 —— 明明说了别人看不到，却在首页看到了。
+ *
+ * 公开且已通过的自己的路线不标记：它和别人的路线没区别，标了是噪音。
+ *
+ * @returns {{text, cls}|null} null 表示不需要标记
+ */
+function describeMyRoute(route) {
+  if (!route.isMine) return null
+
+  if (route.visibility === 'private') {
+    return { text: '私有 · 仅自己可见', cls: 'badge-private' }
+  }
+  if (route.reviewStatus === 'pending') {
+    return { text: '审核中', cls: 'badge-pending' }
+  }
+  if (route.reviewStatus === 'rejected') {
+    return { text: '已下架', cls: 'badge-rejected' }
+  }
+  return null
+}
+
 Page({
   data: {
     // 活动位轮播
@@ -205,7 +230,9 @@ Page({
       // 缩略图配色：从固定色板里按 id 取
       thumbClass: `thumb-${route.id % 6}`,
       // 星级用小方块画，比字符整齐
-      stars: [1, 2, 3, 4, 5]
+      stars: [1, 2, 3, 4, 5],
+      // 自己传的路线要标出来，见 myBadge
+      myBadge: describeMyRoute(route)
     }
   },
 
