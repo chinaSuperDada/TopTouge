@@ -294,6 +294,15 @@
   white-space: nowrap;
 }
 
+/* 加了爬升后一行放不下，允许折行。
+   基类的 overflow:hidden + nowrap 是为「宁可裁掉也不要挤成两行」设计的，
+   但这里的信息都该看到，所以覆写成可折行 */
+.card-meta-wrap {
+  flex-wrap: wrap;
+  white-space: normal;
+  overflow: visible;
+}
+
 .meta-item {
   white-space: nowrap;
 }

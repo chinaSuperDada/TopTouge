@@ -50,6 +50,9 @@ Page({
     favorited: false,
     favoriting: false,
 
+    // 相似路线。后端按轨迹重合度算，见 routeService.findSimilarToRoute
+    similar: [],
+
     // 地图
     latitude: 39.9042,
     longitude: 116.4074,
@@ -142,6 +145,36 @@ Page({
   },
 
   /**
+   * 相似路线。
+   *
+   * 后端按轨迹重合度算（见 module 02 §2.1）。单独一个请求 ——
+   * 它要做几何计算，比详情本身慢，不该拖慢主内容的首屏。
+   * 所以详情渲染完再拉，失败也不影响主内容（静默即可，不弹提示）。
+   */
+  loadSimilar() {
+    return mock
+      .getSimilarRoutes(this.data.routeId)
+      .then((list) => {
+        const km = (m) => (m < 1000 ? `${Math.round(m)}m` : `${(m / 1000).toFixed(1)}km`)
+
+        this.setData({
+          similar: list.map((r) => ({
+            ...r,
+            distanceText: km(r.distanceMeters),
+            // 重合度转成百分比整数，比小数好读
+            overlapText: Math.round(r.overlapRatio * 100),
+            // duplicate 档位要额外提示「可能是同一条路线」
+            isDuplicate: r.level === 'duplicate'
+          }))
+        })
+      })
+      .catch(() => {
+        // 相似路线是锦上添花，拉不到就不显示这个区块
+        this.setData({ similar: [] })
+      })
+  },
+
+  /**
    * 分享给好友。
    *
    * 带上路线 id，好友点开直接进这条路线的详情页。
@@ -185,6 +218,9 @@ Page({
       .getRoute(this.data.routeId)
       .then((route) => {
         this.applyRoute(route)
+        // 主内容渲染完再拉相似路线 —— 它要做几何计算，比详情慢，
+        // 并联会让首屏等更久
+        this.loadSimilar()
       })
       .catch((err) => {
         // err.message 已经是给人看的白话（见 utils/request.js），
@@ -254,6 +290,19 @@ Page({
       .catch(() => {
         this.setData({ favorited: !next, favoriting: false })
       })
+  },
+
+  /**
+   * 点相似路线。
+   *
+   * 用 redirectTo 而不是 navigateTo —— 相似路线之间可以来回点，
+   * 用 navigateTo 会一层层堆栈，用户要按好几次返回才出得去。
+   */
+  onSimilarTap(e) {
+    const id = Number(e.currentTarget.dataset.id)
+    if (!id || id === this.data.routeId) return
+
+    wx.redirectTo({ url: `/pages/route-detail/route-detail?id=${id}` })
   },
 
   /**

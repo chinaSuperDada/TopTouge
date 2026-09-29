@@ -176,11 +176,6 @@
   margin-bottom: 4rpx;
 }
 
-.rank-time {
-  font-size: var(--fs-caption);
-  color: var(--text-tertiary);
-}
-
 .rank-score {
   display: flex;
   align-items: baseline;
@@ -351,3 +346,87 @@
 }
 
 
+
+/* ---------- 相似路线 ---------- */
+
+.similar-card {
+  margin-top: var(--space-3);
+}
+
+.sim-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 2rpx solid var(--divider);
+}
+
+.sim-item:last-child {
+  border-bottom: none;
+}
+
+.sim-item:active {
+  background: var(--bg-elevated);
+}
+
+.sim-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.sim-name-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6rpx;
+}
+
+.sim-name {
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 重合度很高时提示可能是同一条路 */
+.sim-flag {
+  flex-shrink: 0;
+  margin-left: 12rpx;
+  padding: 2rpx 12rpx;
+  border-radius: var(--radius-pill);
+  background: rgba(212, 167, 44, 0.16);
+  color: var(--warn);
+  font-size: var(--fs-caption);
+}
+
+.sim-meta {
+  display: flex;
+  align-items: center;
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+}
+
+.meta-dot {
+  margin: 0 8rpx;
+}
+
+/* 右侧重合度百分比 —— 这块的核心信息，给强调色 */
+.sim-overlap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}
+
+.sim-pct {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.sim-pct-label {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  margin-top: 2rpx;
+}
