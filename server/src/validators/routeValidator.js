@@ -63,7 +63,13 @@ function validateCreateRoute(body) {
 
   const waypoints = normalizeWaypoints(body.waypoints)
 
-  return { name, roadWidth, vehicleType, trackPoints, province, city, roadType, waypoints }
+  // 公开还是私有。默认公开 —— 老客户端不传这个字段时行为不变
+  const visibility = body.visibility === 'private' ? 'private' : 'public'
+
+  return {
+    name, roadWidth, vehicleType, trackPoints,
+    province, city, roadType, waypoints, visibility
+  }
 }
 
 /**
