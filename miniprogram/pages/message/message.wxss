@@ -1,0 +1,105 @@
+.page {
+  min-height: 100vh;
+  padding: var(--space-3);
+  /* 给自定义 TabBar 留出空间 */
+  padding-bottom: calc(270rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  background: var(--bg-base);
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--space-6);
+}
+
+/* ---------- CSS 画的空状态图标：两个对话气泡 ---------- */
+
+.ph-mark {
+  position: relative;
+  width: 140rpx;
+  height: 110rpx;
+  margin-bottom: var(--space-4);
+}
+
+.bubble {
+  position: absolute;
+  left: 10rpx;
+  top: 10rpx;
+  width: 96rpx;
+  height: 68rpx;
+  border: 5rpx solid var(--text-tertiary);
+  border-radius: 20rpx;
+  box-sizing: border-box;
+  /* 气泡的小尾巴 */
+  border-bottom-left-radius: 4rpx;
+}
+
+/* 第二个气泡小一圈、偏右下，做出"聊天"的感觉 */
+.bubble-sm {
+  left: 60rpx;
+  top: 54rpx;
+  width: 68rpx;
+  height: 48rpx;
+  background: var(--bg-base);
+  border-color: var(--accent);
+  border-bottom-left-radius: 20rpx;
+  border-bottom-right-radius: 4rpx;
+  opacity: 0.85;
+}
+
+.ph-title {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: var(--text-emphasis);
+  margin-bottom: 12rpx;
+}
+
+.ph-desc {
+  font-size: var(--fs-label);
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-5);
+}
+
+/* ---------- 规划中的类别 ---------- */
+
+.ph-list {
+  width: 100%;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: 0 var(--space-3);
+}
+
+.ph-item {
+  padding: var(--space-3) 0;
+  border-bottom: 2rpx solid var(--divider);
+}
+
+.ph-item:last-child {
+  border-bottom: none;
+}
+
+.ph-item-name {
+  display: block;
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+  margin-bottom: 6rpx;
+}
+
+.ph-item-desc {
+  display: block;
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+.ph-tag {
+  margin-top: var(--space-4);
+  padding: 8rpx 24rpx;
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  border: 2rpx solid var(--border);
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+}

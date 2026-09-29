@@ -2,6 +2,7 @@
   "pages": [
     "pages/route-list/route-list",
     "pages/route-activity/route-activity",
+    "pages/message/message",
     "pages/mine/mine",
     "pages/route-detail/route-detail",
     "pages/route-upload/route-upload",
@@ -34,6 +35,10 @@
       {
         "pagePath": "pages/route-activity/route-activity",
         "text": "跑山活动"
+      },
+      {
+        "pagePath": "pages/message/message",
+        "text": "消息"
       },
       {
         "pagePath": "pages/mine/mine",

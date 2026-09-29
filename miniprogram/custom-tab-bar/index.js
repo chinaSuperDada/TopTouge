@@ -23,6 +23,8 @@ Component({
     tabs: [
       { key: 'home', label: '跑山路线', path: '/pages/route-list/route-list' },
       { key: 'activity', label: '跑山活动', path: '/pages/route-activity/route-activity' },
+      // 消息排在加号右边、我的前面 —— 中间凸起按钮两侧各两个，视觉才对称
+      { key: 'message', label: '消息', path: '/pages/message/message' },
       { key: 'mine', label: '我的', path: '/pages/mine/mine' }
     ]
   },

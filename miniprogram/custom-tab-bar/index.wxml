@@ -31,17 +31,31 @@
     </view>
   </view>
 
+  <!-- 消息 -->
+  <view
+    class="tab"
+    style="color: {{selected === 3 ? colorActive : colorNormal}}"
+    data-index="3"
+    bindtap="onTabTap"
+  >
+    <view class="icon icon-msg">
+      <view class="msg-body" style="border-color: {{selected === 3 ? colorActive : colorNormal}}"></view>
+      <view class="msg-tail" style="border-color: {{selected === 3 ? colorActive : colorNormal}}"></view>
+    </view>
+    <text class="tab-label" style="color: {{selected === 3 ? colorActive : colorNormal}}">消息</text>
+  </view>
+
   <!-- 右：我的 -->
   <view
     class="tab"
-    style="color: {{selected === 2 ? colorActive : colorNormal}}"
-    data-index="2"
+    style="color: {{selected === 4 ? colorActive : colorNormal}}"
+    data-index="4"
     bindtap="onTabTap"
   >
     <view class="icon icon-mine">
-      <view class="head" style="border-color: {{selected === 2 ? colorActive : colorNormal}}"></view>
-      <view class="shoulder" style="border-color: {{selected === 2 ? colorActive : colorNormal}}"></view>
+      <view class="head" style="border-color: {{selected === 4 ? colorActive : colorNormal}}"></view>
+      <view class="shoulder" style="border-color: {{selected === 4 ? colorActive : colorNormal}}"></view>
     </view>
-    <text class="tab-label" style="color: {{selected === 2 ? colorActive : colorNormal}}">我的</text>
+    <text class="tab-label" style="color: {{selected === 4 ? colorActive : colorNormal}}">我的</text>
   </view>
 </view>

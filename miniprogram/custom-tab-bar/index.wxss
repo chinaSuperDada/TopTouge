@@ -35,8 +35,8 @@
 }
 
 .tab-label {
-  /* 四个 tab 后横向空间变紧，「跑山路线」四个字要缩一点才不挤 */
-  font-size: 19rpx;
+  /* 五个位置后横向空间更紧，「跑山路线」四个字要缩一点才不挤 */
+  font-size: 18rpx;
   margin-top: 6rpx;
   white-space: nowrap;
 }
@@ -103,6 +103,33 @@
   border: 4rpx solid #6e6e6e;
   border-left: none;
   box-sizing: border-box;
+}
+
+/* 消息：对话气泡 + 左下角小尾巴 */
+.icon-msg {
+  position: relative;
+}
+
+.msg-body {
+  position: absolute;
+  left: 4rpx;
+  top: 2rpx;
+  width: 32rpx;
+  height: 26rpx;
+  border: 4rpx solid #6e6e6e;
+  border-radius: 8rpx;
+  box-sizing: border-box;
+}
+
+.msg-tail {
+  position: absolute;
+  left: 10rpx;
+  top: 26rpx;
+  width: 10rpx;
+  height: 10rpx;
+  border-left: 4rpx solid #6e6e6e;
+  border-bottom: 4rpx solid #6e6e6e;
+  transform: skewX(-20deg);
 }
 
 /* ---------- 中间凸起按钮 ---------- */

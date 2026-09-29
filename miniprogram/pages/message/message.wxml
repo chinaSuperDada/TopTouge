@@ -1,0 +1,32 @@
+<view class="page">
+  <view class="placeholder">
+    <view class="ph-mark">
+      <view class="bubble"></view>
+      <view class="bubble bubble-sm"></view>
+    </view>
+
+    <text class="ph-title">消息</text>
+    <text class="ph-desc">这里会有群消息和车友私信</text>
+
+    <!--
+      还没做设计，先把打算放的类别列出来 —— 让人知道这块要做成什么，
+      而不是一个纯空页。
+    -->
+    <view class="ph-list">
+      <view class="ph-item">
+        <text class="ph-item-name">群消息</text>
+        <text class="ph-item-desc">你加入的跑山群、路线群里的话题</text>
+      </view>
+      <view class="ph-item">
+        <text class="ph-item-name">私信</text>
+        <text class="ph-item-desc">车友之间的一对一聊天</text>
+      </view>
+      <view class="ph-item">
+        <text class="ph-item-name">系统通知</text>
+        <text class="ph-item-desc">审核结果、活动提醒、成绩变化</text>
+      </view>
+    </view>
+
+    <view class="ph-tag">功能开发中</view>
+  </view>
+</view>
