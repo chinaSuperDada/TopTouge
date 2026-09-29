@@ -294,15 +294,6 @@
   white-space: nowrap;
 }
 
-/* 加了爬升后一行放不下，允许折行。
-   基类的 overflow:hidden + nowrap 是为「宁可裁掉也不要挤成两行」设计的，
-   但这里的信息都该看到，所以覆写成可折行 */
-.card-meta-wrap {
-  flex-wrap: wrap;
-  white-space: normal;
-  overflow: visible;
-}
-
 .meta-item {
   white-space: nowrap;
 }
@@ -312,7 +303,7 @@
   color: var(--text-tertiary);
 }
 
-/* 底部一行：星级 + 热度 */
+/* 底部一行：星级 + 城市和热度 */
 .card-foot {
   display: flex;
   align-items: center;
@@ -321,6 +312,8 @@
 
 .stars {
   display: flex;
+  /* 城市名可能很长（如「阿拉善盟」），星级不能被挤扁 */
+  flex-shrink: 0;
 }
 
 /* 星级用小方块，比字符整齐且不依赖字体 */
@@ -336,9 +329,15 @@
   background: var(--accent);
 }
 
+/* 「城市 · 🔥 热度」。城市名超长时省略，别把星级挤变形 */
 .heat {
   font-size: var(--fs-caption);
   color: var(--text-tertiary);
+  margin-left: var(--space-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ---------- 状态 ---------- */
