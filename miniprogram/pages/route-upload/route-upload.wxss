@@ -172,21 +172,75 @@
   color: var(--text-secondary);
 }
 
-/* ---------- 候选地点 ---------- */
+/* ---------- 候选地点浮层 ---------- */
 
+/*
+ * fixed 定位，贴在键盘上方。
+ * bottom 由 JS 按键盘高度动态设置 —— 内联在表单里的话，
+ * 键盘一弹就把列表盖住，用户看不见也点不到。
+ */
 .candidates {
-  border-top: 2rpx solid var(--divider);
-  max-height: 480rpx;
-  overflow-y: auto;
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* bottom 由 style 覆盖，这里的值只是键盘高度取不到时的兜底 */
+  bottom: 0;
+  z-index: 100;
+  background: var(--bg-surface);
+  border-top: 2rpx solid var(--border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.45);
+  /* 最多占屏幕一半，保证还能看到一些地图 */
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.candidates-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 2rpx solid var(--divider);
+  flex-shrink: 0;
+}
+
+.candidates-title {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+}
+
+.candidates-close {
+  font-size: var(--fs-label);
+  color: var(--accent);
+  padding: 4rpx 12rpx;
+}
+
+.candidates-scroll {
+  /* flex:1 + min-height:0 才能在父级 max-height 内正确滚动 */
+  flex: 1;
+  min-height: 0;
 }
 
 .candidate {
-  padding: var(--space-2) 0;
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
   border-bottom: 2rpx solid var(--divider);
 }
 
 .candidate:last-child {
   border-bottom: none;
+}
+
+.candidate:active {
+  background: var(--bg-elevated);
+}
+
+.candidate-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .candidate-name {
@@ -197,6 +251,21 @@
 }
 
 .candidate-district {
+  display: block;
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 历史项标识 */
+.candidate-badge {
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+  padding: 4rpx 12rpx;
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
   font-size: var(--fs-caption);
   color: var(--text-tertiary);
 }

@@ -27,8 +27,31 @@
 
 **产品化功能**（已完成）
 
-- 首页活动位（人工活动 + 算法位）、收藏、用户资料（昵称头像）、版主工作台与路线审核
+- 首页活动位（人工活动 + 算法位）、跑山活动页、收藏、用户资料（昵称头像）、
+  版主工作台与路线审核
 - 路线重合度：上传时查重、相似路线推荐
+- 地点搜索历史：搜过/选过的地点存本地，下次点搜索框直接选
+
+## 错误处理约定
+
+**技术细节永远不给用户看。** 用户看到「无法连接服务器（errMsg: xxx）」
+只会觉得产品不专业，而且他既看不懂也做不了什么。
+
+| 谁看 | 看什么 | 在哪 |
+|---|---|---|
+| 用户 | 一句白话（「网络开小差了，请稍后再试」） | `wx.showToast` / 页面错误态 |
+| 管理员 | 完整细节：URL、错误码、errMsg、页面、机型、版本 | `client_errors` 表 |
+
+上报由 `miniprogram/utils/errorReporter.js` 负责：静默发送，失败进本地队列
+下次补发，**绝不抛错也不阻塞主流程**。查错误直接看 `client_errors` 表：
+
+```sql
+SELECT created_at, code, message, page, url, model, system
+  FROM client_errors ORDER BY id DESC LIMIT 50;
+```
+
+改代码时注意：`.catch(err => showToast(err.message))` 这种写法要改成
+展示固定白话 + `reporter.report({ detail: err.detail })`。
 
 **数据源**：微信云托管 + MySQL。也支持 `DATA_SOURCE=memory` 纯内存模式，
 用于本地开发和跑测试。数据访问集中在 `server/src/repositories/` 一层，
@@ -101,6 +124,9 @@ npm run dev            # http://localhost:3000
 | POST | `/api/routes/check-duplicate` | 上传前查重 |
 | GET/POST | `/api/routes/:id/comments` | 评论 |
 | GET/POST | `/api/routes/:id/road-conditions` | 路况提示 |
+| GET | `/api/banners` | 首页活动位（人工活动 + 算法位） |
+| GET | `/api/banners/activities` | 跑山活动（只要人工活动） |
+| POST | `/api/client-errors` | 客户端错误上报 |
 | POST | `/api/runs` | 提交跑山成绩 |
 | GET | `/api/me/*` | 我的成绩 / 路线 / 收藏 / 资料 / 版主身份 |
 | GET/POST | `/api/moderator/*` | 版主审核 / 置顶 / 下架 / 活动 |

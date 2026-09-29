@@ -31,6 +31,8 @@
             placeholder="起点，例如：西山公园"
             placeholder-class="input-placeholder"
             data-field="source"
+            adjust-position="{{true}}"
+            cursor-spacing="20"
             bindfocus="onFocusField"
             bindinput="onKeywordInput"
           />
@@ -70,6 +72,8 @@
             placeholder="终点，例如：龙泉寺"
             placeholder-class="input-placeholder"
             data-field="destination"
+            adjust-position="{{true}}"
+            cursor-spacing="20"
             bindfocus="onFocusField"
             bindinput="onKeywordInput"
           />
@@ -93,6 +97,8 @@
             placeholder-class="input-placeholder"
             focus="{{pickingWaypoint}}"
             data-field="waypoint"
+            adjust-position="{{true}}"
+            cursor-spacing="20"
             bindinput="onKeywordInput"
           />
         </view>
@@ -104,8 +110,25 @@
         <text class="status" wx:elif="{{planning}}">规划路线中…</text>
       </view>
 
-      <!-- 候选地点列表 -->
-      <view class="candidates" wx:if="{{candidates.length > 0}}">
+      <view class="error-box" wx:if="{{planError}}">{{planError}}</view>
+    </view>
+
+    <!--
+      候选地点浮层。
+      必须是 fixed —— 内联在表单里的话键盘一弹就把列表盖住，
+      用户只能凭记忆盲敲。浮层贴在键盘上方（bottom 用键盘高度抬高）。
+    -->
+    <view
+      class="candidates"
+      wx:if="{{candidates.length > 0}}"
+      style="bottom: {{keyboardHeight}}px"
+    >
+      <view class="candidates-head">
+        <text class="candidates-title">{{searching ? '搜索结果' : '最近使用'}}</text>
+        <text class="candidates-close" bindtap="onCloseCandidates">收起</text>
+      </view>
+
+      <scroll-view class="candidates-scroll" scroll-y>
         <view
           class="candidate"
           wx:for="{{candidates}}"
@@ -113,12 +136,14 @@
           data-index="{{index}}"
           bindtap="onPickCandidate"
         >
-          <text class="candidate-name">{{item.name}}</text>
-          <text class="candidate-district">{{item.district}}{{item.address}}</text>
+          <view class="candidate-main">
+            <text class="candidate-name">{{item.name}}</text>
+            <text class="candidate-district">{{item.district}}{{item.address}}</text>
+          </view>
+          <!-- 历史项加个标识，和搜索结果区分开 -->
+          <text class="candidate-badge" wx:if="{{!searching}}">历史</text>
         </view>
-      </view>
-
-      <view class="error-box" wx:if="{{planError}}">{{planError}}</view>
+      </scroll-view>
     </view>
   </block>
 

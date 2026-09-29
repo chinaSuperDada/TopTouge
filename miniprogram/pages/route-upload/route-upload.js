@@ -3,6 +3,7 @@ const mock = require('../../utils/mock')
 const reporter = require('../../utils/errorReporter')
 const amap = require('../../utils/amap')
 const location = require('../../utils/location')
+const placeHistory = require('../../utils/placeHistory')
 const { ROAD_WIDTH_OPTIONS, ROAD_WIDTH_LABELS } = require('../../utils/roadWidth')
 
 /** 路型选项。value 必须与后端 constants / validator 里的枚举一致 */
@@ -63,6 +64,8 @@ Page({
     // 新加的途经点输入框是否展开
     pickingWaypoint: false,
     candidates: [],
+    // 候选列表是浮层，需要知道键盘高度才能贴在键盘上方
+    keyboardHeight: 0,
     searching: false,
     planning: false,
     planError: '',
@@ -73,6 +76,7 @@ Page({
   onLoad() {
     this._debounceTimer = null
     this.initLocation()
+    this.initKeyboard()
   },
 
   /**
@@ -111,6 +115,26 @@ Page({
 
   onUnload() {
     if (this._debounceTimer) clearTimeout(this._debounceTimer)
+    wx.offKeyboardHeightChange(this._keyboardHandler)
+  },
+
+  /* ==================== 键盘 ==================== */
+
+  /**
+   * 跟踪键盘高度。
+   *
+   * 候选地点列表是 fixed 浮层，要贴在键盘上方 —— 否则键盘一弹起来
+   * 就把列表盖住，用户看不到也点不到，只能凭记忆盲敲。
+   *
+   * 页面本身还配了 adjust-position，双保险：就算键盘高度取不到，
+   * 页面也会自动上推，不至于完全被挡住。
+   */
+  initKeyboard() {
+    this._keyboardHandler = (res) => {
+      this.setData({ keyboardHeight: res.height || 0 })
+    }
+
+    wx.onKeyboardHeightChange(this._keyboardHandler)
   },
 
   /* ==================== 模式切换 ==================== */
@@ -125,10 +149,27 @@ Page({
 
   /* ==================== 搜索模式 ==================== */
 
-  /** 聚焦某个搜索框，之后的候选列表就填给它 */
+  /**
+   * 聚焦某个搜索框。
+   *
+   * 输入框还是空的就先展示历史地点 —— 跑山的人常跑同一批地方，
+   * 每次重新敲一遍很烦。开始输入后历史会被搜索结果替换。
+   */
   onFocusField(e) {
     const field = e.currentTarget.dataset.field
-    this.setData({ picking: field, candidates: [] })
+    const keyword = this.data[`${field}Keyword`] || ''
+
+    if (keyword.trim()) {
+      // 已经有内容，说明用户在改之前的输入，别拿历史盖掉搜索结果
+      this.setData({ picking: field })
+      return
+    }
+
+    this.setData({
+      picking: field,
+      candidates: placeHistory.list(),
+      searching: false
+    })
   },
 
   onKeywordInput(e) {
@@ -139,8 +180,9 @@ Page({
 
     if (this._debounceTimer) clearTimeout(this._debounceTimer)
 
+    // 清空输入框时退回历史列表，而不是留一片空白
     if (!keyword.trim()) {
-      this.setData({ candidates: [], searching: false })
+      this.setData({ candidates: placeHistory.list(), searching: false })
       return
     }
 
@@ -193,6 +235,10 @@ Page({
       patch.canAddWaypoint = waypoints.length < MAX_WAYPOINTS
     }
 
+    // 只在真正选了地点时记历史。历史列表里的条目再选一次也无妨 ——
+    // placeHistory.add 会把同名的提到最前，不会重复
+    placeHistory.add(place)
+
     this.setData(patch)
     this.afterPlaceChange()
   },
@@ -201,6 +247,11 @@ Page({
   onAddWaypoint() {
     if (!this.data.canAddWaypoint) return
     this.setData({ pickingWaypoint: true, picking: 'waypoint', candidates: [] })
+  },
+
+  /** 收起候选浮层，让用户能重新看地图 */
+  onCloseCandidates() {
+    this.setData({ candidates: [], picking: '', pickingWaypoint: false })
   },
 
   onRemoveWaypoint(e) {
