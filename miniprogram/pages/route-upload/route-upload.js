@@ -1,4 +1,5 @@
 const api = require('../../utils/request')
+const mock = require('../../utils/mock')
 const amap = require('../../utils/amap')
 const location = require('../../utils/location')
 const { ROAD_WIDTH_OPTIONS, ROAD_WIDTH_LABELS } = require('../../utils/roadWidth')
@@ -385,6 +386,64 @@ Page({
       .catch(() => ({ province: '', city: '' }))
   },
 
+  /**
+   * 查重。
+   *
+   * 命中重复时不直接拒绝 —— 判断权交给用户：同一条山路的不同走法、
+   * 或者对方传得不准想重传，都该允许。这里只负责提醒。
+   *
+   * 查重失败不阻断提交（返回 null 表示「没查到 / 查不了」）——
+   * 它是锦上添花的功能，不该因为它挂了就传不了路线。
+   *
+   * @returns {Promise<{duplicate: object|null, similar: Array}>}
+   */
+  checkDuplicate(points, region) {
+    return mock
+      .checkDuplicate({
+        trackPoints: points,
+        province: region.province,
+        city: region.city
+      })
+      .then((res) => {
+        const similar = res.similar || []
+        return {
+          duplicate: similar.find((s) => s.level === 'duplicate') || null,
+          similar
+        }
+      })
+      .catch(() => ({ duplicate: null, similar: [] }))
+  },
+
+  /** 真正发提交请求 */
+  doSubmit(name, points, region, similar) {
+    return api
+      .post('/api/routes', {
+        name,
+        roadWidth: ROAD_WIDTH_OPTIONS[this.data.roadWidthIndex].value,
+        roadType: ROAD_TYPE_OPTIONS[this.data.roadTypeIndex].value,
+        // 途经点只用于导航与分享，按采集顺序传
+        waypoints: this.data.waypoints.map((w) => ({
+          lat: w.place.lat,
+          lng: w.place.lng,
+          name: w.place.name
+        })),
+        trackPoints: points,
+        province: region.province,
+        city: region.city
+      })
+      .then((route) => {
+        wx.hideLoading()
+        wx.showToast({ title: '上传成功', icon: 'success' })
+        setTimeout(() => {
+          wx.redirectTo({ url: `/pages/route-detail/route-detail?id=${route.id}` })
+        }, 600)
+      })
+      .catch(() => {
+        wx.hideLoading()
+        this.setData({ submitting: false })
+      })
+  },
+
   onSubmit() {
     const name = this.data.name.trim()
     if (!name) {
@@ -401,40 +460,47 @@ Page({
     if (this.data.submitting) return
 
     this.setData({ submitting: true })
-    wx.showLoading({ title: '提交中…', mask: true })
+    wx.showLoading({ title: '检查中…', mask: true })
 
     const points = this.data.points
     const first = points[0]
 
-    this.resolveRegion(first)
-      .then((region) => {
-        this.setData({ regionText: region.city || region.province || '' })
+    this.resolveRegion(first).then((region) => {
+      this.setData({ regionText: region.city || region.province || '' })
 
-        return api.post('/api/routes', {
-          name,
-          roadWidth: ROAD_WIDTH_OPTIONS[this.data.roadWidthIndex].value,
-          roadType: ROAD_TYPE_OPTIONS[this.data.roadTypeIndex].value,
-          // 途经点只用于导航与分享，按采集顺序传
-          waypoints: this.data.waypoints.map((w) => ({
-            lat: w.place.lat,
-            lng: w.place.lng,
-            name: w.place.name
-          })),
-          trackPoints: points,
-          province: region.province,
-          city: region.city
+      this.checkDuplicate(points, region).then(({ duplicate, similar }) => {
+        // 没查到重复，直接传
+        if (!duplicate) {
+          wx.showLoading({ title: '提交中…', mask: true })
+          this.doSubmit(name, points, region, similar)
+          return
+        }
+
+        wx.hideLoading()
+
+        // 查到高度重合的路线 —— 让用户自己决定
+        wx.showModal({
+          title: '发现相似路线',
+          content: `「${duplicate.name}」与这条路线重合度 ${Math.round(
+            duplicate.overlapRatio * 100
+          )}%，可能走的是同一条路。仍要上传吗？`,
+          confirmText: '仍要上传',
+          cancelText: '先看看',
+          success: (res) => {
+            if (res.confirm) {
+              wx.showLoading({ title: '提交中…', mask: true })
+              this.doSubmit(name, points, region, similar)
+              return
+            }
+
+            // 「先看看」跳去已有那条 —— 多半用户就是想去看看
+            this.setData({ submitting: false })
+            wx.navigateTo({
+              url: `/pages/route-detail/route-detail?id=${duplicate.id}`
+            })
+          }
         })
       })
-      .then((route) => {
-        wx.hideLoading()
-        wx.showToast({ title: '上传成功', icon: 'success' })
-        setTimeout(() => {
-          wx.redirectTo({ url: `/pages/route-detail/route-detail?id=${route.id}` })
-        }, 600)
-      })
-      .catch(() => {
-        wx.hideLoading()
-        this.setData({ submitting: false })
-      })
+    })
   }
 })

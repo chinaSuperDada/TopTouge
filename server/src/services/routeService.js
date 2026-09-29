@@ -4,7 +4,8 @@ const roadConditionRepo = require('../repositories/roadConditionRepo')
 
 const { computeStats } = require('./statsService')
 const { computeStars } = require('./difficultyService')
-const { simplifyToMaxPoints } = require('../geo/simplify')
+const { simplifyToMaxPoints, planarDistance } = require('../geo/simplify')
+const { overlapRatio, similarityLevel } = require('../geo/similarity')
 const { notFound, badRequest } = require('../errors')
 const {
   DEFAULT_RADIUS_METERS,
@@ -159,11 +160,113 @@ async function deleteOwnRoute(routeId, userId) {
   return { id: routeId, deleted: true }
 }
 
+/**
+ * 找和给定轨迹重合的已有路线。
+ *
+ * 两处用得到：上传前查重（避免同一条山路被传好几遍）、
+ * 详情页「相似路线」推荐。
+ *
+ * 性能上分两步，不能直接对全表算：
+ *   1. 粗筛 —— 用起点距离从库里捞候选。跑山路线起点相隔几十公里
+ *      就不可能是同一条，先用 SQL 把范围缩小到个位数
+ *   2. 精算 —— 只对候选算轨迹重合度（O(采样数 × 点数)，比 SQL 贵得多）
+ *
+ * 粗筛半径默认 30km：同一条山路的不同入口、不同走法，起点一般不会
+ * 超出这个量级；再大就会把不相干的路捞进来做无谓的精算。
+ *
+ * @param {Array<{lat,lng}>} track 待比对的轨迹
+ * @param {{excludeId?, province?, city?, limit?, radiusMeters?}} [options]
+ * @returns {Promise<Array>} 按重合度降序，含 overlapRatio 与 level
+ */
+async function findSimilarRoutes(track, options = {}) {
+  const {
+    excludeId = null,
+    province = '',
+    city = '',
+    limit = 5,
+    radiusMeters = 30000
+  } = options
+
+  if (!Array.isArray(track) || track.length < 2) return []
+
+  const origin = track[0]
+
+  // 粗筛。按起点距离排序取前 50 —— 比按热度靠谱，
+  // 因为精算只关心几何上可能重合的
+  const candidates = await routeRepo.list({
+    province: province || 'all',
+    city: city || 'all',
+    sort: 'nearby',
+    lat: origin.lat,
+    lng: origin.lng,
+    limit: 50
+  })
+
+  const scored = []
+
+  for (const route of candidates) {
+    if (excludeId !== null && Number(route.id) === Number(excludeId)) continue
+
+    // 用全量轨迹算 —— 抽稀过的 displayTrack 已经丢了细节，
+    // 拿它当比对基准会让「同一段路」看起来比实际更不像
+    const otherTrack = route.referenceTrack
+    if (!Array.isArray(otherTrack) || otherTrack.length < 2) continue
+
+    // 起点太远直接跳过，省掉一次几何计算
+    const startGap = planarDistance(origin, otherTrack[0])
+    if (startGap > radiusMeters) continue
+
+    const ratio = overlapRatio(track, otherTrack)
+    if (ratio <= 0) continue
+
+    scored.push({
+      id: route.id,
+      name: route.name,
+      distanceMeters: route.distanceMeters,
+      difficultyStars: route.difficultyStars,
+      curveCount: route.curveCount,
+      province: route.province,
+      city: route.city,
+      overlapRatio: Math.round(ratio * 100) / 100,
+      level: similarityLevel(ratio)
+    })
+  }
+
+  scored.sort((a, b) => b.overlapRatio - a.overlapRatio)
+  return scored.slice(0, limit)
+}
+
+/**
+ * 某条已存在路线的相似路线。
+ *
+ * 比 findSimilarRoutes 多一步：要先把这条路线自己的轨迹取出来。
+ * 用全量 referenceTrack —— displayTrack 是抽稀过的，拿它当比对基准
+ * 会让两条同路线的重合度被低估。
+ */
+async function findSimilarToRoute(routeId, options = {}) {
+  const route = await routeRepo.getById(routeId)
+  if (!route) throw notFound(`路线 ${routeId} 不存在`)
+
+  const track = route.referenceTrack
+  if (!Array.isArray(track) || track.length < 2) return []
+
+  return findSimilarRoutes(track, {
+    ...options,
+    excludeId: routeId,
+    // 不按省市过滤 —— 相似路线本来就该跨省也能发现，
+    // 起点的 30km 粗筛已经把范围收得够紧了
+    province: '',
+    city: ''
+  })
+}
+
 module.exports = {
   listRoutes,
   getRouteDetail,
   createRoute,
   toSummary,
   resolveReviewStatus,
-  deleteOwnRoute
+  deleteOwnRoute,
+  findSimilarRoutes,
+  findSimilarToRoute
 }

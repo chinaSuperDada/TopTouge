@@ -286,6 +286,75 @@ test('POST /api/routes 上传路线', async (t) => {
   })
 })
 
+test('POST /api/routes/check-duplicate 上传查重', async (t) => {
+  t.beforeEach(resetWithSeed)
+
+  await t.test('能查到同一条轨迹', async () => {
+    const track = sampleTrack()
+
+    await request(app)
+      .post('/api/routes')
+      .send({ name: '第一条', roadWidth: 'wide', trackPoints: track })
+      .expect(201)
+
+    const res = await request(app)
+      .post('/api/routes/check-duplicate')
+      .send({ trackPoints: track })
+      .expect(200)
+
+    assert.ok(Array.isArray(res.body.similar))
+    // 完全相同的轨迹，重合度应该是 1，判为 duplicate
+    const hit = res.body.similar.find((s) => s.name === '第一条')
+    assert.ok(hit, '应能查到刚上传的那条')
+    assert.strictEqual(hit.overlapRatio, 1)
+    assert.strictEqual(hit.level, 'duplicate')
+  })
+
+  await t.test('轨迹少于 2 个点返回 400', async () => {
+    const res = await request(app)
+      .post('/api/routes/check-duplicate')
+      .send({ trackPoints: [{ lat: 30, lng: 120 }] })
+      .expect(400)
+
+    assert.match(res.body.error.message, /至少需要 2 个点/)
+  })
+
+  await t.test('缺少 trackPoints 返回 400', async () => {
+    const res = await request(app)
+      .post('/api/routes/check-duplicate')
+      .send({})
+      .expect(400)
+
+    assert.strictEqual(res.body.error.code, 'VALIDATION_FAILED')
+  })
+
+  await t.test('坐标全是 null 时被拒绝，不会当成 (0,0)', async () => {
+    const res = await request(app)
+      .post('/api/routes/check-duplicate')
+      .send({ trackPoints: [{ lat: null, lng: null }, { lat: null, lng: null }] })
+      .expect(400)
+
+    assert.match(res.body.error.message, /lat 非法/)
+  })
+})
+
+test('GET /api/routes/:id/similar 相似路线', async (t) => {
+  t.beforeEach(resetWithSeed)
+
+  await t.test('不存在的路线返回 404', async () => {
+    await request(app).get('/api/routes/99999/similar').expect(404)
+  })
+
+  await t.test('结果里不含自己', async () => {
+    const res = await request(app).get('/api/routes/1/similar').expect(200)
+
+    assert.ok(Array.isArray(res.body.similar))
+    res.body.similar.forEach((s) => {
+      assert.notStrictEqual(s.id, 1, '相似路线不应包含自己')
+    })
+  })
+})
+
 test('评论接口', async (t) => {
   t.beforeEach(resetWithSeed)
 

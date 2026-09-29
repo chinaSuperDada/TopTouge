@@ -1,7 +1,12 @@
 const express = require('express')
 const routeService = require('../services/routeService')
 const runService = require('../services/runService')
-const { validateCreateRoute, parseId, parseLimit } = require('../validators/routeValidator')
+const {
+  validateCreateRoute,
+  normalizeTrackPoints,
+  parseId,
+  parseLimit
+} = require('../validators/routeValidator')
 const { asyncHandler } = require('../middleware/asyncHandler')
 
 const router = express.Router()
@@ -43,11 +48,42 @@ router.get(
 )
 
 /**
- * GET /api/routes/:id/ranking — 路线成绩榜
+ * POST /api/routes/check-duplicate — 上传前查重
  *
- * 放在这个 router 里而不是独立的 runs.router，是因为它属于
- * 路线资源下的子资源。runs.router 只处理 POST /api/runs（独立路径）。
+ * 传一条轨迹，返回库里与它重合的已有路线。
+ * 放在 POST 而不是 GET，是因为轨迹可能有几千个点，塞进 query string
+ * 会超出 URL 长度限制。
+ *
+ * 必须注册在 /:id 之前 —— 否则 "check-duplicate" 会被当成 id 参数吃掉。
  */
+router.post(
+  '/check-duplicate',
+  asyncHandler(async (req, res) => {
+    const track = normalizeTrackPoints(req.body && req.body.trackPoints)
+    const similar = await routeService.findSimilarRoutes(track, {
+      province: req.body.province || '',
+      city: req.body.city || '',
+      limit: parseLimit(req.body.limit, 5, 20)
+    })
+    res.json({ similar })
+  })
+)
+
+/**
+ * GET /api/routes/:id/similar — 这条路线的相似路线
+ *
+ * 用全量轨迹算，所以要绕开列表接口（它不返回 referenceTrack）。
+ */
+router.get(
+  '/:id/similar',
+  asyncHandler(async (req, res) => {
+    const routeId = parseId(req.params.id)
+    const limit = parseLimit(req.query.limit, 5, 20)
+    res.json({ similar: await routeService.findSimilarToRoute(routeId, { limit }) })
+  })
+)
+
+/** GET /api/routes/:id/ranking — 路线成绩榜 */
 router.get(
   '/:id/ranking',
   asyncHandler(async (req, res) => {

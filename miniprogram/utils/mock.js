@@ -85,6 +85,21 @@ function getRanking(routeId) {
   return api.get(`/api/routes/${routeId}/ranking`).then((res) => res.ranking || [])
 }
 
+/** 这条路线的相似路线（按轨迹重合度） */
+function getSimilarRoutes(routeId) {
+  return api.get(`/api/routes/${routeId}/similar`).then((res) => res.similar || [])
+}
+
+/**
+ * 上传前查重。
+ *
+ * 传一条轨迹，返回库里和它重合的已有路线。命中度高的（level=duplicate）
+ * 应该提示用户确认，避免同一条山路被反复上传。
+ */
+function checkDuplicate({ trackPoints, province, city }) {
+  return api.post('/api/routes/check-duplicate', { trackPoints, province, city })
+}
+
 /**
  * 提交跑山成绩。
  *
@@ -239,6 +254,8 @@ module.exports = {
   queryRoutes,
   getRoute,
   getRanking,
+  getSimilarRoutes,
+  checkDuplicate,
   submitRun,
   getBanners,
 
