@@ -71,6 +71,42 @@
           <view class="btn btn-ghost action-btn" bindtap="onNavigate">分享路线到微信</view>
         </view>
       </view>
+
+      <!-- 相似路线。按轨迹重合度算 -->
+      <view class="card similar-card" wx:if="{{similar.length > 0}}">
+        <view class="rank-head">
+          <text class="rank-title">相似路线</text>
+          <text class="rank-sub">{{similar.length}} 条</text>
+        </view>
+
+        <view
+          class="sim-item"
+          wx:for="{{similar}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onSimilarTap"
+        >
+          <view class="sim-main">
+            <view class="sim-name-row">
+              <text class="sim-name">{{item.name}}</text>
+              <!-- 重合度很高时提示可能是同一条路 -->
+              <text class="sim-flag" wx:if="{{item.isDuplicate}}">可能重复</text>
+            </view>
+            <view class="sim-meta">
+              <text>{{item.distanceText}}</text>
+              <text class="meta-dot">·</text>
+              <text>{{item.curveCount}} 弯</text>
+              <text class="meta-dot">·</text>
+              <text>{{item.city}}</text>
+            </view>
+          </view>
+
+          <view class="sim-overlap">
+            <text class="sim-pct t-num">{{item.overlapText}}%</text>
+            <text class="sim-pct-label">重合</text>
+          </view>
+        </view>
+      </view>
     </block>
 
     <!-- ============ Tab 2：路线排名 ============ -->
@@ -91,7 +127,6 @@
               <view class="avatar-sm avatar-fallback" wx:else>{{item.avatarText}}</view>
               <text class="rank-user">{{item.userName}}</text>
             </view>
-            <text class="rank-time">{{item.totalTimeSeconds}} 秒</text>
           </view>
           <view class="rank-score">
             <text class="score-num">{{item.score}}</text>
