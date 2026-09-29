@@ -112,12 +112,13 @@
 }
 
 /* 排序与删除的小按钮 */
+/* 排序箭头。做小一点 —— 它们是次要操作，别和 ＋/− 抢注意力 */
 .tool {
-  width: 56rpx;
-  height: 56rpx;
-  line-height: 56rpx;
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 44rpx;
   text-align: center;
-  font-size: 30rpx;
+  font-size: 26rpx;
   color: var(--text-secondary);
   border-radius: var(--radius-sm);
 }
@@ -133,28 +134,32 @@
   opacity: 0.35;
 }
 
-.tool-del {
-  color: var(--danger);
-}
-
-/* ---------- 行内的 ＋ 添加途经点 ---------- */
+/* ---------- 行内的 − / ＋ ---------- */
 
 /*
- * 每行地址右侧一个小圆按钮。在哪行点，新的途经点输入框就插在哪行下面 ——
- * 比原来「底部一个添加按钮 + 加完再用箭头挪」直接得多。
+ * 每行地址右侧的小圆钮：
+ *   −  删掉这个途经点
+ *   ＋ 在这一行下面插入新途经点
+ *
+ * 两个并排、同样大小，一眼能看出「可以加也可以减」。
+ * 之前删除藏在 ↑↓✕ 三个小图标里，用户根本没发现。
  */
-.add-btn {
-  width: 52rpx;
-  height: 52rpx;
-  line-height: 48rpx;
+.add-btn,
+.del-btn {
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 40rpx;
   text-align: center;
   border-radius: 50%;
+  font-size: 28rpx;
+  flex-shrink: 0;
+  margin-left: 10rpx;
+  box-sizing: border-box;
+}
+
+.add-btn {
   border: 2rpx solid var(--accent);
   color: var(--accent);
-  font-size: 30rpx;
-  flex-shrink: 0;
-  margin-left: var(--space-2);
-  box-sizing: border-box;
 }
 
 .add-btn:active {
@@ -169,6 +174,17 @@
 
 .add-btn-off:active {
   background: transparent;
+}
+
+.del-btn {
+  border: 2rpx solid var(--border-strong);
+  color: var(--text-secondary);
+}
+
+.del-btn:active {
+  background: rgba(229, 72, 77, 0.16);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 /* 取消插入（收起那个输入框） */

@@ -74,6 +74,7 @@
             <text class="dot dot-via"></text>
             <view class="via-box flex-1">
               <text class="via-name">{{item.place.name}}</text>
+              <!-- 只剩排序。删除挪到右边的 − 圆钮上，和 ＋ 对称 -->
               <view class="via-tools">
                 <text
                   class="tool {{index === 0 ? 'tool-off' : ''}}"
@@ -85,9 +86,10 @@
                   data-index="{{index}}"
                   catchtap="onMoveWaypointDown"
                 >↓</text>
-                <text class="tool tool-del" data-index="{{index}}" catchtap="onRemoveWaypoint">✕</text>
               </view>
             </view>
+            <!-- − 和 ＋ 并排，一眼能看出「可以加也可以减」 -->
+            <view class="del-btn" data-index="{{index}}" catchtap="onRemoveWaypoint">−</view>
             <view
               class="add-btn {{canAddWaypoint ? '' : 'add-btn-off'}}"
               data-after="{{index}}"
