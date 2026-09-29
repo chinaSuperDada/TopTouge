@@ -45,7 +45,15 @@
         </view>
       </view>
 
-      <!-- 输入框插在起点下面（= 所有途经点之前） -->
+      <!--
+        插入位置的渲染点一：索引 0，即「所有途经点之前」。
+        途经点为空时它也在同一位置，正好等于「插到末尾」。
+
+        整个表单只有这两个渲染点（另一个在下面的循环里），
+        条件互斥：这个要求索引 === 0，那个要求索引 === 序号+1（≥ 1），
+        不可能同时成立。之前有三处判断，0 个途经点时 「起点下面」
+        和「末尾」会同时命中，导致两个输入框一起冒出来。
+      -->
       <view class="field" wx:if="{{pickingWaypoint && pickingInsertIndex === 0}}">
         <view class="field-row">
           <text class="dot dot-via"></text>
@@ -140,24 +148,17 @@
         </view>
       </view>
 
-      <!-- 输入框插在最后（终点上面的位置） -->
-      <view class="field" wx:if="{{pickingWaypoint && pickingInsertIndex === waypoints.length}}">
-        <view class="field-row">
-          <text class="dot dot-via"></text>
-          <input
-            class="input flex-1"
-            value="{{waypointKeyword}}"
-            placeholder="搜索途经点"
-            placeholder-class="input-placeholder"
-            focus="{{pickingWaypoint}}"
-            data-field="waypoint"
-            adjust-position="{{true}}"
-            cursor-spacing="20"
-            bindinput="onKeywordInput"
-          />
-          <view class="add-btn add-btn-cancel" catchtap="onCloseCandidates">✕</view>
-        </view>
-      </view>
+      <!--
+        这里原本还有第三个渲染块，专门画「插到最末」的输入框。
+        它和循环里最后一行的条件是同一件事（当索引 = 途经点数时），
+        会在「0 个途经点点起点 ＋」和「点途经点/终点的 ＋」时双双命中，
+        冒出两个输入框。现在由上面那个索引 0 的块和循环里的块覆盖，
+        不再需要。
+
+        注意：点终点右边的 ＋ 时 insertIndex = 途经点数，
+        输入框会画在循环里最后一行（途经点 N）的下面 ——
+        视觉上就是在终点上方，符合预期。
+      -->
 
       <view class="via-count" wx:if="{{waypoints.length > 0}}">
         已加 {{waypoints.length}} 个途经点{{canAddWaypoint ? '' : '（已达上限）'}}
