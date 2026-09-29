@@ -26,6 +26,10 @@ function createRepo(table, memoryCollection, label) {
     async listByRoute(routeId, limit) {
       return memoryCollection.listByRoute(routeId, limit)
     },
+    async countByRoute(routeId) {
+      // 内存集合没有 count，拉全量算长度 —— 数据量小，够用
+      return memoryCollection.listByRoute(routeId, Number.MAX_SAFE_INTEGER).length
+    },
     async create(item) {
       return memoryCollection.insert(item)
     }
@@ -79,11 +83,27 @@ function createRepo(table, memoryCollection, label) {
         content: r.content,
         createdAt: toIso(r.created_at)
       }
+    },
+
+    /**
+     * 某条路线下的总数。
+     *
+     * 详情页只内嵌最近 10 条，但 tab 上要显示真实总数 ——
+     * 拿返回数组的长度当总数，超过 10 条后会一直卡在 10。
+     */
+    async countByRoute(routeId) {
+      const { getPool } = require('../db/pool')
+      const [rows] = await getPool().execute(
+        `SELECT COUNT(*) AS n FROM ${table} WHERE route_id = ?`,
+        [routeId]
+      )
+      return rows[0].n
     }
   }
 
   return {
     listByRoute: (...a) => (useMysql() ? mysqlImpl : memoryImpl).listByRoute(...a),
+    countByRoute: (...a) => (useMysql() ? mysqlImpl : memoryImpl).countByRoute(...a),
     create: (...a) => (useMysql() ? mysqlImpl : memoryImpl).create(...a)
   }
 }

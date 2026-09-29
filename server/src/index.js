@@ -58,6 +58,10 @@ async function main() {
   const { startCleanupJob } = require('./jobs/cleanupTracks')
   startCleanupJob()
 
+  // 定时重算热度（「热度最高」排序要用）
+  const { startHeatJob } = require('./jobs/recomputeHeat')
+  startHeatJob()
+
   const app = createApp()
   const server = app.listen(config.port, () => {
     console.log(`[TopTouge] 服务已启动，监听端口 ${config.port}`)

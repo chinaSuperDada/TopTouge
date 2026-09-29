@@ -178,7 +178,11 @@ Page({
         roadTypeText: ROAD_TYPE_LABEL[route.roadType] || '山路'
       },
       favorited: Boolean(route.favorited),
-      commentCount: (route.comments || []).length,
+      // 用后端给的总数，不是内嵌评论数组的长度 ——
+      // 内嵌只有最近 10 条，用长度当总数会一直卡在 10
+      commentCount: typeof route.commentCount === 'number'
+        ? route.commentCount
+        : (route.comments || []).length,
       loading: false,
       error: '',
       latitude: view.latitude,
@@ -287,9 +291,8 @@ Page({
   /**
    * 评论提交。
    *
-   * 后端接口还没实现，先只往本地数组里塞一条，让交互能走通。
-   * 接后端后换成 request.post(`/api/routes/${id}/comments`, { content })，
-   * 并把返回的评论插到列表头部。
+   * 先乐观更新（本地插入一条 + 计数加一），再发请求 ——
+   * 用户立刻看到自己的评论，不用等一个来回。失败了把那一条撤掉。
    */
   onCommentSubmit(e) {
     const content = e.detail.content
@@ -306,7 +309,9 @@ Page({
     }
 
     const comments = [optimistic, ...(this.data.route.comments || [])]
-    this.setData({ 'route.comments': comments, commentCount: comments.length })
+    // 计数是在原总数上加一 —— 不能写成 comments.length，
+    // 那会把它重新压回内嵌条数（最多 10）
+    this.setData({ 'route.comments': comments, commentCount: this.data.commentCount + 1 })
 
     api
       .post(`/api/routes/${this.data.routeId}/comments`, { content })

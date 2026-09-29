@@ -48,13 +48,15 @@ async function getRouteDetail(id, options = {}) {
   // 当前用户有没有收藏过 —— 详情页的收藏按钮要据此决定是实心还是空心。
   // 和评论/路况一样属于「随详情一起返回」的附属信息，不单独开接口
   const favoriteRepo = require('../repositories/favoriteRepo')
-  const [comments, roadConditions, favorited] = await Promise.all([
+  const [comments, roadConditions, favorited, commentCount] = await Promise.all([
     commentRepo.listByRoute(id, DETAIL_EMBED_LIMIT),
     roadConditionRepo.listByRoute(id, DETAIL_EMBED_LIMIT),
-    userId ? favoriteRepo.isFavorited(userId, id) : Promise.resolve(false)
+    userId ? favoriteRepo.isFavorited(userId, id) : Promise.resolve(false),
+    // 单独查总数 —— 内嵌的只有 10 条，拿它的长度当总数会一直卡在 10
+    commentRepo.countByRoute(id)
   ])
 
-  return { ...result, comments, roadConditions, favorited }
+  return { ...result, comments, roadConditions, favorited, commentCount }
 }
 
 /**
