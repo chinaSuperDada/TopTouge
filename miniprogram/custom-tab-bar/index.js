@@ -20,10 +20,19 @@ Component({
     colorActive: COLOR_ACTIVE,
     colorNormal: COLOR_NORMAL,
     colorBg: COLOR_BG,
+    /**
+     * 底部各位置。
+     *
+     * ⚠️ **下标必须和视觉位置一一对应** —— 中间那个凸起的加号也占一个
+     * 下标（path 为空表示它不切页面，点了弹制作方式的选择）。
+     *
+     * 之前加号没进数组，导致数据下标和视觉位置错开一位：
+     * 点「消息」跳到了「我的」，点「我的」因为越界而毫无反应。
+     */
     tabs: [
       { key: 'home', label: '跑山路线', path: '/pages/route-list/route-list' },
       { key: 'activity', label: '跑山活动', path: '/pages/route-activity/route-activity' },
-      // 消息排在加号右边、我的前面 —— 中间凸起按钮两侧各两个，视觉才对称
+      { key: 'create', label: '', path: '' },
       { key: 'message', label: '消息', path: '/pages/message/message' },
       { key: 'mine', label: '我的', path: '/pages/mine/mine' }
     ]

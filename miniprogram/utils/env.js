@@ -42,6 +42,15 @@ const CLOUD_SERVICE = 'toptouge-server'
 const FORCE_CLOUD = false
 
 /**
+ * 临时开关：置 true 可强制走局域网。
+ *
+ * 真机调试默认不走局域网（见 useCloud 的说明）。如果确实需要真机连本地
+ * ——比如云托管还没部署、或者要改代码立刻在手机上看到效果——
+ * 把这里置 true，并确认 LAN_BASE_URL 与 `ifconfig` 里的地址一致。
+ */
+const FORCE_LOCAL = false
+
+/**
  * 当前运行版本。
  *
  * develop —— 开发者工具 / 真机调试
@@ -57,19 +66,35 @@ function envVersion() {
   }
 }
 
+/** 是不是在开发者工具里跑。取不到系统信息时按真机处理（更保守） */
+function isDevtools() {
+  try {
+    return wx.getSystemInfoSync().platform === 'devtools'
+  } catch (err) {
+    return false
+  }
+}
+
 /**
  * 是否走云托管。
  *
- * 开发版走本地直连 —— 改完代码立刻生效，不用每次重新部署云托管；
- * 体验版和正式版走云托管 —— 手机上访问不到 localhost，也没有能备案的域名。
+ *   开发者工具 → 本地直连（改代码立刻生效，不用每次重新部署云托管）
+ *   真机 / 体验版 / 正式版 → 云托管
  *
- * 这个判断放在这里而不是写死，是因为「本地调试」和「部署体验版」
- * 两个场景要的东西完全相反，写死任何一个都会让另一个变难用。
+ * **为什么真机不走局域网**：局域网要求手机和电脑同一个 WiFi、路由器没开
+ * AP 隔离、防火墙放行、IP 没变 —— 四条同时成立才行，任何一条不满足
+ * 就是「网络开小差了」，而且从错误信息看不出是哪条。
+ * 云托管没这些前提，还能在服务端看到日志。
+ *
+ * 真机想连本地时把 FORCE_LOCAL 置 true。
  */
 const useCloud = () => {
   if (!CLOUD_ENV_ID) return false
   if (FORCE_CLOUD) return true
-  return envVersion() !== 'develop'
+  if (FORCE_LOCAL) return false
+
+  // 真机调试也是 develop，所以要额外判断是不是在开发者工具里
+  return envVersion() !== 'develop' || !isDevtools()
 }
 
 /** 本地开发用哪个地址 */
